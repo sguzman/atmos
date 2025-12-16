@@ -1,8 +1,8 @@
 use std::fs;
 
 use crate::scenes::config::{
-    camera_config_path, circle_config_path, cube_config_path, input_config_path, CameraConfig,
-    CircleConfig, CubeConfig, InputConfig,
+    camera_config_path, circle_config_path, cube_config_path, input_config_path, light_config_path,
+    CameraConfig, CircleConfig, CubeConfig, InputConfig, LightConfig,
 };
 use crate::scenes::world::WorldConfig;
 use bevy::log::{info, warn};
@@ -113,6 +113,28 @@ pub fn load_world_config(scene: &str) -> WorldConfig {
         Err(err) => {
             warn!("Failed to parse {path}: {err}. Falling back to empty world.");
             WorldConfig::default()
+        }
+    }
+}
+
+pub fn load_light_config(scene: &str) -> LightConfig {
+    let path = light_config_path(scene);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Falling back to defaults.");
+            return LightConfig::default();
+        }
+    };
+
+    match toml::from_str::<LightConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded light config from {path}.");
+            config
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Falling back to defaults.");
+            LightConfig::default()
         }
     }
 }

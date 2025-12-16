@@ -11,7 +11,8 @@ use crate::scenes::{
     },
     input::{apply_camera_input, resolve_camera_input_config, SceneCamera, SceneInputConfig},
     loaders::{
-        load_camera_config, load_circle_config, load_cube_config, load_input_config, load_world_config,
+        load_camera_config, load_circle_config, load_cube_config, load_input_config, load_light_config,
+        load_world_config,
     },
     world::{EntityPlacement, WorldConfig},
 };
@@ -58,6 +59,7 @@ fn setup_scene(
     let camera_config: CameraConfig = load_camera_config(&active_scene.name);
     let circle_config: CircleConfig = load_circle_config(&active_scene.name);
     let world_config: WorldConfig = load_world_config(&active_scene.name);
+    let light_config = load_light_config(&active_scene.name);
 
     if cube_config.physics.enabled {
         warn!(
@@ -89,6 +91,9 @@ fn setup_scene(
         &mut materials,
         &active_scene,
     );
+
+    // lights
+    spawn_lights(&light_config, &mut commands);
 
     // camera
     commands.spawn((
@@ -196,6 +201,67 @@ fn spawn_circle(
         .with_rotation(circle_rotation)
         .with_scale(Vec3::splat(placement.transform.scale)),
     ));
+}
+
+fn spawn_lights(light_config: &crate::scenes::config::LightConfig, commands: &mut Commands) {
+    let mut ambient_set = false;
+    for light in &light_config.lights {
+        let color = crate::scenes::config::parse_color(&light.color).unwrap_or([255, 255, 255]);
+        let color = Color::srgb_u8(color[0], color[1], color[2]);
+        match light.kind {
+            crate::scenes::config::LightKind::Ambient => {
+                if ambient_set {
+                    warn!("Multiple ambient lights specified; only the first is applied.");
+                    continue;
+                }
+                commands.insert_resource(AmbientLight {
+                    color,
+                    brightness: light.brightness,
+                    affects_lightmapped_meshes: true,
+                });
+                ambient_set = true;
+            }
+            crate::scenes::config::LightKind::Point => {
+                commands.spawn((
+                    PointLight {
+                        intensity: light.intensity,
+                        range: light.range.unwrap_or(20.0),
+                        shadows_enabled: light.shadows,
+                        color,
+                        ..default()
+                    },
+                    Transform::from_xyz(light.position.x, light.position.y, light.position.z),
+                ));
+            }
+            crate::scenes::config::LightKind::Directional => {
+                // Directional light uses rotation; look_at if provided
+                let mut transform = Transform::default();
+                if let Some(target) = &light.look_at {
+                    transform = Transform::from_translation(Vec3::ZERO)
+                        .looking_at(
+                            Vec3::new(target.x, target.y, target.z),
+                            Vec3::Y,
+                        );
+                }
+                commands.spawn((
+                    DirectionalLight {
+                        illuminance: light.intensity,
+                        shadows_enabled: light.shadows,
+                        color,
+                        ..default()
+                    },
+                    transform,
+                ));
+            }
+        }
+    }
+    if !ambient_set {
+        commands.insert_resource(AmbientLight {
+            color: Color::WHITE,
+            brightness: 0.0,
+            affects_lightmapped_meshes: true,
+        });
+    }
 }
 
 fn spawn_cube(
