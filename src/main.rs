@@ -23,6 +23,7 @@ fn setup(
 ) {
     info!("Bootstrapping 3D scene with inspector overlay enabled.");
     let cube_config = load_cube_config();
+    let camera_config = load_camera_config();
     if cube_config.physics.enabled {
         warn!(
             "Cube physics config is enabled but not applied yet (body_type={}, mass={}, restitution={}, friction={}).",
@@ -70,8 +71,25 @@ fn setup(
     ));
     // camera
     commands.spawn((
+        Name::new(camera_config.name),
         Camera3d::default(),
-        Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_xyz(
+            camera_config.transform.position.x,
+            camera_config.transform.position.y,
+            camera_config.transform.position.z,
+        )
+        .looking_at(
+            Vec3::new(
+                camera_config.transform.look_at.x,
+                camera_config.transform.look_at.y,
+                camera_config.transform.look_at.z,
+            ),
+            Vec3::new(
+                camera_config.transform.up.x,
+                camera_config.transform.up.y,
+                camera_config.transform.up.z,
+            ),
+        ),
     ));
 }
 
@@ -93,6 +111,28 @@ fn load_cube_config() -> CubeConfig {
         Err(err) => {
             warn!("Failed to parse {CONFIG_PATH}: {err}. Falling back to defaults.");
             CubeConfig::default()
+        }
+    }
+}
+
+fn load_camera_config() -> CameraConfig {
+    const CONFIG_PATH: &str = "assets/camera.toml";
+    let contents = match fs::read_to_string(CONFIG_PATH) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {CONFIG_PATH}: {err}. Falling back to defaults.");
+            return CameraConfig::default();
+        }
+    };
+
+    match toml::from_str::<CameraConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded camera config from {CONFIG_PATH}.");
+            config
+        }
+        Err(err) => {
+            warn!("Failed to parse {CONFIG_PATH}: {err}. Falling back to defaults.");
+            CameraConfig::default()
         }
     }
 }
@@ -122,6 +162,58 @@ impl Default for CubeConfig {
             size: SizeConfig::default(),
             physics: PhysicsConfig::default(),
         }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct CameraConfig {
+    name: String,
+    #[serde(default)]
+    transform: TransformConfig,
+}
+
+impl Default for CameraConfig {
+    fn default() -> Self {
+        Self {
+            name: "main_camera".to_string(),
+            transform: TransformConfig::default(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct TransformConfig {
+    #[serde(default = "default_camera_position")]
+    position: Vec3Config,
+    #[serde(default = "default_camera_look_at")]
+    look_at: Vec3Config,
+    #[serde(default = "default_camera_up")]
+    up: Vec3Config,
+}
+
+impl Default for TransformConfig {
+    fn default() -> Self {
+        Self {
+            position: default_camera_position(),
+            look_at: default_camera_look_at(),
+            up: default_camera_up(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct Vec3Config {
+    #[serde(default)]
+    x: f32,
+    #[serde(default)]
+    y: f32,
+    #[serde(default)]
+    z: f32,
+}
+
+impl Default for Vec3Config {
+    fn default() -> Self {
+        Self { x: 0.0, y: 0.0, z: 0.0 }
     }
 }
 
@@ -214,4 +306,20 @@ fn default_mass() -> f32 {
 
 fn default_friction() -> f32 {
     0.5
+}
+
+fn default_camera_position() -> Vec3Config {
+    Vec3Config {
+        x: -2.5,
+        y: 4.5,
+        z: 9.0,
+    }
+}
+
+fn default_camera_look_at() -> Vec3Config {
+    Vec3Config { x: 0.0, y: 0.0, z: 0.0 }
+}
+
+fn default_camera_up() -> Vec3Config {
+    Vec3Config { x: 0.0, y: 1.0, z: 0.0 }
 }
