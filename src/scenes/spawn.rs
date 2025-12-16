@@ -563,12 +563,10 @@ fn spawn_sun(
         ..default()
     });
     commands.spawn((
-        Name::new("sun_disc"),
-        Mesh3d(meshes.add(Circle::new(sun.size))),
+        Name::new("sun_sphere"),
+        Mesh3d(meshes.add(Sphere::new(sun.size))),
         MeshMaterial3d(sun_material),
-        Transform::from_translation(-dir * sun.distance)
-            .looking_at(Vec3::ZERO, Vec3::Y)
-            .with_scale(Vec3::splat(1.0)),
+        Transform::from_translation(-dir * sun.distance),
         Visibility::default(),
         InheritedVisibility::default(),
         ViewVisibility::default(),

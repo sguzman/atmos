@@ -4,9 +4,9 @@
 [sun]
 time = 12.0
 color = "gold"
-brightness = 60000.0
-distance = 50.0
-size = 5.0
+brightness = 600.0
+distance = 500.0
+size = 1.0
 
 [[entities]]
 template = "entities/circle.toml"
