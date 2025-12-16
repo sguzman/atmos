@@ -90,6 +90,12 @@ fn setup_scene(
             cube_config.position.y,
             cube_config.position.z,
         )
+        .with_rotation(Quat::from_euler(
+            EulerRot::YXZ,
+            cube_config.rotation.yaw.to_radians(),
+            cube_config.rotation.pitch.to_radians(),
+            cube_config.rotation.roll.to_radians(),
+        ))
         .with_scale(Vec3::splat(cube_config.size.uniform_scale)),
     ));
 
@@ -186,6 +192,8 @@ struct CubeConfig {
     #[serde(default)]
     position: PositionConfig,
     #[serde(default)]
+    rotation: RotationConfig,
+    #[serde(default)]
     dimensions: DimensionsConfig,
     #[serde(default)]
     size: SizeConfig,
@@ -199,6 +207,7 @@ impl Default for CubeConfig {
             name: "cube".to_string(),
             color: default_color_name(),
             position: PositionConfig::default(),
+            rotation: RotationConfig::default(),
             dimensions: DimensionsConfig::default(),
             size: SizeConfig::default(),
             physics: PhysicsConfig::default(),
@@ -255,6 +264,26 @@ struct Vec3Config {
 impl Default for Vec3Config {
     fn default() -> Self {
         Self { x: 0.0, y: 0.0, z: 0.0 }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct RotationConfig {
+    #[serde(default)]
+    roll: f32,
+    #[serde(default)]
+    pitch: f32,
+    #[serde(default)]
+    yaw: f32,
+}
+
+impl Default for RotationConfig {
+    fn default() -> Self {
+        Self {
+            roll: 0.0,
+            pitch: 0.0,
+            yaw: 0.0,
+        }
     }
 }
 
