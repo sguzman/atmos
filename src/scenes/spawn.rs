@@ -182,6 +182,14 @@ fn spawn_circle(
         placement.transform.rotation.pitch.to_radians(),
         placement.transform.rotation.yaw.to_radians(),
     );
+    let transform = Transform::from_xyz(
+        placement.transform.position.x,
+        placement.transform.position.y,
+        placement.transform.position.z,
+    )
+    .with_rotation(circle_rotation)
+    .with_scale(Vec3::splat(placement.transform.scale));
+
     commands.spawn((
         Name::new(
             placement
@@ -193,13 +201,7 @@ fn spawn_circle(
             placement.radius.unwrap_or_else(default_circle_radius),
         ))),
         MeshMaterial3d(circle_material),
-        Transform::from_xyz(
-            placement.transform.position.x,
-            placement.transform.position.y,
-            placement.transform.position.z,
-        )
-        .with_rotation(circle_rotation)
-        .with_scale(Vec3::splat(placement.transform.scale)),
+        SpatialBundle::from_transform(transform),
     ));
 }
 
@@ -222,16 +224,21 @@ fn spawn_lights(light_config: &crate::scenes::config::LightConfig, commands: &mu
                 ambient_set = true;
             }
             crate::scenes::config::LightKind::Point => {
-                commands.spawn((
-                    PointLight {
+                commands.spawn(PointLightBundle {
+                    point_light: PointLight {
                         intensity: light.intensity,
                         range: light.range.unwrap_or(20.0),
                         shadows_enabled: light.shadows,
                         color,
                         ..default()
                     },
-                    Transform::from_xyz(light.position.x, light.position.y, light.position.z),
-                ));
+                    transform: Transform::from_xyz(
+                        light.position.x,
+                        light.position.y,
+                        light.position.z,
+                    ),
+                    ..default()
+                });
             }
             crate::scenes::config::LightKind::Directional => {
                 // Directional light uses rotation; look_at if provided
@@ -243,15 +250,16 @@ fn spawn_lights(light_config: &crate::scenes::config::LightConfig, commands: &mu
                             Vec3::Y,
                         );
                 }
-                commands.spawn((
-                    DirectionalLight {
+                commands.spawn(DirectionalLightBundle {
+                    directional_light: DirectionalLight {
                         illuminance: light.intensity,
                         shadows_enabled: light.shadows,
                         color,
                         ..default()
                     },
                     transform,
-                ));
+                    ..default()
+                });
             }
         }
     }
@@ -292,6 +300,13 @@ fn spawn_cube(
         placement.transform.rotation.pitch.to_radians(),
         placement.transform.rotation.yaw.to_radians(),
     );
+    let transform = Transform::from_xyz(
+        placement.transform.position.x,
+        placement.transform.position.y,
+        placement.transform.position.z,
+    )
+    .with_rotation(cube_rotation)
+    .with_scale(Vec3::splat(template.size.uniform_scale * placement.transform.scale));
     let cube_material = materials.add(Color::srgb_u8(cube_rgb[0], cube_rgb[1], cube_rgb[2]));
     commands.spawn((
         Name::new(
@@ -306,12 +321,6 @@ fn spawn_cube(
             template.dimensions.depth,
         ))),
         MeshMaterial3d(cube_material),
-        Transform::from_xyz(
-            placement.transform.position.x,
-            placement.transform.position.y,
-            placement.transform.position.z,
-        )
-        .with_rotation(cube_rotation)
-        .with_scale(Vec3::splat(template.size.uniform_scale * placement.transform.scale)),
+        SpatialBundle::from_transform(transform),
     ));
 }
