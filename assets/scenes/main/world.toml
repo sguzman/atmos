@@ -1,13 +1,5 @@
 # Scene composition for the main world. References entity templates in `entities/`.
 
-# Sun position/appearance driven by time of day.
-[sun]
-time = 12.0
-color = "gold"
-brightness = 600.0
-distance = 500.0
-size = 30.0
-
 [[entities]]
 template = "entities/circle.toml"
 name_override = "base_circle"

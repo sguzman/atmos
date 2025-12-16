@@ -32,6 +32,10 @@ pub fn light_config_path(scene: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/light.toml")
 }
 
+pub fn sun_config_path(scene: &str) -> String {
+    format!("{SCENE_ROOT}/{scene}/sun.toml")
+}
+
 #[allow(dead_code)]
 pub fn overlay_config_path(name: &str) -> String {
     format!(

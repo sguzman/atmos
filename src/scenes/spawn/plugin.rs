@@ -14,8 +14,8 @@ use crate::scenes::{
     },
     loaders::{
         load_camera_config, load_circle_config, load_cube_config, load_input_config,
-        load_light_config, load_pillar_combo_config, load_rectangle_config, load_top_light_config,
-        load_world_config,
+        load_light_config, load_pillar_combo_config, load_rectangle_config, load_sun_config,
+        load_top_light_config, load_world_config,
     },
     world::WorldConfig,
 };
@@ -78,6 +78,7 @@ fn setup_scene(
     let combo_config: PillarComboConfig = load_pillar_combo_config(&active_scene.name);
     let world_config: WorldConfig = load_world_config(&active_scene.name);
     let light_config = load_light_config(&active_scene.name);
+    let sun_config = load_sun_config(&active_scene.name);
 
     if cube_config.physics.enabled {
         warn!(
@@ -104,13 +105,7 @@ fn setup_scene(
     );
 
     // sun derived from world config
-    spawn_sun(
-        world_config.sun.as_ref(),
-        &mut commands,
-        &mut meshes,
-        &mut materials,
-        &active_scene,
-    );
+    spawn_sun(sun_config.as_ref(), &mut commands, &mut meshes, &mut materials, &active_scene);
 
     // lights
     spawn_lights(&light_config, &mut commands);
