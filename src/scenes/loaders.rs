@@ -1,9 +1,10 @@
 use std::fs;
 
 use crate::scenes::config::{
-    camera_config_path, circle_config_path, cube_config_path, input_config_path, light_config_path,
-    pillar_combo_config_path, rectangle_config_path, top_light_config_path, CameraConfig,
-    CircleConfig, CubeConfig, InputConfig, LightConfig, PillarComboConfig, RectangleConfig,
+    camera_config_path, circle_config_path, cube_config_path, input_config_path,
+    light_config_path, overlay_config_path, pillar_combo_config_path, rectangle_config_path,
+    top_light_config_path, CameraConfig, CircleConfig, CubeConfig, InputConfig, LightConfig,
+    OverlayConfig, PillarComboConfig, RectangleConfig,
 };
 use crate::scenes::world::WorldConfig;
 use bevy::log::{info, warn};
@@ -202,6 +203,28 @@ pub fn load_pillar_combo_config(scene: &str) -> PillarComboConfig {
         Err(err) => {
             warn!("Failed to parse {path}: {err}. Falling back to defaults.");
             PillarComboConfig::default()
+        }
+    }
+}
+
+pub fn load_overlay_config(name: &str) -> OverlayConfig {
+    let path = overlay_config_path(name);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Falling back to empty overlay.");
+            return OverlayConfig::default();
+        }
+    };
+
+    match toml::from_str::<OverlayConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded overlay config from {path}.");
+            config
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Falling back to empty overlay.");
+            OverlayConfig::default()
         }
     }
 }

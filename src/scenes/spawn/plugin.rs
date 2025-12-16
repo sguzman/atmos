@@ -19,6 +19,7 @@ use crate::scenes::{
 
 use super::lights::spawn_lights;
 use super::logging::{log_camera, log_lights};
+use super::overlay::spawn_overlays;
 use super::sun::spawn_sun;
 use super::world::spawn_world_entities;
 
@@ -39,7 +40,7 @@ impl Plugin for ScenePlugin {
         });
         app.add_systems(Startup, setup_scene);
         app.add_systems(Update, apply_camera_input);
-        app.add_systems(PostStartup, (log_lights, log_camera).after(setup_scene));
+        app.add_systems(PostStartup, (log_lights, log_camera, spawn_overlays).after(setup_scene));
     }
 }
 
@@ -129,4 +130,7 @@ fn setup_scene(
             ),
         ),
     ));
+
+    // UI overlay camera
+    commands.spawn(Camera2d::default());
 }
