@@ -1,7 +1,8 @@
 use std::fs;
 
 use crate::scenes::config::{
-    camera_config_path, cube_config_path, input_config_path, CameraConfig, CubeConfig, InputConfig,
+    camera_config_path, circle_config_path, cube_config_path, input_config_path, CameraConfig,
+    CircleConfig, CubeConfig, InputConfig,
 };
 use bevy::log::{info, warn};
 
@@ -23,6 +24,28 @@ pub fn load_cube_config(scene: &str) -> CubeConfig {
         Err(err) => {
             warn!("Failed to parse {path}: {err}. Falling back to defaults.");
             CubeConfig::default()
+        }
+    }
+}
+
+pub fn load_circle_config(scene: &str) -> CircleConfig {
+    let path = circle_config_path(scene);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Falling back to defaults.");
+            return CircleConfig::default();
+        }
+    };
+
+    match toml::from_str::<CircleConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded circle config from {path}.");
+            config
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Falling back to defaults.");
+            CircleConfig::default()
         }
     }
 }

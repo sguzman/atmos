@@ -5,10 +5,11 @@ use bevy::{
 
 use crate::scenes::{
     config::{
-        default_color_name, default_color_rgb, ActiveScene, CameraConfig, CubeConfig, InputConfig,
+        default_circle_color_name, default_circle_rgb, default_color_name, default_color_rgb,
+        ActiveScene, CameraConfig, CircleConfig, CubeConfig, InputConfig,
     },
     input::{apply_camera_input, resolve_camera_input_config, SceneCamera, SceneInputConfig},
-    loaders::{load_camera_config, load_cube_config, load_input_config},
+    loaders::{load_camera_config, load_circle_config, load_cube_config, load_input_config},
 };
 
 pub struct ScenePlugin {
@@ -51,6 +52,7 @@ fn setup_scene(
 
     let cube_config: CubeConfig = load_cube_config(&active_scene.name);
     let camera_config: CameraConfig = load_camera_config(&active_scene.name);
+    let circle_config: CircleConfig = load_circle_config(&active_scene.name);
 
     if cube_config.physics.enabled {
         warn!(
@@ -63,11 +65,33 @@ fn setup_scene(
         );
     }
 
-    // circular base
+    // circular base from config
+    let circle_rgb = crate::scenes::config::parse_color(&circle_config.color).unwrap_or_else(|| {
+        warn!(
+            "Falling back to default color '{}' for circle in scene '{}'.",
+            default_circle_color_name(),
+            active_scene.name
+        );
+        default_circle_rgb()
+    });
+    let circle_material =
+        materials.add(Color::srgb_u8(circle_rgb[0], circle_rgb[1], circle_rgb[2]));
+    let circle_rotation = Quat::from_euler(
+        EulerRot::XYZ,
+        circle_config.rotation.roll.to_radians(),
+        circle_config.rotation.pitch.to_radians(),
+        circle_config.rotation.yaw.to_radians(),
+    );
     commands.spawn((
-        Mesh3d(meshes.add(Circle::new(4.0))),
-        MeshMaterial3d(materials.add(Color::WHITE)),
-        Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
+        Name::new(circle_config.name),
+        Mesh3d(meshes.add(Circle::new(circle_config.radius))),
+        MeshMaterial3d(circle_material),
+        Transform::from_xyz(
+            circle_config.position.x,
+            circle_config.position.y,
+            circle_config.position.z,
+        )
+        .with_rotation(circle_rotation),
     ));
 
     // cube from config

@@ -123,6 +123,35 @@ impl Default for CubeConfig {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct CircleConfig {
+    pub name: String,
+    #[serde(default = "default_circle_color_name")]
+    pub color: String,
+    #[serde(default = "default_circle_radius")]
+    pub radius: f32,
+    #[serde(default)]
+    pub position: PositionConfig,
+    #[serde(default)]
+    pub rotation: CubeRotationConfig,
+}
+
+impl Default for CircleConfig {
+    fn default() -> Self {
+        Self {
+            name: "base_circle".to_string(),
+            color: default_circle_color_name(),
+            radius: default_circle_radius(),
+            position: PositionConfig::default(),
+            rotation: {
+                let mut rot = CubeRotationConfig::default();
+                rot.roll = -90.0;
+                rot
+            },
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
 pub struct CameraConfig {
     pub name: String,
     #[serde(default)]
@@ -261,6 +290,10 @@ pub fn cube_config_path(scene: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/entities/cube.toml")
 }
 
+pub fn circle_config_path(scene: &str) -> String {
+    format!("{SCENE_ROOT}/{scene}/entities/circle.toml")
+}
+
 pub fn camera_config_path(scene: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/camera.toml")
 }
@@ -304,6 +337,18 @@ fn default_mass() -> f32 {
 
 fn default_friction() -> f32 {
     0.5
+}
+
+fn default_circle_radius() -> f32 {
+    4.0
+}
+
+pub fn default_circle_color_name() -> String {
+    "white".to_string()
+}
+
+pub fn default_circle_rgb() -> [u8; 3] {
+    parse_color(&default_circle_color_name()).unwrap_or([255, 255, 255])
 }
 
 fn default_camera_position() -> Vec3Config {
