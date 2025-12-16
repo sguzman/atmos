@@ -3,9 +3,9 @@ use std::{fs, path::Path};
 use bevy::{
     log::{Level, LogPlugin},
     prelude::*,
-    time::TimeUpdateStrategy,
     window::{PresentMode, WindowPlugin, WindowResolution},
 };
+use bevy_winit::{UpdateMode, WinitSettings};
 use serde::Deserialize;
 
 const CONFIG_PATH: &str = "assets/config.toml";
@@ -141,12 +141,6 @@ impl AppConfig {
         }
     }
 
-    pub fn time_update_strategy(&self) -> Option<TimeUpdateStrategy> {
-        self.fps_limit
-            .and_then(|fps| if fps > 0.0 { Some(fps) } else { None })
-            .map(|fps| TimeUpdateStrategy::ManualDuration(std::time::Duration::from_secs_f64(1.0 / fps)))
-    }
-
     pub fn msaa_component(&self) -> Option<Msaa> {
         self.msaa_samples
             .and_then(|samples| match samples {
@@ -167,5 +161,22 @@ impl AppConfig {
             "trace" => Some(Level::TRACE),
             _ => None,
         })
+    }
+
+    pub fn winit_settings(&self) -> WinitSettings {
+        if let Some(fps) = self.fps_limit.filter(|f| *f > 0.0) {
+            let wait = std::time::Duration::from_secs_f64(1.0 / fps);
+            WinitSettings {
+                focused_mode: UpdateMode::Reactive {
+                    wait,
+                    react_to_device_events: true,
+                    react_to_user_events: true,
+                    react_to_window_events: true,
+                },
+                unfocused_mode: UpdateMode::reactive_low_power(wait),
+            }
+        } else {
+            WinitSettings::game()
+        }
     }
 }

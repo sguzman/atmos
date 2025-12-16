@@ -1,6 +1,6 @@
 # Top-level game configuration
 mode = "dev"
-fps_limit = 60
+fps_limit = 100
 log_level = "debug"
 msaa_samples = 4
 

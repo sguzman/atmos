@@ -3,6 +3,7 @@ mod scenes;
 
 use app_config::load_app_config;
 use bevy::prelude::*;
+use bevy::winit::WinitSettings;
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
 fn main() {
@@ -12,10 +13,8 @@ fn main() {
 
     let mut app = App::new();
 
-    if let Some(strategy) = app_config.time_update_strategy() {
-        app.insert_resource(strategy);
-    }
-    app.insert_resource(app_config);
+    app.insert_resource::<WinitSettings>(app_config.winit_settings());
+    app.insert_resource(app_config.clone());
 
     app.add_plugins(
         DefaultPlugins
