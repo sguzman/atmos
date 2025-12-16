@@ -1,8 +1,11 @@
-use bevy::prelude::*;
+use bevy::{log::info, prelude::*};
+use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(EguiPlugin::default())
+        .add_plugins(WorldInspectorPlugin::new())
         .add_systems(Startup, setup)
         .run();
 }
@@ -13,6 +16,8 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    info!("Bootstrapping 3D scene with inspector overlay enabled.");
+
     // circular base
     commands.spawn((
         Mesh3d(meshes.add(Circle::new(4.0))),
