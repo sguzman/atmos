@@ -21,4 +21,4 @@ quit = "Escape"
 
 [[overlays]]
 name = "debug"
-toggle = "F1"
+toggle = "v"

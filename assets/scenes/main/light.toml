@@ -18,4 +18,4 @@ z = 0.0
 [[lights]]
 kind = "ambient"
 color = "white"
-brightness = 80.0
+brightness = 1000.0
