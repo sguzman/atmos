@@ -72,6 +72,16 @@ fn setup_scene(
         );
         default_color_rgb()
     });
+    info!(
+        "Applying cube rotation (deg) roll: {}, pitch: {}, yaw: {}",
+        cube_config.rotation.roll, cube_config.rotation.pitch, cube_config.rotation.yaw
+    );
+    let cube_rotation = Quat::from_euler(
+        EulerRot::XYZ, // roll -> X, pitch -> Y, yaw -> Z
+        cube_config.rotation.roll.to_radians(),
+        cube_config.rotation.pitch.to_radians(),
+        cube_config.rotation.yaw.to_radians(),
+    );
     let cube_material = materials.add(Color::srgb_u8(
         cube_rgb[0],
         cube_rgb[1],
@@ -90,12 +100,7 @@ fn setup_scene(
             cube_config.position.y,
             cube_config.position.z,
         )
-        .with_rotation(Quat::from_euler(
-            EulerRot::YXZ,
-            cube_config.rotation.yaw.to_radians(),
-            cube_config.rotation.pitch.to_radians(),
-            cube_config.rotation.roll.to_radians(),
-        ))
+        .with_rotation(cube_rotation)
         .with_scale(Vec3::splat(cube_config.size.uniform_scale)),
     ));
 
