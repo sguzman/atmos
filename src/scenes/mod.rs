@@ -64,7 +64,7 @@ fn setup_scene(
     ));
 
     // cube from config
-    let cube_rgb = parse_color(&cube_config.color.color).unwrap_or_else(|| {
+    let cube_rgb = parse_color(&cube_config.color).unwrap_or_else(|| {
         warn!(
             "Falling back to default color '{}' for cube in scene '{}'.",
             default_color_name(),
@@ -181,8 +181,8 @@ fn camera_config_path(scene: &str) -> String {
 #[derive(Debug, Deserialize)]
 struct CubeConfig {
     name: String,
-    #[serde(default)]
-    color: ColorConfig,
+    #[serde(default = "default_color_name")]
+    color: String,
     #[serde(default)]
     position: PositionConfig,
     #[serde(default)]
@@ -197,7 +197,7 @@ impl Default for CubeConfig {
     fn default() -> Self {
         Self {
             name: "cube".to_string(),
-            color: ColorConfig::default(),
+            color: default_color_name(),
             position: PositionConfig::default(),
             dimensions: DimensionsConfig::default(),
             size: SizeConfig::default(),
@@ -255,20 +255,6 @@ struct Vec3Config {
 impl Default for Vec3Config {
     fn default() -> Self {
         Self { x: 0.0, y: 0.0, z: 0.0 }
-    }
-}
-
-#[derive(Debug, Deserialize)]
-struct ColorConfig {
-    #[serde(default = "default_color_name")]
-    color: String,
-}
-
-impl Default for ColorConfig {
-    fn default() -> Self {
-        Self {
-            color: default_color_name(),
-        }
     }
 }
 
