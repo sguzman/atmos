@@ -1,0 +1,25 @@
+name = "cube"
+
+[color]
+srgb = [124, 144, 255] # matches Color::srgb_u8 defaults in code
+
+[position]
+x = 0.0
+y = 0.5
+z = 0.0
+
+[dimensions]
+width = 1.0
+height = 1.0
+depth = 1.0
+
+[size]
+uniform_scale = 1.0
+
+[physics]
+enabled = false
+# Future rapier 3D properties:
+body_type = "dynamic"
+mass = 1.0
+restitution = 0.0
+friction = 0.5
