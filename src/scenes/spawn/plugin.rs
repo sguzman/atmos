@@ -132,5 +132,5 @@ fn setup_scene(
     ));
 
     // UI overlay camera
-    commands.spawn(Camera2d::default());
+    commands.spawn((Camera2d::default(), Camera { order: 1, ..default() }));
 }
