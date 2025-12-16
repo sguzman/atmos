@@ -1,8 +1,8 @@
 # Top-level game configuration
 mode = "dev"
-fps_limit = 100
+fps_limit = 120
 log_level = "debug"
-msaa_samples = 4
+msaa_samples = 8
 
 [window]
 title = "Atmos"
