@@ -3,7 +3,7 @@
 [[entities]]
 template = "entities/circle.toml"
 name_override = "base_circle"
-radius = 4.0
+radius = 100.0
 [entities.transform]
 position = { x = 0.0, y = 0.0, z = 0.0 }
 rotation = { roll = -90.0, pitch = 0.0, yaw = 0.0 }
