@@ -127,12 +127,6 @@ pub struct CircleConfig {
     pub name: String,
     #[serde(default = "default_circle_color_name")]
     pub color: String,
-    #[serde(default = "default_circle_radius")]
-    pub radius: f32,
-    #[serde(default)]
-    pub position: PositionConfig,
-    #[serde(default)]
-    pub rotation: CubeRotationConfig,
 }
 
 impl Default for CircleConfig {
@@ -140,13 +134,6 @@ impl Default for CircleConfig {
         Self {
             name: "base_circle".to_string(),
             color: default_circle_color_name(),
-            radius: default_circle_radius(),
-            position: PositionConfig::default(),
-            rotation: {
-                let mut rot = CubeRotationConfig::default();
-                rot.roll = -90.0;
-                rot
-            },
         }
     }
 }
@@ -339,7 +326,7 @@ fn default_friction() -> f32 {
     0.5
 }
 
-fn default_circle_radius() -> f32 {
+pub fn default_circle_radius() -> f32 {
     4.0
 }
 

@@ -4,6 +4,7 @@ use crate::scenes::config::{
     camera_config_path, circle_config_path, cube_config_path, input_config_path, CameraConfig,
     CircleConfig, CubeConfig, InputConfig,
 };
+use crate::scenes::world::WorldConfig;
 use bevy::log::{info, warn};
 
 pub fn load_cube_config(scene: &str) -> CubeConfig {
@@ -90,6 +91,28 @@ pub fn load_input_config(scene: &str) -> InputConfig {
         Err(err) => {
             warn!("Failed to parse {path}: {err}. Falling back to defaults.");
             InputConfig::default()
+        }
+    }
+}
+
+pub fn load_world_config(scene: &str) -> WorldConfig {
+    let path = format!("{root}/{scene}/world.toml", root = crate::scenes::config::SCENE_ROOT);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Falling back to empty world.");
+            return WorldConfig::default();
+        }
+    };
+
+    match toml::from_str::<WorldConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded world config from {path}.");
+            config
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Falling back to empty world.");
+            WorldConfig::default()
         }
     }
 }

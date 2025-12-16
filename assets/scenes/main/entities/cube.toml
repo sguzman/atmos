@@ -1,24 +1,10 @@
 name = "cube"
 color = "red"
 
-[position]
-x = 0.0
-y = 0.5
-z = 0.0
-
 [dimensions]
 width = 1.0
 height = 1.0
 depth = 1.0
-
-[size]
-uniform_scale = 1.0
-
-[rotation]
-# degrees around each axis; defaults to no rotation
-roll = 0.0
-pitch = 0.0
-yaw = 0.0
 
 [physics]
 enabled = false

@@ -5,11 +5,15 @@ use bevy::{
 
 use crate::scenes::{
     config::{
-        default_circle_color_name, default_circle_rgb, default_color_name, default_color_rgb,
+        default_circle_color_name, default_circle_radius, default_circle_rgb, default_color_name,
+        default_color_rgb,
         ActiveScene, CameraConfig, CircleConfig, CubeConfig, InputConfig,
     },
     input::{apply_camera_input, resolve_camera_input_config, SceneCamera, SceneInputConfig},
-    loaders::{load_camera_config, load_circle_config, load_cube_config, load_input_config},
+    loaders::{
+        load_camera_config, load_circle_config, load_cube_config, load_input_config, load_world_config,
+    },
+    world::{EntityPlacement, WorldConfig},
 };
 
 pub struct ScenePlugin {
@@ -53,6 +57,7 @@ fn setup_scene(
     let cube_config: CubeConfig = load_cube_config(&active_scene.name);
     let camera_config: CameraConfig = load_camera_config(&active_scene.name);
     let circle_config: CircleConfig = load_circle_config(&active_scene.name);
+    let world_config: WorldConfig = load_world_config(&active_scene.name);
 
     if cube_config.physics.enabled {
         warn!(
@@ -65,80 +70,25 @@ fn setup_scene(
         );
     }
 
-    // circular base from config
-    let circle_rgb = crate::scenes::config::parse_color(&circle_config.color).unwrap_or_else(|| {
-        warn!(
-            "Falling back to default color '{}' for circle in scene '{}'.",
-            default_circle_color_name(),
-            active_scene.name
-        );
-        default_circle_rgb()
-    });
-    let circle_material =
-        materials.add(Color::srgb_u8(circle_rgb[0], circle_rgb[1], circle_rgb[2]));
-    let circle_rotation = Quat::from_euler(
-        EulerRot::XYZ,
-        circle_config.rotation.roll.to_radians(),
-        circle_config.rotation.pitch.to_radians(),
-        circle_config.rotation.yaw.to_radians(),
+    spawn_world_entities(
+        &world_config,
+        &circle_config,
+        &cube_config,
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        &active_scene,
     );
-    commands.spawn((
-        Name::new(circle_config.name),
-        Mesh3d(meshes.add(Circle::new(circle_config.radius))),
-        MeshMaterial3d(circle_material),
-        Transform::from_xyz(
-            circle_config.position.x,
-            circle_config.position.y,
-            circle_config.position.z,
-        )
-        .with_rotation(circle_rotation),
-    ));
 
-    // cube from config
-    let cube_rgb = crate::scenes::config::parse_color(&cube_config.color).unwrap_or_else(|| {
-        warn!(
-            "Falling back to default color '{}' for cube in scene '{}'.",
-            default_color_name(),
-            active_scene.name
-        );
-        default_color_rgb()
-    });
-    info!(
-        "Applying cube rotation (deg) roll: {}, pitch: {}, yaw: {}",
-        cube_config.rotation.roll, cube_config.rotation.pitch, cube_config.rotation.yaw
+    spawn_world_entities(
+        &world_config,
+        &circle_config,
+        &cube_config,
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        &active_scene,
     );
-    let cube_rotation = Quat::from_euler(
-        EulerRot::XYZ, // roll -> X, pitch -> Y, yaw -> Z
-        cube_config.rotation.roll.to_radians(),
-        cube_config.rotation.pitch.to_radians(),
-        cube_config.rotation.yaw.to_radians(),
-    );
-    let cube_material = materials.add(Color::srgb_u8(cube_rgb[0], cube_rgb[1], cube_rgb[2]));
-    commands.spawn((
-        Name::new(cube_config.name),
-        Mesh3d(meshes.add(Cuboid::new(
-            cube_config.dimensions.width,
-            cube_config.dimensions.height,
-            cube_config.dimensions.depth,
-        ))),
-        MeshMaterial3d(cube_material),
-        Transform::from_xyz(
-            cube_config.position.x,
-            cube_config.position.y,
-            cube_config.position.z,
-        )
-        .with_rotation(cube_rotation)
-        .with_scale(Vec3::splat(cube_config.size.uniform_scale)),
-    ));
-
-    // light
-    commands.spawn((
-        PointLight {
-            shadows_enabled: true,
-            ..default()
-        },
-        Transform::from_xyz(4.0, 8.0, 4.0),
-    ));
 
     // camera
     commands.spawn((
@@ -162,5 +112,140 @@ fn setup_scene(
                 camera_config.transform.up.z,
             ),
         ),
+    ));
+}
+
+fn spawn_world_entities(
+    world: &WorldConfig,
+    circle_template: &CircleConfig,
+    cube_template: &CubeConfig,
+    commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+    active_scene: &ActiveScene,
+) {
+    for entity in &world.entities {
+        match entity.template.as_str() {
+            path if path.ends_with("circle.toml") => spawn_circle(
+                entity,
+                circle_template,
+                commands,
+                meshes,
+                materials,
+                active_scene,
+            ),
+            path if path.ends_with("cube.toml") => spawn_cube(
+                entity,
+                cube_template,
+                commands,
+                meshes,
+                materials,
+                active_scene,
+            ),
+            other => {
+                warn!(
+                    "Unknown template '{other}' in world; skipping entity placement in scene '{}'.",
+                    active_scene.name
+                );
+            }
+        }
+    }
+}
+
+fn spawn_circle(
+    placement: &EntityPlacement,
+    template: &CircleConfig,
+    commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+    active_scene: &ActiveScene,
+) {
+    let circle_rgb =
+        crate::scenes::config::parse_color(&template.color).unwrap_or_else(|| {
+            warn!(
+                "Falling back to default color '{}' for circle in scene '{}'.",
+                default_circle_color_name(),
+                active_scene.name
+            );
+            default_circle_rgb()
+        });
+    let circle_material =
+        materials.add(Color::srgb_u8(circle_rgb[0], circle_rgb[1], circle_rgb[2]));
+    let circle_rotation = Quat::from_euler(
+        EulerRot::XYZ,
+        placement.transform.rotation.roll.to_radians(),
+        placement.transform.rotation.pitch.to_radians(),
+        placement.transform.rotation.yaw.to_radians(),
+    );
+    commands.spawn((
+        Name::new(
+            placement
+                .name_override
+                .clone()
+                .unwrap_or_else(|| template.name.clone()),
+        ),
+        Mesh3d(meshes.add(Circle::new(
+            placement.radius.unwrap_or_else(default_circle_radius),
+        ))),
+        MeshMaterial3d(circle_material),
+        Transform::from_xyz(
+            placement.transform.position.x,
+            placement.transform.position.y,
+            placement.transform.position.z,
+        )
+        .with_rotation(circle_rotation)
+        .with_scale(Vec3::splat(placement.transform.scale)),
+    ));
+}
+
+fn spawn_cube(
+    placement: &EntityPlacement,
+    template: &CubeConfig,
+    commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+    active_scene: &ActiveScene,
+) {
+    let cube_rgb = crate::scenes::config::parse_color(&template.color).unwrap_or_else(|| {
+        warn!(
+            "Falling back to default color '{}' for cube in scene '{}'.",
+            default_color_name(),
+            active_scene.name
+        );
+        default_color_rgb()
+    });
+    info!(
+        "Applying cube rotation (deg) roll: {}, pitch: {}, yaw: {}",
+        placement.transform.rotation.roll,
+        placement.transform.rotation.pitch,
+        placement.transform.rotation.yaw
+    );
+    let cube_rotation = Quat::from_euler(
+        EulerRot::XYZ, // roll -> X, pitch -> Y, yaw -> Z
+        placement.transform.rotation.roll.to_radians(),
+        placement.transform.rotation.pitch.to_radians(),
+        placement.transform.rotation.yaw.to_radians(),
+    );
+    let cube_material = materials.add(Color::srgb_u8(cube_rgb[0], cube_rgb[1], cube_rgb[2]));
+    commands.spawn((
+        Name::new(
+            placement
+                .name_override
+                .clone()
+                .unwrap_or_else(|| template.name.clone()),
+        ),
+        Mesh3d(meshes.add(Cuboid::new(
+            template.dimensions.width,
+            template.dimensions.height,
+            template.dimensions.depth,
+        ))),
+        MeshMaterial3d(cube_material),
+        Transform::from_xyz(
+            placement.transform.position.x,
+            placement.transform.position.y,
+            placement.transform.position.z,
+        )
+        .with_rotation(cube_rotation)
+        .with_scale(Vec3::splat(template.size.uniform_scale * placement.transform.scale)),
     ));
 }
