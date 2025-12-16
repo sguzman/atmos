@@ -11,6 +11,7 @@ mod paths;
 mod physics;
 mod shapes;
 mod sun;
+mod skybox;
 mod transforms;
 
 pub use active::{ActiveScene, OVERLAY_ROOT, SCENE_ROOT};
@@ -30,9 +31,10 @@ pub use overlay::{
 pub use paths::{
     camera_config_path, circle_config_path, cube_config_path, input_config_path,
     light_config_path, overlay_config_path, pillar_combo_config_path, rectangle_config_path,
-    sun_config_path, top_light_config_path,
+    skybox_config_path, sun_config_path, top_light_config_path,
 };
 pub use physics::PhysicsConfig;
 pub use shapes::{CircleConfig, CubeConfig, RectangleConfig, RectangleOverrides};
+pub use skybox::SkyboxConfig;
 pub use sun::SunConfig;
 pub use transforms::{CubeRotationConfig, DimensionsConfig, PositionConfig, SizeConfig, Vec3Config};

@@ -14,8 +14,8 @@ use crate::scenes::{
     },
     loaders::{
         load_camera_config, load_circle_config, load_cube_config, load_input_config,
-        load_light_config, load_pillar_combo_config, load_rectangle_config, load_sun_config,
-        load_top_light_config, load_world_config,
+        load_light_config, load_pillar_combo_config, load_rectangle_config, load_skybox_config,
+        load_sun_config, load_top_light_config, load_world_config,
     },
     world::WorldConfig,
 };
@@ -79,6 +79,7 @@ fn setup_scene(
     let world_config: WorldConfig = load_world_config(&active_scene.name);
     let light_config = load_light_config(&active_scene.name);
     let sun_config = load_sun_config(&active_scene.name);
+    let skybox_config = load_skybox_config(&active_scene.name);
 
     if cube_config.physics.enabled {
         warn!(
@@ -106,6 +107,15 @@ fn setup_scene(
 
     // sun derived from world config
     spawn_sun(sun_config.as_ref(), &mut commands, &mut meshes, &mut materials, &active_scene);
+
+    // skybox clear color
+    if let Some(skybox) = skybox_config {
+        if let Some(rgb) = crate::scenes::config::parse_color(&skybox.color) {
+            commands.insert_resource(ClearColor(Color::srgb_u8(rgb[0], rgb[1], rgb[2])));
+        } else {
+            warn!("Failed to parse skybox color '{}'; leaving default clear color", skybox.color);
+        }
+    }
 
     // lights
     spawn_lights(&light_config, &mut commands);

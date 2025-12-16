@@ -3,8 +3,9 @@ use std::fs;
 use crate::scenes::config::{
     camera_config_path, circle_config_path, cube_config_path, input_config_path,
     light_config_path, overlay_config_path, pillar_combo_config_path, rectangle_config_path,
-    sun_config_path, top_light_config_path, CameraConfig, CircleConfig, CubeConfig, InputConfig,
-    LightConfig, OverlayConfig, PillarComboConfig, RectangleConfig, SunConfig,
+    skybox_config_path, sun_config_path, top_light_config_path, CameraConfig, CircleConfig,
+    CubeConfig, InputConfig, LightConfig, OverlayConfig, PillarComboConfig, RectangleConfig,
+    SkyboxConfig, SunConfig,
 };
 use crate::scenes::world::WorldConfig;
 use bevy::log::{info, warn};
@@ -203,6 +204,28 @@ pub fn load_top_light_config(scene: &str) -> LightConfig {
         Err(err) => {
             warn!("Failed to parse {path}: {err}. Falling back to defaults.");
             LightConfig::default()
+        }
+    }
+}
+
+pub fn load_skybox_config(scene: &str) -> Option<SkyboxConfig> {
+    let path = skybox_config_path(scene);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. No skybox will be applied.");
+            return None;
+        }
+    };
+
+    match toml::from_str::<SkyboxConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded skybox config from {path}.");
+            Some(config)
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. No skybox will be applied.");
+            None
         }
     }
 }
