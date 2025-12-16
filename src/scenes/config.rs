@@ -170,7 +170,11 @@ pub struct Vec3Config {
 
 impl Default for Vec3Config {
     fn default() -> Self {
-        Self { x: 0.0, y: 0.0, z: 0.0 }
+        Self {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        }
     }
 }
 
@@ -311,11 +315,19 @@ fn default_camera_position() -> Vec3Config {
 }
 
 fn default_camera_look_at() -> Vec3Config {
-    Vec3Config { x: 0.0, y: 0.0, z: 0.0 }
+    Vec3Config {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    }
 }
 
 fn default_camera_up() -> Vec3Config {
-    Vec3Config { x: 0.0, y: 1.0, z: 0.0 }
+    Vec3Config {
+        x: 0.0,
+        y: 1.0,
+        z: 0.0,
+    }
 }
 
 fn default_move_speed() -> f32 {

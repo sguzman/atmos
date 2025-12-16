@@ -43,10 +43,8 @@ fn setup_scene(
     );
 
     let input_config: InputConfig = load_input_config(&active_scene.name);
-    let camera_input = resolve_camera_input_config(
-        &input_config.camera.movement,
-        &input_config.camera.rotation,
-    );
+    let camera_input =
+        resolve_camera_input_config(&input_config.camera.movement, &input_config.camera.rotation);
     commands.insert_resource(SceneInputConfig {
         camera: camera_input,
     });
@@ -91,11 +89,7 @@ fn setup_scene(
         cube_config.rotation.pitch.to_radians(),
         cube_config.rotation.yaw.to_radians(),
     );
-    let cube_material = materials.add(Color::srgb_u8(
-        cube_rgb[0],
-        cube_rgb[1],
-        cube_rgb[2],
-    ));
+    let cube_material = materials.add(Color::srgb_u8(cube_rgb[0], cube_rgb[1], cube_rgb[2]));
     commands.spawn((
         Name::new(cube_config.name),
         Mesh3d(meshes.add(Cuboid::new(
