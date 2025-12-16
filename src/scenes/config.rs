@@ -138,6 +138,39 @@ impl Default for CircleConfig {
     }
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct RectangleConfig {
+    pub name: String,
+    #[serde(default = "default_color_name")]
+    pub color: String,
+    #[serde(default)]
+    pub dimensions: DimensionsConfig,
+}
+
+impl Default for RectangleConfig {
+    fn default() -> Self {
+        Self {
+            name: "rectangle".to_string(),
+            color: default_color_name(),
+            dimensions: DimensionsConfig {
+                width: 1.0,
+                height: 3.0,
+                depth: 0.5,
+            },
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone, Default)]
+pub struct RectangleOverrides {
+    #[serde(default)]
+    pub template: Option<String>,
+    #[serde(default)]
+    pub color: Option<String>,
+    #[serde(default)]
+    pub dimensions: Option<DimensionsConfig>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct CameraConfig {
     pub name: String,
@@ -214,7 +247,7 @@ impl Default for CubeRotationConfig {
     }
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, Clone)]
 pub struct PositionConfig {
     #[serde(default)]
     pub x: f32,
@@ -224,7 +257,7 @@ pub struct PositionConfig {
     pub z: f32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct DimensionsConfig {
     #[serde(default = "default_unit")]
     pub width: f32,
@@ -245,7 +278,7 @@ impl Default for DimensionsConfig {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct SizeConfig {
     #[serde(default = "default_unit")]
     pub uniform_scale: f32,
@@ -279,6 +312,18 @@ pub fn cube_config_path(scene: &str) -> String {
 
 pub fn circle_config_path(scene: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/entities/circle.toml")
+}
+
+pub fn rectangle_config_path(scene: &str) -> String {
+    format!("{SCENE_ROOT}/{scene}/entities/rectangle.toml")
+}
+
+pub fn top_light_config_path(scene: &str) -> String {
+    format!("{SCENE_ROOT}/{scene}/entities/top_light.toml")
+}
+
+pub fn pillar_combo_config_path(scene: &str) -> String {
+    format!("{SCENE_ROOT}/{scene}/entities/pillar_with_light.toml")
 }
 
 pub fn camera_config_path(scene: &str) -> String {
@@ -382,7 +427,7 @@ impl Default for LightKind {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct LightEntry {
     #[serde(default)]
     pub kind: LightKind,
@@ -400,6 +445,10 @@ pub struct LightEntry {
     pub look_at: Option<PositionConfig>,
     #[serde(default = "default_light_brightness")]
     pub brightness: f32, // used for ambient
+    #[serde(default)]
+    pub radius: Option<f32>,
+    #[serde(default)]
+    pub offset: PositionConfig,
 }
 
 impl LightEntry {
@@ -421,6 +470,47 @@ impl LightEntry {
                 z: 0.0,
             }),
             brightness: default_light_brightness(),
+            radius: None,
+            offset: PositionConfig::default(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone, Default)]
+pub struct LightOverrides {
+    #[serde(default)]
+    pub template: Option<String>,
+    #[serde(default)]
+    pub kind: Option<LightKind>,
+    #[serde(default)]
+    pub color: Option<String>,
+    #[serde(default)]
+    pub intensity: Option<f32>,
+    #[serde(default)]
+    pub range: Option<f32>,
+    #[serde(default)]
+    pub shadows: Option<bool>,
+    #[serde(default)]
+    pub radius: Option<f32>,
+    #[serde(default)]
+    pub offset: Option<PositionConfig>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PillarComboConfig {
+    pub name: String,
+    #[serde(default)]
+    pub rectangle: RectangleOverrides,
+    #[serde(default)]
+    pub light: LightOverrides,
+}
+
+impl Default for PillarComboConfig {
+    fn default() -> Self {
+        Self {
+            name: "pillar_with_light".to_string(),
+            rectangle: RectangleOverrides::default(),
+            light: LightOverrides::default(),
         }
     }
 }

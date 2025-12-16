@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use serde::Deserialize;
 
-use crate::scenes::config::{CubeRotationConfig, PositionConfig};
+use crate::scenes::config::{CubeRotationConfig, LightOverrides, PositionConfig, RectangleOverrides};
 
 #[derive(Debug, Deserialize)]
 pub struct WorldConfig {
@@ -24,6 +24,10 @@ pub struct EntityPlacement {
     pub transform: EntityTransform,
     #[serde(default)]
     pub radius: Option<f32>, // used by circle templates
+    #[serde(default)]
+    pub rectangle: Option<RectangleOverrides>,
+    #[serde(default)]
+    pub light: Option<LightOverrides>,
 }
 
 #[derive(Debug, Deserialize)]

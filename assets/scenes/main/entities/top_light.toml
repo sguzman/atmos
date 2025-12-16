@@ -1,0 +1,11 @@
+[[lights]]
+kind = "point"
+color = "white"
+intensity = 50000.0
+range = 25.0
+shadows = true
+radius = 0.5
+[lights.offset]
+x = 0.0
+y = 0.2
+z = 0.0

@@ -2,7 +2,8 @@ use std::fs;
 
 use crate::scenes::config::{
     camera_config_path, circle_config_path, cube_config_path, input_config_path, light_config_path,
-    CameraConfig, CircleConfig, CubeConfig, InputConfig, LightConfig,
+    pillar_combo_config_path, rectangle_config_path, top_light_config_path, CameraConfig,
+    CircleConfig, CubeConfig, InputConfig, LightConfig, PillarComboConfig, RectangleConfig,
 };
 use crate::scenes::world::WorldConfig;
 use bevy::log::{info, warn};
@@ -47,6 +48,28 @@ pub fn load_circle_config(scene: &str) -> CircleConfig {
         Err(err) => {
             warn!("Failed to parse {path}: {err}. Falling back to defaults.");
             CircleConfig::default()
+        }
+    }
+}
+
+pub fn load_rectangle_config(scene: &str) -> RectangleConfig {
+    let path = rectangle_config_path(scene);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Falling back to defaults.");
+            return RectangleConfig::default();
+        }
+    };
+
+    match toml::from_str::<RectangleConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded rectangle config from {path}.");
+            config
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Falling back to defaults.");
+            RectangleConfig::default()
         }
     }
 }
@@ -135,6 +158,50 @@ pub fn load_light_config(scene: &str) -> LightConfig {
         Err(err) => {
             warn!("Failed to parse {path}: {err}. Falling back to defaults.");
             LightConfig::default()
+        }
+    }
+}
+
+pub fn load_top_light_config(scene: &str) -> LightConfig {
+    let path = top_light_config_path(scene);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Falling back to defaults.");
+            return LightConfig::default();
+        }
+    };
+
+    match toml::from_str::<LightConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded top light config from {path}.");
+            config
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Falling back to defaults.");
+            LightConfig::default()
+        }
+    }
+}
+
+pub fn load_pillar_combo_config(scene: &str) -> PillarComboConfig {
+    let path = pillar_combo_config_path(scene);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Falling back to defaults.");
+            return PillarComboConfig::default();
+        }
+    };
+
+    match toml::from_str::<PillarComboConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded combo config from {path}.");
+            config
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Falling back to defaults.");
+            PillarComboConfig::default()
         }
     }
 }

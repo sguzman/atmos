@@ -1,0 +1,21 @@
+name = "pillar_with_light"
+
+[rectangle]
+template = "entities/rectangle.toml"
+color = "gray"
+[rectangle.dimensions]
+width = 0.8
+height = 4.0
+depth = 0.8
+
+[light]
+template = "entities/top_light.toml"
+color = "white"
+intensity = 50000.0
+range = 25.0
+shadows = true
+radius = 0.5
+[light.offset]
+x = 0.0
+y = 0.2
+z = 0.0
