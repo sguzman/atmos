@@ -1,4 +1,6 @@
 use bevy::{
+    input::ButtonInput,
+    input::keyboard::KeyCode,
     log::{info, warn},
     prelude::*,
 };
@@ -11,6 +13,38 @@ const SCENE_ROOT: &str = "assets/scenes";
 pub struct ActiveScene {
     pub name: String,
 }
+
+#[derive(Resource, Debug, Clone)]
+struct SceneInputConfig {
+    camera: ResolvedCameraInputConfig,
+}
+
+#[derive(Debug, Clone)]
+struct ResolvedCameraInputConfig {
+    movement: ResolvedMovementConfig,
+    rotation: ResolvedRotationConfig,
+}
+
+#[derive(Debug, Clone)]
+struct ResolvedMovementConfig {
+    speed: f32,
+    forward: Option<KeyCode>,
+    backward: Option<KeyCode>,
+    left: Option<KeyCode>,
+    right: Option<KeyCode>,
+}
+
+#[derive(Debug, Clone)]
+struct ResolvedRotationConfig {
+    degrees_per_second: f32,
+    yaw_left: Option<KeyCode>,
+    yaw_right: Option<KeyCode>,
+    pitch_up: Option<KeyCode>,
+    pitch_down: Option<KeyCode>,
+}
+
+#[derive(Component)]
+struct SceneCamera;
 
 pub struct ScenePlugin {
     scene: &'static str,
@@ -28,6 +62,7 @@ impl Plugin for ScenePlugin {
             name: self.scene.to_string(),
         });
         app.add_systems(Startup, setup_scene);
+        app.add_systems(Update, apply_camera_input);
     }
 }
 
@@ -41,6 +76,12 @@ fn setup_scene(
         "Bootstrapping scene '{}' with inspector overlay enabled.",
         active_scene.name
     );
+
+    let input_config = load_input_config(&active_scene.name);
+    let resolved_input = resolve_input_config(&input_config);
+    commands.insert_resource(SceneInputConfig {
+        camera: resolved_input,
+    });
 
     let cube_config = load_cube_config(&active_scene.name);
     let camera_config = load_camera_config(&active_scene.name);
@@ -117,6 +158,7 @@ fn setup_scene(
     commands.spawn((
         Name::new(camera_config.name),
         Camera3d::default(),
+        SceneCamera,
         Transform::from_xyz(
             camera_config.transform.position.x,
             camera_config.transform.position.y,
@@ -135,6 +177,146 @@ fn setup_scene(
             ),
         ),
     ));
+}
+
+fn apply_camera_input(
+    time: Res<Time>,
+    keys: Res<ButtonInput<KeyCode>>,
+    config: Option<Res<SceneInputConfig>>,
+    mut cameras: Query<&mut Transform, With<SceneCamera>>,
+) {
+    let Some(config) = config else {
+        return;
+    };
+
+    for mut transform in cameras.iter_mut() {
+        let move_cfg = &config.camera.movement;
+        let rot_cfg = &config.camera.rotation;
+        let dt = time.delta_secs();
+
+        // Movement
+        let mut forward_axis = 0.0;
+        let mut right_axis = 0.0;
+        if let Some(key) = move_cfg.forward {
+            if keys.pressed(key) {
+                forward_axis += 1.0;
+            }
+        }
+        if let Some(key) = move_cfg.backward {
+            if keys.pressed(key) {
+                forward_axis -= 1.0;
+            }
+        }
+        if let Some(key) = move_cfg.right {
+            if keys.pressed(key) {
+                right_axis += 1.0;
+            }
+        }
+        if let Some(key) = move_cfg.left {
+            if keys.pressed(key) {
+                right_axis -= 1.0;
+            }
+        }
+
+        if forward_axis != 0.0 || right_axis != 0.0 {
+            let forward = transform.rotation * -Vec3::Z;
+            let right = transform.rotation * Vec3::X;
+            let mut direction = forward * forward_axis + right * right_axis;
+            if direction.length_squared() > 0.0 {
+                direction = direction.normalize();
+                transform.translation += direction * move_cfg.speed * dt;
+            }
+        }
+
+        // Rotation
+        let yaw_amount = {
+            let mut val = 0.0;
+            if let Some(key) = rot_cfg.yaw_left {
+                if keys.pressed(key) {
+                    val += 1.0;
+                }
+            }
+            if let Some(key) = rot_cfg.yaw_right {
+                if keys.pressed(key) {
+                    val -= 1.0;
+                }
+            }
+            val
+        };
+
+        let pitch_amount = {
+            let mut val = 0.0;
+            if let Some(key) = rot_cfg.pitch_up {
+                if keys.pressed(key) {
+                    val += 1.0;
+                }
+            }
+            if let Some(key) = rot_cfg.pitch_down {
+                if keys.pressed(key) {
+                    val -= 1.0;
+                }
+            }
+            val
+        };
+
+        let rot_speed = rot_cfg.degrees_per_second.to_radians() * dt;
+        if yaw_amount != 0.0 {
+            transform.rotate_y(yaw_amount * rot_speed);
+        }
+        if pitch_amount != 0.0 {
+            transform.rotate_local_x(pitch_amount * rot_speed);
+        }
+    }
+}
+
+fn resolve_input_config(config: &InputConfig) -> ResolvedCameraInputConfig {
+    let movement = &config.camera.movement;
+    let rotation = &config.camera.rotation;
+
+    ResolvedCameraInputConfig {
+        movement: ResolvedMovementConfig {
+            speed: movement.speed,
+            forward: resolve_key_or_warn(&movement.forward, "camera forward"),
+            backward: resolve_key_or_warn(&movement.backward, "camera backward"),
+            left: resolve_key_or_warn(&movement.left, "camera left"),
+            right: resolve_key_or_warn(&movement.right, "camera right"),
+        },
+        rotation: ResolvedRotationConfig {
+            degrees_per_second: rotation.degrees_per_second,
+            yaw_left: resolve_key_or_warn(&rotation.yaw_left, "camera yaw left"),
+            yaw_right: resolve_key_or_warn(&rotation.yaw_right, "camera yaw right"),
+            pitch_up: resolve_key_or_warn(&rotation.pitch_up, "camera pitch up"),
+            pitch_down: resolve_key_or_warn(&rotation.pitch_down, "camera pitch down"),
+        },
+    }
+}
+
+fn resolve_key_or_warn(key: &str, action: &str) -> Option<KeyCode> {
+    if key.trim().is_empty() {
+        return None;
+    }
+    match resolve_key(key) {
+        Some(code) => Some(code),
+        None => {
+            warn!("Unrecognized key '{key}' for {action}; binding disabled.");
+            None
+        }
+    }
+}
+
+fn resolve_key(key: &str) -> Option<KeyCode> {
+    let normalized = key.trim().to_ascii_uppercase();
+    match normalized.as_str() {
+        "W" => Some(KeyCode::KeyW),
+        "A" => Some(KeyCode::KeyA),
+        "S" => Some(KeyCode::KeyS),
+        "D" => Some(KeyCode::KeyD),
+        "ARROWLEFT" | "LEFT" => Some(KeyCode::ArrowLeft),
+        "ARROWRIGHT" | "RIGHT" => Some(KeyCode::ArrowRight),
+        "ARROWUP" | "UP" => Some(KeyCode::ArrowUp),
+        "ARROWDOWN" | "DOWN" => Some(KeyCode::ArrowDown),
+        _ => None,
+    }
 }
 
 fn load_cube_config(scene: &str) -> CubeConfig {
@@ -181,12 +363,121 @@ fn load_camera_config(scene: &str) -> CameraConfig {
     }
 }
 
+fn load_input_config(scene: &str) -> InputConfig {
+    let path = input_config_path(scene);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Falling back to defaults.");
+            return InputConfig::default();
+        }
+    };
+
+    match toml::from_str::<InputConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded input config from {path}.");
+            config
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Falling back to defaults.");
+            InputConfig::default()
+        }
+    }
+}
+
 fn cube_config_path(scene: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/entities/cube.toml")
 }
 
 fn camera_config_path(scene: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/camera.toml")
+}
+
+fn input_config_path(scene: &str) -> String {
+    format!("{SCENE_ROOT}/{scene}/input.toml")
+}
+
+#[derive(Debug, Deserialize)]
+struct InputConfig {
+    #[serde(default)]
+    camera: CameraInputConfig,
+}
+
+impl Default for InputConfig {
+    fn default() -> Self {
+        Self {
+            camera: CameraInputConfig::default(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct CameraInputConfig {
+    #[serde(default)]
+    movement: MovementConfig,
+    #[serde(default)]
+    rotation: CameraRotationConfig,
+}
+
+impl Default for CameraInputConfig {
+    fn default() -> Self {
+        Self {
+            movement: MovementConfig::default(),
+            rotation: CameraRotationConfig::default(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct MovementConfig {
+    #[serde(default = "default_move_speed")]
+    speed: f32,
+    #[serde(default = "default_forward_key")]
+    forward: String,
+    #[serde(default = "default_backward_key")]
+    backward: String,
+    #[serde(default = "default_left_key")]
+    left: String,
+    #[serde(default = "default_right_key")]
+    right: String,
+}
+
+impl Default for MovementConfig {
+    fn default() -> Self {
+        Self {
+            speed: default_move_speed(),
+            forward: default_forward_key(),
+            backward: default_backward_key(),
+            left: default_left_key(),
+            right: default_right_key(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct CameraRotationConfig {
+    #[serde(default = "default_rotation_speed")]
+    degrees_per_second: f32,
+    #[serde(default = "default_yaw_left_key")]
+    yaw_left: String,
+    #[serde(default = "default_yaw_right_key")]
+    yaw_right: String,
+    #[serde(default = "default_pitch_up_key")]
+    pitch_up: String,
+    #[serde(default = "default_pitch_down_key")]
+    pitch_down: String,
+}
+
+impl Default for CameraRotationConfig {
+    fn default() -> Self {
+        Self {
+            degrees_per_second: default_rotation_speed(),
+            yaw_left: default_yaw_left_key(),
+            yaw_right: default_yaw_right_key(),
+            pitch_up: default_pitch_up_key(),
+            pitch_down: default_pitch_down_key(),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -197,7 +488,7 @@ struct CubeConfig {
     #[serde(default)]
     position: PositionConfig,
     #[serde(default)]
-    rotation: RotationConfig,
+    rotation: CubeRotationConfig,
     #[serde(default)]
     dimensions: DimensionsConfig,
     #[serde(default)]
@@ -212,7 +503,7 @@ impl Default for CubeConfig {
             name: "cube".to_string(),
             color: default_color_name(),
             position: PositionConfig::default(),
-            rotation: RotationConfig::default(),
+            rotation: CubeRotationConfig::default(),
             dimensions: DimensionsConfig::default(),
             size: SizeConfig::default(),
             physics: PhysicsConfig::default(),
@@ -273,7 +564,7 @@ impl Default for Vec3Config {
 }
 
 #[derive(Debug, Deserialize)]
-struct RotationConfig {
+struct CubeRotationConfig {
     #[serde(default)]
     roll: f32,
     #[serde(default)]
@@ -282,7 +573,7 @@ struct RotationConfig {
     yaw: f32,
 }
 
-impl Default for RotationConfig {
+impl Default for CubeRotationConfig {
     fn default() -> Self {
         Self {
             roll: 0.0,
@@ -381,6 +672,46 @@ fn default_camera_look_at() -> Vec3Config {
 
 fn default_camera_up() -> Vec3Config {
     Vec3Config { x: 0.0, y: 1.0, z: 0.0 }
+}
+
+fn default_move_speed() -> f32 {
+    6.0
+}
+
+fn default_rotation_speed() -> f32 {
+    90.0
+}
+
+fn default_forward_key() -> String {
+    "W".to_string()
+}
+
+fn default_backward_key() -> String {
+    "S".to_string()
+}
+
+fn default_left_key() -> String {
+    "A".to_string()
+}
+
+fn default_right_key() -> String {
+    "D".to_string()
+}
+
+fn default_yaw_left_key() -> String {
+    "ArrowLeft".to_string()
+}
+
+fn default_yaw_right_key() -> String {
+    "ArrowRight".to_string()
+}
+
+fn default_pitch_up_key() -> String {
+    "ArrowUp".to_string()
+}
+
+fn default_pitch_down_key() -> String {
+    "ArrowDown".to_string()
 }
 
 fn parse_color(color_name: &str) -> Option<[u8; 3]> {
