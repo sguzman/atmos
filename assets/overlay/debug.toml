@@ -1,0 +1,14 @@
+# Overlay elements rendered on top of the 3D scene
+
+[[elements]]
+kind = "text"
+content = "debug"
+color = "white"
+font_size = 18.0
+font_family = "monospace"
+visible = true
+opacity = 1.0
+anchor = "top_right"
+offset = { x = -12.0, y = 12.0 }
+rotation_deg = 0.0
+scale = 1.0

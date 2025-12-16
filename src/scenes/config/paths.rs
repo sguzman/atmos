@@ -31,3 +31,11 @@ pub fn input_config_path(scene: &str) -> String {
 pub fn light_config_path(scene: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/light.toml")
 }
+
+#[allow(dead_code)]
+pub fn overlay_config_path(name: &str) -> String {
+    format!(
+        "{overlay_root}/{name}.toml",
+        overlay_root = crate::scenes::config::OVERLAY_ROOT
+    )
+}
