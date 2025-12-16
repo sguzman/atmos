@@ -94,7 +94,7 @@ fn setup(
 }
 
 fn load_cube_config() -> CubeConfig {
-    const CONFIG_PATH: &str = "assets/entities/cube.toml";
+    const CONFIG_PATH: &str = "assets/scenes/main/entities/cube.toml";
     let contents = match fs::read_to_string(CONFIG_PATH) {
         Ok(text) => text,
         Err(err) => {
@@ -116,7 +116,7 @@ fn load_cube_config() -> CubeConfig {
 }
 
 fn load_camera_config() -> CameraConfig {
-    const CONFIG_PATH: &str = "assets/camera.toml";
+    const CONFIG_PATH: &str = "assets/scenes/main/camera.toml";
     let contents = match fs::read_to_string(CONFIG_PATH) {
         Ok(text) => text,
         Err(err) => {

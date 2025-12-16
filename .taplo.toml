@@ -1,0 +1,13 @@
+# .taplo.toml
+
+# Optional: limit what files Taplo touches
+include = ["assets/**/*.toml"]
+exclude = ["target/**", "**/node_modules/**"]
+
+[formatting]
+indent_string = "  "     # 2 spaces
+column_width = 40
+align_entries = true
+reorder_keys = true
+trailing_newline = true
+crlf = false             # keep LF line endings
