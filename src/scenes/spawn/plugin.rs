@@ -3,6 +3,7 @@ use bevy::{
     prelude::*,
 };
 
+use crate::app_config::AppConfig;
 use crate::scenes::{
     config::{
         ActiveScene, CameraConfig, CircleConfig, CubeConfig, InputConfig, LightConfig,
@@ -53,6 +54,7 @@ impl Plugin for ScenePlugin {
 
 fn setup_scene(
     active_scene: Res<ActiveScene>,
+    app_config: Res<AppConfig>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -121,7 +123,7 @@ fn setup_scene(
     spawn_lights(&light_config, &mut commands);
 
     // camera
-    commands.spawn((
+    let camera_components = (
         Name::new(camera_config.name),
         Camera3d::default(),
         SceneCamera,
@@ -142,10 +144,19 @@ fn setup_scene(
                 camera_config.transform.up.z,
             ),
         ),
-    ));
+    );
+    if let Some(msaa) = app_config.msaa_component() {
+        commands.spawn((camera_components, msaa));
+    } else {
+        commands.spawn(camera_components);
+    }
 
     // UI overlay camera
-    commands.spawn((Camera2d::default(), Camera { order: 1, ..default() }));
+    if let Some(msaa) = app_config.msaa_component() {
+        commands.spawn((Camera2d::default(), Camera { order: 1, ..default() }, msaa));
+    } else {
+        commands.spawn((Camera2d::default(), Camera { order: 1, ..default() }));
+    }
 }
 
 fn toggle_overlays(
