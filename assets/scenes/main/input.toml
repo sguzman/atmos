@@ -15,3 +15,6 @@ yaw_left = "ArrowLeft"
 yaw_right = "ArrowRight"
 pitch_up = "ArrowUp"
 pitch_down = "ArrowDown"
+
+[system]
+quit = "Escape"

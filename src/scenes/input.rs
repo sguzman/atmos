@@ -1,7 +1,8 @@
 use bevy::{
+    app::AppExit,
     input::keyboard::KeyCode,
     log::warn,
-    prelude::{ButtonInput, Component, Query, Res, Resource, Time, Transform, With},
+    prelude::{ButtonInput, Component, MessageWriter, Query, Res, Resource, Time, Transform, With},
 };
 
 use crate::scenes::config::{CameraRotationConfig, MovementConfig};
@@ -43,10 +44,16 @@ pub fn apply_camera_input(
     keys: Res<ButtonInput<KeyCode>>,
     config: Option<Res<SceneInputConfig>>,
     mut cameras: Query<&mut Transform, With<SceneCamera>>,
+    mut app_exit: MessageWriter<AppExit>,
 ) {
     let Some(config) = config else {
         return;
     };
+
+    if keys.just_pressed(KeyCode::Escape) {
+        app_exit.write(AppExit::Success);
+        return;
+    }
 
     for mut transform in cameras.iter_mut() {
         let move_cfg = &config.camera.movement;
