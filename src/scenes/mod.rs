@@ -64,10 +64,18 @@ fn setup_scene(
     ));
 
     // cube from config
+    let cube_rgb = parse_color(&cube_config.color.color).unwrap_or_else(|| {
+        warn!(
+            "Falling back to default color '{}' for cube in scene '{}'.",
+            default_color_name(),
+            active_scene.name
+        );
+        default_color_rgb()
+    });
     let cube_material = materials.add(Color::srgb_u8(
-        cube_config.color.srgb[0],
-        cube_config.color.srgb[1],
-        cube_config.color.srgb[2],
+        cube_rgb[0],
+        cube_rgb[1],
+        cube_rgb[2],
     ));
     commands.spawn((
         Name::new(cube_config.name),
@@ -252,13 +260,15 @@ impl Default for Vec3Config {
 
 #[derive(Debug, Deserialize)]
 struct ColorConfig {
-    #[serde(default = "default_srgb")]
-    srgb: [u8; 3],
+    #[serde(default = "default_color_name")]
+    color: String,
 }
 
 impl Default for ColorConfig {
     fn default() -> Self {
-        Self { srgb: default_srgb() }
+        Self {
+            color: default_color_name(),
+        }
     }
 }
 
@@ -321,10 +331,6 @@ struct PhysicsConfig {
     friction: f32,
 }
 
-fn default_srgb() -> [u8; 3] {
-    [124, 144, 255]
-}
-
 fn default_unit() -> f32 {
     1.0
 }
@@ -355,4 +361,25 @@ fn default_camera_look_at() -> Vec3Config {
 
 fn default_camera_up() -> Vec3Config {
     Vec3Config { x: 0.0, y: 1.0, z: 0.0 }
+}
+
+fn parse_color(color_name: &str) -> Option<[u8; 3]> {
+    match csscolorparser::parse(color_name) {
+        Ok(parsed) => {
+            let [r, g, b, _a] = parsed.to_rgba8();
+            Some([r, g, b])
+        }
+        Err(err) => {
+            warn!("Failed to parse color '{color_name}': {err}");
+            None
+        }
+    }
+}
+
+fn default_color_name() -> String {
+    "red".to_string()
+}
+
+fn default_color_rgb() -> [u8; 3] {
+    parse_color(&default_color_name()).unwrap_or([255, 0, 0])
 }

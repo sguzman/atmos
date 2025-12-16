@@ -1,7 +1,5 @@
 name = "cube"
-
-[color]
-srgb = [124, 144, 255] # matches Color::srgb_u8 defaults in code
+color = "red"
 
 [position]
 x = 0.0
