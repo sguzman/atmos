@@ -4,12 +4,15 @@ use serde::Deserialize;
 pub struct InputConfig {
     #[serde(default)]
     pub camera: CameraInputConfig,
+    #[serde(default)]
+    pub overlays: Vec<OverlayInputConfig>,
 }
 
 impl Default for InputConfig {
     fn default() -> Self {
         Self {
             camera: CameraInputConfig::default(),
+            overlays: vec![],
         }
     }
 }
@@ -29,6 +32,12 @@ impl Default for CameraInputConfig {
             rotation: CameraRotationConfig::default(),
         }
     }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct OverlayInputConfig {
+    pub name: String,
+    pub toggle: String,
 }
 
 #[derive(Debug, Deserialize)]

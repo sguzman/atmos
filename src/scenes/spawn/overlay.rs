@@ -4,14 +4,22 @@ use bevy::{
 };
 
 use crate::scenes::config::{parse_color, OverlayAnchor, OverlayElement, TextOverlay};
+use crate::scenes::input::SceneInputConfig;
 use crate::scenes::loaders::load_overlay_config;
+
+#[derive(Component)]
+pub struct OverlayTag {
+    pub name: String,
+}
 
 pub fn spawn_overlays(mut commands: Commands, asset_server: Res<AssetServer>) {
     let overlay = load_overlay_config("debug");
 
     for element in overlay.elements {
         match element {
-            OverlayElement::Text(text) => spawn_text_overlay(&mut commands, &asset_server, text),
+            OverlayElement::Text(text) => {
+                spawn_text_overlay(&mut commands, &asset_server, text, "debug".to_string())
+            }
             OverlayElement::Image(_img) => {
                 // Image overlays can be added here later
             }
@@ -19,7 +27,35 @@ pub fn spawn_overlays(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 }
 
-fn spawn_text_overlay(commands: &mut Commands, asset_server: &AssetServer, text: TextOverlay) {
+pub fn spawn_overlays_from_config(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    input: Option<Res<SceneInputConfig>>,
+) {
+    let names: Vec<String> = input
+        .as_ref()
+        .map(|cfg| cfg.overlays.iter().map(|o| o.name.clone()).collect())
+        .unwrap_or_else(|| vec!["debug".to_string()]);
+
+    for name in names {
+        let overlay = load_overlay_config(&name);
+        for element in overlay.elements {
+            match element {
+                OverlayElement::Text(text) => {
+                    spawn_text_overlay(&mut commands, &asset_server, text, name.clone())
+                }
+                OverlayElement::Image(_img) => {}
+            }
+        }
+    }
+}
+
+fn spawn_text_overlay(
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+    text: TextOverlay,
+    name: String,
+) {
     let color = parse_color(&text.color).unwrap_or([255, 255, 255]);
     let color = Color::srgb_u8(color[0], color[1], color[2]);
     let node = node_from_anchor(&text.common.anchor);
@@ -50,6 +86,7 @@ fn spawn_text_overlay(commands: &mut Commands, asset_server: &AssetServer, text:
         visibility,
         InheritedVisibility::default(),
         ViewVisibility::default(),
+        OverlayTag { name: name.clone() },
     ));
 }
 

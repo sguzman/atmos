@@ -18,3 +18,7 @@ pitch_down = "ArrowDown"
 
 [system]
 quit = "Escape"
+
+[[overlays]]
+name = "debug"
+toggle = "F1"

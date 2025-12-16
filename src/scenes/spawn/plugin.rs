@@ -8,7 +8,10 @@ use crate::scenes::{
         ActiveScene, CameraConfig, CircleConfig, CubeConfig, InputConfig, LightConfig,
         PillarComboConfig, RectangleConfig,
     },
-    input::{apply_camera_input, resolve_camera_input_config, SceneCamera, SceneInputConfig},
+    input::{
+        apply_camera_input, resolve_camera_input_config, resolve_overlay_toggles, SceneCamera,
+        SceneInputConfig,
+    },
     loaders::{
         load_camera_config, load_circle_config, load_cube_config, load_input_config,
         load_light_config, load_pillar_combo_config, load_rectangle_config, load_top_light_config,
@@ -19,7 +22,7 @@ use crate::scenes::{
 
 use super::lights::spawn_lights;
 use super::logging::{log_camera, log_lights};
-use super::overlay::spawn_overlays;
+use super::overlay::{spawn_overlays_from_config, OverlayTag};
 use super::sun::spawn_sun;
 use super::world::spawn_world_entities;
 
@@ -40,7 +43,11 @@ impl Plugin for ScenePlugin {
         });
         app.add_systems(Startup, setup_scene);
         app.add_systems(Update, apply_camera_input);
-        app.add_systems(PostStartup, (log_lights, log_camera, spawn_overlays).after(setup_scene));
+        app.add_systems(
+            PostStartup,
+            (log_lights, log_camera, spawn_overlays_from_config).after(setup_scene),
+        );
+        app.add_systems(Update, toggle_overlays);
     }
 }
 
@@ -60,6 +67,7 @@ fn setup_scene(
         resolve_camera_input_config(&input_config.camera.movement, &input_config.camera.rotation);
     commands.insert_resource(SceneInputConfig {
         camera: camera_input,
+        overlays: resolve_overlay_toggles(&input_config.overlays),
     });
 
     let cube_config: CubeConfig = load_cube_config(&active_scene.name);
@@ -133,4 +141,23 @@ fn setup_scene(
 
     // UI overlay camera
     commands.spawn((Camera2d::default(), Camera { order: 1, ..default() }));
+}
+
+fn toggle_overlays(
+    keys: Res<ButtonInput<KeyCode>>,
+    config: Option<Res<SceneInputConfig>>,
+    mut overlays: Query<(&OverlayTag, &mut Visibility)>,
+) {
+    let Some(config) = config else { return };
+    for overlay in &config.overlays {
+        let Some(key) = overlay.toggle else { continue };
+        if keys.just_pressed(key) {
+            for (_tag, mut vis) in overlays
+                .iter_mut()
+                .filter(|(tag, _)| tag.name == overlay.name)
+            {
+                vis.toggle_visible_hidden();
+            }
+        }
+    }
 }

@@ -2,14 +2,17 @@ use bevy::{
     app::AppExit,
     input::keyboard::KeyCode,
     log::warn,
-    prelude::{ButtonInput, Component, MessageWriter, Query, Res, Resource, Time, Transform, With},
+    prelude::{
+        ButtonInput, Component, MessageWriter, Query, Res, Resource, Time, Transform, With,
+    },
 };
 
-use crate::scenes::config::{CameraRotationConfig, MovementConfig};
+use crate::scenes::config::{CameraRotationConfig, MovementConfig, OverlayInputConfig};
 
 #[derive(Resource, Debug, Clone)]
 pub struct SceneInputConfig {
     pub camera: ResolvedCameraInputConfig,
+    pub overlays: Vec<ResolvedOverlayToggle>,
 }
 
 #[derive(Debug, Clone)]
@@ -34,6 +37,12 @@ pub struct ResolvedRotationConfig {
     pub yaw_right: Option<KeyCode>,
     pub pitch_up: Option<KeyCode>,
     pub pitch_down: Option<KeyCode>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ResolvedOverlayToggle {
+    pub name: String,
+    pub toggle: Option<KeyCode>,
 }
 
 #[derive(Component)]
@@ -155,6 +164,16 @@ pub fn resolve_camera_input_config(
             pitch_down: resolve_key_or_warn(&rotation.pitch_down, "camera pitch down"),
         },
     }
+}
+
+pub fn resolve_overlay_toggles(overlays: &[OverlayInputConfig]) -> Vec<ResolvedOverlayToggle> {
+    overlays
+        .iter()
+        .map(|ovr| ResolvedOverlayToggle {
+            name: ovr.name.clone(),
+            toggle: resolve_key_or_warn(&ovr.toggle, &format!("overlay toggle '{}'", ovr.name)),
+        })
+        .collect()
 }
 
 fn resolve_key_or_warn(key: &str, action: &str) -> Option<KeyCode> {

@@ -21,6 +21,7 @@ pub use colors::{
 };
 pub use combos::PillarComboConfig;
 pub use input::{CameraInputConfig, CameraRotationConfig, InputConfig, MovementConfig};
+pub use input::OverlayInputConfig;
 pub use light::{LightConfig, LightEntry, LightKind, LightOverrides};
 pub use overlay::{
     ImageFit, ImageOverlay, OverlayAnchor, OverlayCommon, OverlayConfig, OverlayElement,
