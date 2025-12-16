@@ -8,7 +8,7 @@ use crate::scenes::{
         default_circle_color_name, default_circle_radius, default_circle_rgb, default_color_name,
         default_color_rgb, ActiveScene, CameraConfig, CircleConfig, CubeConfig, InputConfig,
         LightConfig, LightEntry, LightOverrides, PillarComboConfig, RectangleConfig,
-        RectangleOverrides,
+        RectangleOverrides, SunConfig,
     },
     input::{apply_camera_input, resolve_camera_input_config, SceneCamera, SceneInputConfig},
     loaders::{
@@ -97,6 +97,9 @@ fn setup_scene(
         &mut materials,
         &active_scene,
     );
+
+    // sun derived from world config
+    spawn_sun(world_config.sun.as_ref(), &mut commands, &mut meshes, &mut materials, &active_scene);
 
     // lights
     spawn_lights(&light_config, &mut commands);
@@ -515,6 +518,57 @@ fn spawn_pillar_with_light(
             ..default()
         },
         Transform::from_translation(light_position_world),
+        Visibility::default(),
+        InheritedVisibility::default(),
+        ViewVisibility::default(),
+    ));
+}
+
+fn spawn_sun(
+    sun: Option<&SunConfig>,
+    commands: &mut Commands,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+    _active_scene: &ActiveScene,
+) {
+    let Some(sun) = sun else {
+        return;
+    };
+
+    let fraction = (sun.time.rem_euclid(24.0)) / 24.0;
+    let elevation = (std::f32::consts::PI * fraction).sin().max(0.0); // noon highest
+    let dir = Vec3::new(0.0, -(0.1 + elevation), -1.0).normalize();
+    let sun_color_rgb = crate::scenes::config::parse_color(&sun.color).unwrap_or([255, 255, 255]);
+    let sun_color = Color::srgb_u8(sun_color_rgb[0], sun_color_rgb[1], sun_color_rgb[2]);
+
+    // Directional light pointing along dir
+    commands.spawn((
+        DirectionalLight {
+            illuminance: sun.brightness,
+            shadows_enabled: false,
+            color: sun_color,
+            ..default()
+        },
+        Transform::from_translation(-dir * sun.distance).looking_at(Vec3::ZERO, Vec3::Y),
+        Visibility::default(),
+        InheritedVisibility::default(),
+        ViewVisibility::default(),
+    ));
+
+    // Visual sun disc
+    let sun_material = materials.add(StandardMaterial {
+        base_color: sun_color,
+        emissive: sun_color.into(),
+        unlit: true,
+        ..default()
+    });
+    commands.spawn((
+        Name::new("sun_disc"),
+        Mesh3d(meshes.add(Circle::new(sun.size))),
+        MeshMaterial3d(sun_material),
+        Transform::from_translation(-dir * sun.distance)
+            .looking_at(Vec3::ZERO, Vec3::Y)
+            .with_scale(Vec3::splat(1.0)),
         Visibility::default(),
         InheritedVisibility::default(),
         ViewVisibility::default(),

@@ -1,17 +1,24 @@
 use bevy::prelude::*;
 use serde::Deserialize;
 
-use crate::scenes::config::{CubeRotationConfig, LightOverrides, PositionConfig, RectangleOverrides};
+use crate::scenes::config::{
+    CubeRotationConfig, LightOverrides, PositionConfig, RectangleOverrides, SunConfig,
+};
 
 #[derive(Debug, Deserialize)]
 pub struct WorldConfig {
     #[serde(default)]
     pub entities: Vec<EntityPlacement>,
+    #[serde(default)]
+    pub sun: Option<SunConfig>,
 }
 
 impl Default for WorldConfig {
     fn default() -> Self {
-        Self { entities: Vec::new() }
+        Self {
+            entities: Vec::new(),
+            sun: None,
+        }
     }
 }
 
