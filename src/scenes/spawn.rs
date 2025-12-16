@@ -199,6 +199,8 @@ fn spawn_circle(
         .with_rotation(circle_rotation)
         .with_scale(Vec3::splat(placement.transform.scale)),
         Visibility::default(),
+        InheritedVisibility::default(),
+        ViewVisibility::default(),
     ));
 }
 
@@ -235,6 +237,8 @@ fn spawn_lights(light_config: &crate::scenes::config::LightConfig, commands: &mu
                         light.position.z,
                     ),
                     Visibility::default(),
+                    InheritedVisibility::default(),
+                    ViewVisibility::default(),
                 ));
             }
             crate::scenes::config::LightKind::Directional => {
@@ -256,6 +260,8 @@ fn spawn_lights(light_config: &crate::scenes::config::LightConfig, commands: &mu
                     },
                     transform,
                     Visibility::default(),
+                    InheritedVisibility::default(),
+                    ViewVisibility::default(),
                 ));
             }
         }
@@ -319,6 +325,8 @@ fn spawn_cube(
         .with_rotation(cube_rotation)
         .with_scale(Vec3::splat(template.size.uniform_scale * placement.transform.scale)),
         Visibility::default(),
+        InheritedVisibility::default(),
+        ViewVisibility::default(),
     ));
 }
 
