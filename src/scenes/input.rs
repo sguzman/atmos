@@ -164,16 +164,90 @@ fn resolve_key_or_warn(key: &str, action: &str) -> Option<KeyCode> {
 }
 
 fn resolve_key(key: &str) -> Option<KeyCode> {
-    let normalized = key.trim().to_ascii_uppercase();
+    let normalized = key.trim().to_ascii_lowercase();
+    // Letters
+    if normalized.len() == 1 {
+        let c = normalized.as_bytes()[0] as char;
+        if ('a'..='z').contains(&c) {
+            return Some(match c {
+                'a' => KeyCode::KeyA,
+                'b' => KeyCode::KeyB,
+                'c' => KeyCode::KeyC,
+                'd' => KeyCode::KeyD,
+                'e' => KeyCode::KeyE,
+                'f' => KeyCode::KeyF,
+                'g' => KeyCode::KeyG,
+                'h' => KeyCode::KeyH,
+                'i' => KeyCode::KeyI,
+                'j' => KeyCode::KeyJ,
+                'k' => KeyCode::KeyK,
+                'l' => KeyCode::KeyL,
+                'm' => KeyCode::KeyM,
+                'n' => KeyCode::KeyN,
+                'o' => KeyCode::KeyO,
+                'p' => KeyCode::KeyP,
+                'q' => KeyCode::KeyQ,
+                'r' => KeyCode::KeyR,
+                's' => KeyCode::KeyS,
+                't' => KeyCode::KeyT,
+                'u' => KeyCode::KeyU,
+                'v' => KeyCode::KeyV,
+                'w' => KeyCode::KeyW,
+                'x' => KeyCode::KeyX,
+                'y' => KeyCode::KeyY,
+                'z' => KeyCode::KeyZ,
+                _ => unreachable!(),
+            });
+        }
+    }
+
     match normalized.as_str() {
-        "W" => Some(KeyCode::KeyW),
-        "A" => Some(KeyCode::KeyA),
-        "S" => Some(KeyCode::KeyS),
-        "D" => Some(KeyCode::KeyD),
-        "ARROWLEFT" | "LEFT" => Some(KeyCode::ArrowLeft),
-        "ARROWRIGHT" | "RIGHT" => Some(KeyCode::ArrowRight),
-        "ARROWUP" | "UP" => Some(KeyCode::ArrowUp),
-        "ARROWDOWN" | "DOWN" => Some(KeyCode::ArrowDown),
+        // Arrow keys
+        "left" | "arrowleft" => Some(KeyCode::ArrowLeft),
+        "right" | "arrowright" => Some(KeyCode::ArrowRight),
+        "up" | "arrowup" => Some(KeyCode::ArrowUp),
+        "down" | "arrowdown" => Some(KeyCode::ArrowDown),
+
+        // Digits
+        "0" => Some(KeyCode::Digit0),
+        "1" => Some(KeyCode::Digit1),
+        "2" => Some(KeyCode::Digit2),
+        "3" => Some(KeyCode::Digit3),
+        "4" => Some(KeyCode::Digit4),
+        "5" => Some(KeyCode::Digit5),
+        "6" => Some(KeyCode::Digit6),
+        "7" => Some(KeyCode::Digit7),
+        "8" => Some(KeyCode::Digit8),
+        "9" => Some(KeyCode::Digit9),
+
+        // Punctuation by name
+        "space" => Some(KeyCode::Space),
+        "enter" | "return" => Some(KeyCode::Enter),
+        "escape" | "esc" => Some(KeyCode::Escape),
+        "tab" => Some(KeyCode::Tab),
+        "backspace" => Some(KeyCode::Backspace),
+        "minus" | "dash" | "hyphen" => Some(KeyCode::Minus),
+        "equal" | "equals" | "plus" => Some(KeyCode::Equal),
+        "lbracket" | "leftbracket" => Some(KeyCode::BracketLeft),
+        "rbracket" | "rightbracket" => Some(KeyCode::BracketRight),
+        "backslash" => Some(KeyCode::Backslash),
+        "semicolon" => Some(KeyCode::Semicolon),
+        "quote" | "apostrophe" => Some(KeyCode::Quote),
+        "comma" => Some(KeyCode::Comma),
+        "period" | "dot" => Some(KeyCode::Period),
+        "slash" | "forwardslash" => Some(KeyCode::Slash),
+        "grave" | "backtick" => Some(KeyCode::Backquote),
+
+        // Modifiers and common specials
+        "shift" | "lshift" => Some(KeyCode::ShiftLeft),
+        "rshift" => Some(KeyCode::ShiftRight),
+        "ctrl" | "control" | "lctrl" => Some(KeyCode::ControlLeft),
+        "rctrl" => Some(KeyCode::ControlRight),
+        "alt" | "lalt" => Some(KeyCode::AltLeft),
+        "ralt" => Some(KeyCode::AltRight),
+        "meta" | "lmeta" | "super" | "lsuper" | "win" | "lwin" => Some(KeyCode::SuperLeft),
+        "rmeta" | "rsuper" | "rwin" => Some(KeyCode::SuperRight),
+
         _ => None,
     }
 }

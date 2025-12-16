@@ -327,19 +327,19 @@ fn default_rotation_speed() -> f32 {
 }
 
 fn default_forward_key() -> String {
-    "W".to_string()
+    "e".to_string()
 }
 
 fn default_backward_key() -> String {
-    "S".to_string()
+    "d".to_string()
 }
 
 fn default_left_key() -> String {
-    "A".to_string()
+    "s".to_string()
 }
 
 fn default_right_key() -> String {
-    "D".to_string()
+    "f".to_string()
 }
 
 fn default_yaw_left_key() -> String {

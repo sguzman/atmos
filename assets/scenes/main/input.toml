@@ -3,10 +3,10 @@
 [camera.movement]
 description = "Move the camera in the scene"
 speed = 6.0
-forward = "W"
-backward = "S"
-left = "A"
-right = "D"
+forward = "e"
+backward = "d"
+left = "s"
+right = "f"
 
 [camera.rotation]
 description = "Rotate the camera orientation"
