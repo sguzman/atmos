@@ -63,15 +63,22 @@ pub(super) fn spawn_circle(
 
     if template.physics.enabled {
         let rigid_body = resolve_rigid_body(&template.physics.body_type);
-        entity.insert((
-            rigid_body,
-            Collider::cylinder(collider_thickness * 0.5, radius),
-            Restitution::coefficient(template.physics.restitution),
-            Friction::coefficient(template.physics.friction),
-        ));
+        entity.insert(rigid_body);
         if matches!(rigid_body, RigidBody::Dynamic) && template.physics.mass > 0.0 {
             entity.insert(AdditionalMassProperties::Mass(template.physics.mass));
         }
+
+        let collider_rotation = circle_rotation.inverse();
+        let restitution = template.physics.restitution;
+        let friction = template.physics.friction;
+        entity.with_children(|parent| {
+            parent.spawn((
+                Transform::from_rotation(collider_rotation),
+                Collider::cylinder(collider_thickness * 0.5, radius),
+                Restitution::coefficient(restitution),
+                Friction::coefficient(friction),
+            ));
+        });
     }
 }
 
