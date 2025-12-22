@@ -26,6 +26,7 @@ pub struct ResolvedCameraInputConfig {
 
 #[derive(Debug, Clone)]
 pub struct ResolvedMovementConfig {
+    pub control: CameraControl,
     pub speed: f32,
     pub forward: Option<KeyCode>,
     pub backward: Option<KeyCode>,
@@ -40,6 +41,12 @@ pub struct ResolvedRotationConfig {
     pub yaw_right: Option<KeyCode>,
     pub pitch_up: Option<KeyCode>,
     pub pitch_down: Option<KeyCode>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CameraControl {
+    Mouse,
+    Keyboard,
 }
 
 #[derive(Debug, Clone)]
@@ -76,6 +83,7 @@ pub fn apply_camera_input(
 
     for mut transform in cameras.iter_mut() {
         let move_cfg = &config.camera.movement;
+        let rot_cfg = &config.camera.rotation;
         let dt = time.delta_secs();
 
         // Movement
@@ -112,19 +120,61 @@ pub fn apply_camera_input(
             }
         }
 
-        // Rotation via mouse motion.
-        if mouse_delta.length_squared() > 0.0 {
-            let mouse_cfg = &app_config.mouse;
-            let mut yaw = -mouse_delta.x * mouse_cfg.sensitivity;
-            let mut pitch = -mouse_delta.y * mouse_cfg.sensitivity;
-            if mouse_cfg.invert_x {
-                yaw = -yaw;
+        match move_cfg.control {
+            CameraControl::Mouse => {
+                if mouse_delta.length_squared() > 0.0 {
+                    let mouse_cfg = &app_config.mouse;
+                    let mut yaw = -mouse_delta.x * mouse_cfg.sensitivity;
+                    let mut pitch = -mouse_delta.y * mouse_cfg.sensitivity;
+                    if mouse_cfg.invert_x {
+                        yaw = -yaw;
+                    }
+                    if mouse_cfg.invert_y {
+                        pitch = -pitch;
+                    }
+                    transform.rotate_y(yaw);
+                    transform.rotate_local_x(pitch);
+                }
             }
-            if mouse_cfg.invert_y {
-                pitch = -pitch;
+            CameraControl::Keyboard => {
+                let yaw_amount = {
+                    let mut val = 0.0;
+                    if let Some(key) = rot_cfg.yaw_left {
+                        if keys.pressed(key) {
+                            val += 1.0;
+                        }
+                    }
+                    if let Some(key) = rot_cfg.yaw_right {
+                        if keys.pressed(key) {
+                            val -= 1.0;
+                        }
+                    }
+                    val
+                };
+
+                let pitch_amount = {
+                    let mut val = 0.0;
+                    if let Some(key) = rot_cfg.pitch_up {
+                        if keys.pressed(key) {
+                            val += 1.0;
+                        }
+                    }
+                    if let Some(key) = rot_cfg.pitch_down {
+                        if keys.pressed(key) {
+                            val -= 1.0;
+                        }
+                    }
+                    val
+                };
+
+                let rot_speed = rot_cfg.degrees_per_second.to_radians() * dt;
+                if yaw_amount != 0.0 {
+                    transform.rotate_y(yaw_amount * rot_speed);
+                }
+                if pitch_amount != 0.0 {
+                    transform.rotate_local_x(pitch_amount * rot_speed);
+                }
             }
-            transform.rotate_y(yaw);
-            transform.rotate_local_x(pitch);
         }
     }
 }
@@ -135,6 +185,7 @@ pub fn resolve_camera_input_config(
 ) -> ResolvedCameraInputConfig {
     ResolvedCameraInputConfig {
         movement: ResolvedMovementConfig {
+            control: resolve_control_or_warn(&movement.control, "camera control"),
             speed: movement.speed,
             forward: resolve_key_or_warn(&movement.forward, "camera forward"),
             backward: resolve_key_or_warn(&movement.backward, "camera backward"),
@@ -170,6 +221,19 @@ fn resolve_key_or_warn(key: &str, action: &str) -> Option<KeyCode> {
         None => {
             warn!("Unrecognized key '{key}' for {action}; binding disabled.");
             None
+        }
+    }
+}
+
+fn resolve_control_or_warn(control: &str, action: &str) -> CameraControl {
+    let normalized = control.trim().to_ascii_lowercase();
+    match normalized.as_str() {
+        "mouse" => CameraControl::Mouse,
+        "keyboard" => CameraControl::Keyboard,
+        "" => CameraControl::Mouse,
+        _ => {
+            warn!("Unrecognized control '{control}' for {action}; defaulting to mouse.");
+            CameraControl::Mouse
         }
     }
 }

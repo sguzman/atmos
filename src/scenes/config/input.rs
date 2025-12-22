@@ -42,6 +42,8 @@ pub struct OverlayInputConfig {
 
 #[derive(Debug, Deserialize)]
 pub struct MovementConfig {
+    #[serde(default = "default_camera_control")]
+    pub control: String,
     #[serde(default = "default_move_speed")]
     pub speed: f32,
     #[serde(default = "default_forward_key")]
@@ -57,6 +59,7 @@ pub struct MovementConfig {
 impl Default for MovementConfig {
     fn default() -> Self {
         Self {
+            control: default_camera_control(),
             speed: default_move_speed(),
             forward: default_forward_key(),
             backward: default_backward_key(),
@@ -94,6 +97,10 @@ impl Default for CameraRotationConfig {
 
 fn default_move_speed() -> f32 {
     6.0
+}
+
+fn default_camera_control() -> String {
+    "mouse".to_string()
 }
 
 fn default_rotation_speed() -> f32 {

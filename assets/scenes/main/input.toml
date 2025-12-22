@@ -2,6 +2,7 @@
 
 [camera.movement]
 description = "Move the camera in the scene"
+control = "mouse"
 speed = 6.0
 forward = "e"
 backward = "d"
