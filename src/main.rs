@@ -25,6 +25,7 @@ fn main() {
     )
     .add_systems(Startup, configure_cursor_options)
     .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
+    .add_plugins(RapierDebugRenderPlugin::default())
     .add_plugins(EguiPlugin::default())
     .add_plugins(WorldInspectorPlugin::new())
     .add_plugins(scenes::ScenePlugin::new("main"))
