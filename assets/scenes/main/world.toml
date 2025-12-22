@@ -21,7 +21,7 @@ scale = 1.0
 template = "entities/pillar_with_light.toml"
 name_override = "lit_pillar"
 [entities.transform]
-position = { x = 2.0, y = 0.0, z = 2.0 }
+position = { x = 2.0, y = 2.0, z = 2.0 }
 rotation = { roll = 0.0, pitch = 0.0, yaw = 0.0 }
 scale = 1.0
 [entities.rectangle]
@@ -34,7 +34,7 @@ range = 30.0
 template = "entities/pillar_with_light.toml"
 name_override = "lit_pillar2"
 [entities.transform]
-position = { x = 20.0, y = 0.0, z = 2.0 }
+position = { x = 20.0, y = 2.0, z = 2.0 }
 rotation = { roll = 0.0, pitch = 0.0, yaw = 0.0 }
 scale = 1.0
 [entities.rectangle]
