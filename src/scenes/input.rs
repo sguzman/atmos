@@ -231,18 +231,15 @@ pub fn apply_shoot_action(
 
     let rate = config.action.rate.max(0.1);
     let interval = 1.0 / rate;
-    state.accumulator += time.delta_secs();
+    let forward = camera.forward();
+    let spin = Vec3::new(
+        config.action.spin.x.to_radians(),
+        config.action.spin.y.to_radians(),
+        config.action.spin.z.to_radians(),
+    );
 
-    while state.accumulator >= interval {
-        state.accumulator -= interval;
-        let forward = camera.forward();
+    let spawn_ball = |commands: &mut Commands| {
         let spawn_pos = camera.translation() + forward * config.action.spawn_offset;
-        let spin = Vec3::new(
-            config.action.spin.x.to_radians(),
-            config.action.spin.y.to_radians(),
-            config.action.spin.z.to_radians(),
-        );
-
         let mut entity = commands.spawn((
             Name::new(config.sphere.name.clone()),
             Mesh3d(config.mesh.clone()),
@@ -269,6 +266,17 @@ pub fn apply_shoot_action(
                 entity.insert(AdditionalMassProperties::Mass(config.sphere.physics.mass));
             }
         }
+    };
+
+    if buttons.just_pressed(config.trigger) {
+        spawn_ball(&mut commands);
+        state.accumulator = 0.0;
+    }
+
+    state.accumulator += time.delta_secs();
+    while state.accumulator >= interval {
+        state.accumulator -= interval;
+        spawn_ball(&mut commands);
     }
 }
 
