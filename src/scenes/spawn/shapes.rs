@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 use bevy_rapier3d::prelude::{
-    AdditionalMassProperties, Collider, Friction, Restitution, RigidBody,
+    AdditionalMassProperties, Collider, ColliderScale, Friction, Restitution, RigidBody,
 };
 
 use crate::scenes::config::{
@@ -118,6 +118,7 @@ pub(super) fn spawn_rectangle(
         placement.transform.rotation.pitch.to_radians(),
         placement.transform.rotation.yaw.to_radians(),
     );
+    let scale = placement.transform.scale;
     let half_extents = Vec3::new(
         effective.dimensions.width * 0.5,
         effective.dimensions.height * 0.5,
@@ -143,7 +144,7 @@ pub(super) fn spawn_rectangle(
             placement.transform.position.z,
         )
         .with_rotation(rect_rotation)
-        .with_scale(Vec3::splat(placement.transform.scale)),
+        .with_scale(Vec3::splat(scale)),
         Visibility::default(),
         InheritedVisibility::default(),
         ViewVisibility::default(),
@@ -154,6 +155,7 @@ pub(super) fn spawn_rectangle(
         entity.insert((
             rigid_body,
             Collider::cuboid(half_extents.x, half_extents.y, half_extents.z),
+            ColliderScale::Relative(Vec3::splat(scale)),
             Restitution::coefficient(effective.physics.restitution),
             Friction::coefficient(effective.physics.friction),
         ));

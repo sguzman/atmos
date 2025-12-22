@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 use bevy_rapier3d::prelude::{
-    AdditionalMassProperties, Collider, Friction, Restitution, RigidBody,
+    AdditionalMassProperties, Collider, ColliderScale, Friction, Restitution, RigidBody,
 };
 
 use crate::scenes::config::{
@@ -101,6 +101,7 @@ pub(super) fn spawn_pillar_with_light(
         entity.insert((
             rigid_body,
             Collider::cuboid(half_extents.x, half_extents.y, half_extents.z),
+            ColliderScale::Relative(Vec3::splat(rect_scale)),
             Restitution::coefficient(rect_effective.physics.restitution),
             Friction::coefficient(rect_effective.physics.friction),
         ));
@@ -127,7 +128,7 @@ pub(super) fn spawn_pillar_with_light(
     // Position light on top center plus offsets, respecting rotation/scale
     let top_local = Vec3::new(
         merged_light.offset.x,
-        rect_effective.dimensions.height * 0.5 + merged_light.offset.y,
+        rect_effective.dimensions.height * 0.5 * rect_scale + merged_light.offset.y,
         merged_light.offset.z,
     );
     let light_position_world = rect_transform.transform_point(top_local);
