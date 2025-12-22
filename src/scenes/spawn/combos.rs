@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 use bevy_rapier3d::prelude::{
-    AdditionalMassProperties, Collider, ColliderScale, Friction, Restitution, RigidBody,
+    AdditionalMassProperties, Collider, Friction, Restitution, RigidBody,
 };
 
 use crate::scenes::config::{
@@ -101,7 +101,6 @@ pub(super) fn spawn_pillar_with_light(
         entity.insert((
             rigid_body,
             Collider::cuboid(half_extents.x, half_extents.y, half_extents.z),
-            ColliderScale::Relative(Vec3::splat(rect_scale)),
             Restitution::coefficient(rect_effective.physics.restitution),
             Friction::coefficient(rect_effective.physics.friction),
         ));

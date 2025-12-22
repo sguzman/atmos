@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 use bevy_rapier3d::prelude::{
-    AdditionalMassProperties, Collider, ColliderScale, Friction, Restitution, RigidBody,
+    AdditionalMassProperties, Collider, Friction, Restitution, RigidBody,
 };
 
 use crate::scenes::config::{
@@ -155,7 +155,6 @@ pub(super) fn spawn_rectangle(
         entity.insert((
             rigid_body,
             Collider::cuboid(half_extents.x, half_extents.y, half_extents.z),
-            ColliderScale::Relative(Vec3::splat(scale)),
             Restitution::coefficient(effective.physics.restitution),
             Friction::coefficient(effective.physics.friction),
         ));
