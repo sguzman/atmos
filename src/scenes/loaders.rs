@@ -1,11 +1,12 @@
 use std::fs;
 
 use crate::scenes::config::{
-    camera_config_path, circle_config_path, cube_config_path, input_config_path,
-    light_config_path, overlay_config_path, pillar_combo_config_path, rectangle_config_path,
-    skybox_config_path, sun_config_path, top_light_config_path, CameraConfig, CircleConfig,
-    CubeConfig, InputConfig, LightConfig, OverlayConfig, PillarComboConfig, RectangleConfig,
-    SkyboxConfig, SunConfig,
+    action_config_path, camera_config_path, circle_config_path, cube_config_path,
+    input_config_path, light_config_path, overlay_config_path, pillar_combo_config_path,
+    rectangle_config_path, skybox_config_path, sphere_config_path, sun_config_path,
+    top_light_config_path, CameraConfig, CircleConfig, CubeConfig, InputConfig, LightConfig,
+    OverlayConfig, PillarComboConfig, RectangleConfig, ShootActionConfig, SkyboxConfig,
+    SphereConfig, SunConfig,
 };
 use crate::scenes::world::WorldConfig;
 use bevy::log::{info, warn};
@@ -72,6 +73,50 @@ pub fn load_rectangle_config(scene: &str) -> RectangleConfig {
         Err(err) => {
             warn!("Failed to parse {path}: {err}. Falling back to defaults.");
             RectangleConfig::default()
+        }
+    }
+}
+
+pub fn load_sphere_config(scene: &str) -> SphereConfig {
+    let path = sphere_config_path(scene);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Falling back to defaults.");
+            return SphereConfig::default();
+        }
+    };
+
+    match toml::from_str::<SphereConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded sphere config from {path}.");
+            config
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Falling back to defaults.");
+            SphereConfig::default()
+        }
+    }
+}
+
+pub fn load_shoot_action_config(scene: &str, action_path: &str) -> Option<ShootActionConfig> {
+    let path = action_config_path(scene, action_path);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Action disabled.");
+            return None;
+        }
+    };
+
+    match toml::from_str::<ShootActionConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded shoot action config from {path}.");
+            Some(config)
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Action disabled.");
+            None
         }
     }
 }

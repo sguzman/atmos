@@ -80,6 +80,28 @@ impl Default for RectangleConfig {
     }
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct SphereConfig {
+    pub name: String,
+    #[serde(default = "default_sphere_color_name")]
+    pub color: String,
+    #[serde(default = "default_sphere_radius")]
+    pub radius: f32,
+    #[serde(default)]
+    pub physics: PhysicsConfig,
+}
+
+impl Default for SphereConfig {
+    fn default() -> Self {
+        Self {
+            name: "sphere".to_string(),
+            color: default_sphere_color_name(),
+            radius: default_sphere_radius(),
+            physics: PhysicsConfig::default(),
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct RectangleOverrides {
     #[serde(default)]
@@ -88,4 +110,12 @@ pub struct RectangleOverrides {
     pub color: Option<String>,
     #[serde(default)]
     pub dimensions: Option<DimensionsConfig>,
+}
+
+fn default_sphere_color_name() -> String {
+    "orange".to_string()
+}
+
+fn default_sphere_radius() -> f32 {
+    0.2
 }

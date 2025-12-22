@@ -10,13 +10,15 @@ use crate::scenes::{
         PillarComboConfig, RectangleConfig,
     },
     input::{
-        apply_camera_input, resolve_camera_input_config, resolve_overlay_toggles, SceneCamera,
-        SceneInputConfig,
+        apply_camera_input, apply_shoot_action, resolve_action_bindings,
+        resolve_camera_input_config, resolve_overlay_toggles, SceneCamera, SceneInputConfig,
+        SceneShootConfig,
     },
     loaders::{
         load_camera_config, load_circle_config, load_cube_config, load_input_config,
-        load_light_config, load_pillar_combo_config, load_rectangle_config, load_skybox_config,
-        load_sun_config, load_top_light_config, load_world_config,
+        load_light_config, load_pillar_combo_config, load_rectangle_config,
+        load_shoot_action_config, load_skybox_config, load_sphere_config, load_sun_config,
+        load_top_light_config, load_world_config,
     },
     world::WorldConfig,
 };
@@ -44,6 +46,7 @@ impl Plugin for ScenePlugin {
         });
         app.add_systems(Startup, setup_scene);
         app.add_systems(Update, apply_camera_input);
+        app.add_systems(Update, apply_shoot_action);
         app.add_systems(
             PostStartup,
             (log_lights, log_camera, spawn_overlays_from_config).after(setup_scene),
@@ -70,18 +73,50 @@ fn setup_scene(
     commands.insert_resource(SceneInputConfig {
         camera: camera_input,
         overlays: resolve_overlay_toggles(&input_config.overlays),
+        actions: resolve_action_bindings(&input_config.actions),
     });
 
     let cube_config: CubeConfig = load_cube_config(&active_scene.name);
     let camera_config: CameraConfig = load_camera_config(&active_scene.name);
     let circle_config: CircleConfig = load_circle_config(&active_scene.name);
     let rectangle_config: RectangleConfig = load_rectangle_config(&active_scene.name);
+    let sphere_config = load_sphere_config(&active_scene.name);
     let top_light_template: LightConfig = load_top_light_config(&active_scene.name);
     let combo_config: PillarComboConfig = load_pillar_combo_config(&active_scene.name);
     let world_config: WorldConfig = load_world_config(&active_scene.name);
     let light_config = load_light_config(&active_scene.name);
     let sun_config = load_sun_config(&active_scene.name);
     let skybox_config = load_skybox_config(&active_scene.name);
+
+    if let Some(action_binding) = input_config
+        .actions
+        .iter()
+        .find(|action| action.action.ends_with("shoot-balls.toml"))
+    {
+        if let Some(trigger) =
+            crate::scenes::input::resolve_mouse_button_or_warn(&action_binding.mouse, "shoot")
+        {
+            if let Some(action) =
+                load_shoot_action_config(&active_scene.name, &action_binding.action)
+            {
+                let sphere_color =
+                    crate::scenes::config::parse_color(&sphere_config.color).unwrap_or([255, 165, 0]);
+                let sphere_material = materials.add(Color::srgb_u8(
+                    sphere_color[0],
+                    sphere_color[1],
+                    sphere_color[2],
+                ));
+                let sphere_mesh = meshes.add(Sphere::new(sphere_config.radius));
+                commands.insert_resource(SceneShootConfig {
+                    action,
+                    trigger,
+                    sphere: sphere_config.clone(),
+                    mesh: sphere_mesh,
+                    material: sphere_material,
+                });
+            }
+        }
+    }
 
     if cube_config.physics.enabled {
         warn!(

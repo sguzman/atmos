@@ -12,6 +12,10 @@ pub fn rectangle_config_path(scene: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/entities/rectangle.toml")
 }
 
+pub fn sphere_config_path(scene: &str) -> String {
+    format!("{SCENE_ROOT}/{scene}/entities/sphere.toml")
+}
+
 pub fn top_light_config_path(scene: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/entities/top_light.toml")
 }
@@ -26,6 +30,10 @@ pub fn camera_config_path(scene: &str) -> String {
 
 pub fn input_config_path(scene: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/input.toml")
+}
+
+pub fn action_config_path(scene: &str, action_path: &str) -> String {
+    format!("{SCENE_ROOT}/{scene}/{action_path}")
 }
 
 pub fn light_config_path(scene: &str) -> String {

@@ -17,3 +17,8 @@ quit = "Escape"
 [[overlays]]
 name = "debug"
 toggle = "v"
+
+[[actions]]
+name = "shoot_balls"
+action = "actions/shoot-balls.toml"
+mouse = "left"

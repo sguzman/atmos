@@ -1,21 +1,29 @@
 use bevy::{
     app::AppExit,
     input::keyboard::KeyCode,
-    input::mouse::MouseMotion,
+    input::mouse::{MouseButton, MouseMotion},
     log::warn,
     prelude::{
-        ButtonInput, Component, MessageReader, MessageWriter, Query, Res, Resource, Time,
-        Transform, Vec2, With,
+        ButtonInput, Commands, Component, GlobalTransform, Handle, InheritedVisibility, Mesh,
+        Local, Mesh3d, MeshMaterial3d, MessageReader, MessageWriter, Name, Query, Res, Resource,
+        StandardMaterial, Time, Transform, Vec2, Vec3, ViewVisibility, Visibility, With,
     },
+};
+use bevy_rapier3d::prelude::{
+    AdditionalMassProperties, Collider, Friction, Restitution, RigidBody, Velocity,
 };
 
 use crate::app_config::AppConfig;
-use crate::scenes::config::{CameraRotationConfig, MovementConfig, OverlayInputConfig};
+use crate::scenes::config::{
+    ActionBindingConfig, CameraRotationConfig, MovementConfig, OverlayInputConfig, ShootActionConfig,
+    SphereConfig,
+};
 
 #[derive(Resource, Debug, Clone)]
 pub struct SceneInputConfig {
     pub camera: ResolvedCameraInputConfig,
     pub overlays: Vec<ResolvedOverlayToggle>,
+    pub actions: Vec<ResolvedActionBinding>,
 }
 
 #[derive(Debug, Clone)]
@@ -53,6 +61,22 @@ pub enum CameraControl {
 pub struct ResolvedOverlayToggle {
     pub name: String,
     pub toggle: Option<KeyCode>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ResolvedActionBinding {
+    pub name: String,
+    pub action: String,
+    pub mouse: Option<MouseButton>,
+}
+
+#[derive(Resource, Clone)]
+pub struct SceneShootConfig {
+    pub action: ShootActionConfig,
+    pub trigger: MouseButton,
+    pub sphere: SphereConfig,
+    pub mesh: Handle<Mesh>,
+    pub material: Handle<StandardMaterial>,
 }
 
 #[derive(Component)]
@@ -179,6 +203,75 @@ pub fn apply_camera_input(
     }
 }
 
+#[derive(Default)]
+pub struct ShootState {
+    accumulator: f32,
+}
+
+pub fn apply_shoot_action(
+    time: Res<Time>,
+    buttons: Res<ButtonInput<MouseButton>>,
+    config: Option<Res<SceneShootConfig>>,
+    mut state: Local<ShootState>,
+    cameras: Query<&GlobalTransform, With<SceneCamera>>,
+    mut commands: Commands,
+) {
+    let Some(config) = config else {
+        return;
+    };
+
+    if !buttons.pressed(config.trigger) {
+        state.accumulator = 0.0;
+        return;
+    }
+
+    let Ok(camera) = cameras.single() else {
+        return;
+    };
+
+    let rate = config.action.rate.max(0.1);
+    let interval = 1.0 / rate;
+    state.accumulator += time.delta_secs();
+
+    while state.accumulator >= interval {
+        state.accumulator -= interval;
+        let forward = camera.forward();
+        let spawn_pos = camera.translation() + forward * config.action.spawn_offset;
+        let spin = Vec3::new(
+            config.action.spin.x.to_radians(),
+            config.action.spin.y.to_radians(),
+            config.action.spin.z.to_radians(),
+        );
+
+        let mut entity = commands.spawn((
+            Name::new(config.sphere.name.clone()),
+            Mesh3d(config.mesh.clone()),
+            MeshMaterial3d(config.material.clone()),
+            Transform::from_translation(spawn_pos),
+            Velocity {
+                linvel: forward * config.action.velocity,
+                angvel: spin,
+            },
+            Visibility::default(),
+            InheritedVisibility::default(),
+            ViewVisibility::default(),
+        ));
+
+        if config.sphere.physics.enabled {
+            let rigid_body = resolve_rigid_body(&config.sphere.physics.body_type);
+            entity.insert((
+                rigid_body,
+                Collider::ball(config.sphere.radius),
+                Restitution::coefficient(config.sphere.physics.restitution),
+                Friction::coefficient(config.sphere.physics.friction),
+            ));
+            if matches!(rigid_body, RigidBody::Dynamic) && config.sphere.physics.mass > 0.0 {
+                entity.insert(AdditionalMassProperties::Mass(config.sphere.physics.mass));
+            }
+        }
+    }
+}
+
 pub fn resolve_camera_input_config(
     movement: &MovementConfig,
     rotation: &CameraRotationConfig,
@@ -212,6 +305,17 @@ pub fn resolve_overlay_toggles(overlays: &[OverlayInputConfig]) -> Vec<ResolvedO
         .collect()
 }
 
+pub fn resolve_action_bindings(actions: &[ActionBindingConfig]) -> Vec<ResolvedActionBinding> {
+    actions
+        .iter()
+        .map(|action| ResolvedActionBinding {
+            name: action.name.clone(),
+            action: action.action.clone(),
+            mouse: resolve_mouse_button_or_warn(&action.mouse, "action mouse"),
+        })
+        .collect()
+}
+
 fn resolve_key_or_warn(key: &str, action: &str) -> Option<KeyCode> {
     if key.trim().is_empty() {
         return None;
@@ -234,6 +338,19 @@ fn resolve_control_or_warn(control: &str, action: &str) -> CameraControl {
         _ => {
             warn!("Unrecognized control '{control}' for {action}; defaulting to mouse.");
             CameraControl::Mouse
+        }
+    }
+}
+
+pub fn resolve_mouse_button_or_warn(button: &str, action: &str) -> Option<MouseButton> {
+    if button.trim().is_empty() {
+        return None;
+    }
+    match resolve_mouse_button(button) {
+        Some(button) => Some(button),
+        None => {
+            warn!("Unrecognized mouse button '{button}' for {action}; binding disabled.");
+            None
         }
     }
 }
@@ -324,5 +441,27 @@ fn resolve_key(key: &str) -> Option<KeyCode> {
         "rmeta" | "rsuper" | "rwin" => Some(KeyCode::SuperRight),
 
         _ => None,
+    }
+}
+
+fn resolve_mouse_button(button: &str) -> Option<MouseButton> {
+    match button.trim().to_ascii_lowercase().as_str() {
+        "left" | "lmb" => Some(MouseButton::Left),
+        "right" | "rmb" => Some(MouseButton::Right),
+        "middle" | "mmb" => Some(MouseButton::Middle),
+        _ => None,
+    }
+}
+
+fn resolve_rigid_body(body_type: &str) -> RigidBody {
+    match body_type.trim().to_ascii_lowercase().as_str() {
+        "fixed" | "static" => RigidBody::Fixed,
+        "kinematic_position" | "kinematic_position_based" => {
+            RigidBody::KinematicPositionBased
+        }
+        "kinematic_velocity" | "kinematic_velocity_based" => {
+            RigidBody::KinematicVelocityBased
+        }
+        _ => RigidBody::Dynamic,
     }
 }
