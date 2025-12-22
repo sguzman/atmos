@@ -9,3 +9,9 @@ title = "Atmos"
 width = 1280
 height = 720
 present_mode = "auto_vsync"
+
+[mouse]
+# Radians per pixel.
+sensitivity = 0.0025
+invert_x = false
+invert_y = false

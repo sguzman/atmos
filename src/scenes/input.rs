@@ -1,12 +1,15 @@
 use bevy::{
     app::AppExit,
     input::keyboard::KeyCode,
+    input::mouse::MouseMotion,
     log::warn,
     prelude::{
-        ButtonInput, Component, MessageWriter, Query, Res, Resource, Time, Transform, With,
+        ButtonInput, Component, MessageReader, MessageWriter, Query, Res, Resource, Time,
+        Transform, Vec2, With,
     },
 };
 
+use crate::app_config::AppConfig;
 use crate::scenes::config::{CameraRotationConfig, MovementConfig, OverlayInputConfig};
 
 #[derive(Resource, Debug, Clone)]
@@ -51,6 +54,8 @@ pub struct SceneCamera;
 pub fn apply_camera_input(
     time: Res<Time>,
     keys: Res<ButtonInput<KeyCode>>,
+    mut mouse_motion: MessageReader<MouseMotion>,
+    app_config: Res<AppConfig>,
     config: Option<Res<SceneInputConfig>>,
     mut cameras: Query<&mut Transform, With<SceneCamera>>,
     mut app_exit: MessageWriter<AppExit>,
@@ -64,9 +69,13 @@ pub fn apply_camera_input(
         return;
     }
 
+    let mut mouse_delta = Vec2::ZERO;
+    for event in mouse_motion.read() {
+        mouse_delta += event.delta;
+    }
+
     for mut transform in cameras.iter_mut() {
         let move_cfg = &config.camera.movement;
-        let rot_cfg = &config.camera.rotation;
         let dt = time.delta_secs();
 
         // Movement
@@ -103,43 +112,19 @@ pub fn apply_camera_input(
             }
         }
 
-        // Rotation
-        let yaw_amount = {
-            let mut val = 0.0;
-            if let Some(key) = rot_cfg.yaw_left {
-                if keys.pressed(key) {
-                    val += 1.0;
-                }
+        // Rotation via mouse motion.
+        if mouse_delta.length_squared() > 0.0 {
+            let mouse_cfg = &app_config.mouse;
+            let mut yaw = -mouse_delta.x * mouse_cfg.sensitivity;
+            let mut pitch = -mouse_delta.y * mouse_cfg.sensitivity;
+            if mouse_cfg.invert_x {
+                yaw = -yaw;
             }
-            if let Some(key) = rot_cfg.yaw_right {
-                if keys.pressed(key) {
-                    val -= 1.0;
-                }
+            if mouse_cfg.invert_y {
+                pitch = -pitch;
             }
-            val
-        };
-
-        let pitch_amount = {
-            let mut val = 0.0;
-            if let Some(key) = rot_cfg.pitch_up {
-                if keys.pressed(key) {
-                    val += 1.0;
-                }
-            }
-            if let Some(key) = rot_cfg.pitch_down {
-                if keys.pressed(key) {
-                    val -= 1.0;
-                }
-            }
-            val
-        };
-
-        let rot_speed = rot_cfg.degrees_per_second.to_radians() * dt;
-        if yaw_amount != 0.0 {
-            transform.rotate_y(yaw_amount * rot_speed);
-        }
-        if pitch_amount != 0.0 {
-            transform.rotate_local_x(pitch_amount * rot_speed);
+            transform.rotate_y(yaw);
+            transform.rotate_local_x(pitch);
         }
     }
 }

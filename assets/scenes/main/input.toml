@@ -8,13 +8,7 @@ backward = "d"
 left = "s"
 right = "f"
 
-[camera.rotation]
-description = "Rotate the camera orientation"
-degrees_per_second = 90.0
-yaw_left = "ArrowLeft"
-yaw_right = "ArrowRight"
-pitch_up = "ArrowUp"
-pitch_down = "ArrowDown"
+# Camera rotation is driven by mouse motion (see assets/config.toml).
 
 [system]
 quit = "Escape"

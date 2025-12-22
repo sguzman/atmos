@@ -18,6 +18,7 @@ pub struct AppConfig {
     pub log_level: Option<String>,
     pub window: WindowConfig,
     pub msaa_samples: Option<u32>,
+    pub mouse: MouseConfig,
 }
 
 impl Default for AppConfig {
@@ -28,6 +29,7 @@ impl Default for AppConfig {
             log_level: Some("debug".to_string()),
             window: WindowConfig::default(),
             msaa_samples: Some(4),
+            mouse: MouseConfig::default(),
         }
     }
 }
@@ -61,6 +63,24 @@ impl Default for WindowConfig {
             width: 1280,
             height: 720,
             present_mode: PresentModeConfig::AutoVsync,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
+pub struct MouseConfig {
+    pub sensitivity: f32,
+    pub invert_x: bool,
+    pub invert_y: bool,
+}
+
+impl Default for MouseConfig {
+    fn default() -> Self {
+        Self {
+            sensitivity: 0.0025,
+            invert_x: false,
+            invert_y: false,
         }
     }
 }
