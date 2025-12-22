@@ -3,6 +3,7 @@ mod scenes;
 
 use app_config::load_app_config;
 use bevy::prelude::*;
+use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
 use bevy::winit::WinitSettings;
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
@@ -21,8 +22,17 @@ fn main() {
             .set(log_plugin)
             .set(window_plugin),
     )
+    .add_systems(Startup, configure_cursor_options)
     .add_plugins(EguiPlugin::default())
     .add_plugins(WorldInspectorPlugin::new())
     .add_plugins(scenes::ScenePlugin::new("main"))
     .run();
+}
+
+fn configure_cursor_options(mut windows: Query<&mut CursorOptions, With<PrimaryWindow>>) {
+    if let Ok(mut cursor) = windows.single_mut() {
+        cursor.grab_mode = CursorGrabMode::Locked;
+        cursor.visible = false;
+        cursor.hit_test = true;
+    }
 }
