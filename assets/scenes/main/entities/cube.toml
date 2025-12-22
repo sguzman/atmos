@@ -7,9 +7,9 @@ height = 1.0
 depth = 1.0
 
 [physics]
-enabled = false
+enabled = true
 # Future rapier 3D properties:
 body_type = "dynamic"
 mass = 1.0
-restitution = 0.0
+restitution = 0.6
 friction = 0.5

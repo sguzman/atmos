@@ -4,6 +4,7 @@ mod scenes;
 use app_config::load_app_config;
 use bevy::prelude::*;
 use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
+use bevy_rapier3d::prelude::*;
 use bevy::winit::WinitSettings;
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
@@ -23,6 +24,7 @@ fn main() {
             .set(window_plugin),
     )
     .add_systems(Startup, configure_cursor_options)
+    .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
     .add_plugins(EguiPlugin::default())
     .add_plugins(WorldInspectorPlugin::new())
     .add_plugins(scenes::ScenePlugin::new("main"))

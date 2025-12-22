@@ -2,6 +2,7 @@ use bevy::{
     log::{info, warn},
     prelude::*,
 };
+use bevy_rapier3d::prelude::{Collider, Friction, Restitution, RigidBody};
 
 use crate::scenes::config::{
     default_circle_color_name, default_circle_radius, default_circle_rgb, default_color_name,
@@ -34,6 +35,9 @@ pub(super) fn spawn_circle(
         placement.transform.rotation.pitch.to_radians(),
         placement.transform.rotation.yaw.to_radians(),
     );
+    let radius = placement.radius.unwrap_or_else(default_circle_radius);
+    let collider_thickness = 0.2;
+
     commands.spawn((
         Name::new(
             placement
@@ -41,9 +45,7 @@ pub(super) fn spawn_circle(
                 .clone()
                 .unwrap_or_else(|| template.name.clone()),
         ),
-        Mesh3d(meshes.add(Circle::new(
-            placement.radius.unwrap_or_else(default_circle_radius),
-        ))),
+        Mesh3d(meshes.add(Circle::new(radius))),
         MeshMaterial3d(circle_material),
         Transform::from_xyz(
             placement.transform.position.x,
@@ -52,6 +54,10 @@ pub(super) fn spawn_circle(
         )
         .with_rotation(circle_rotation)
         .with_scale(Vec3::splat(placement.transform.scale)),
+        RigidBody::Fixed,
+        Collider::cylinder(collider_thickness * 0.5, radius),
+        Restitution::coefficient(0.6),
+        Friction::coefficient(0.8),
         Visibility::default(),
         InheritedVisibility::default(),
         ViewVisibility::default(),
@@ -94,6 +100,11 @@ pub(super) fn spawn_rectangle(
         placement.transform.rotation.pitch.to_radians(),
         placement.transform.rotation.yaw.to_radians(),
     );
+    let half_extents = Vec3::new(
+        effective.dimensions.width * 0.5,
+        effective.dimensions.height * 0.5,
+        effective.dimensions.depth * 0.5,
+    );
 
     commands.spawn((
         Name::new(
@@ -115,6 +126,10 @@ pub(super) fn spawn_rectangle(
         )
         .with_rotation(rect_rotation)
         .with_scale(Vec3::splat(placement.transform.scale)),
+        RigidBody::Dynamic,
+        Collider::cuboid(half_extents.x, half_extents.y, half_extents.z),
+        Restitution::coefficient(0.4),
+        Friction::coefficient(0.6),
         Visibility::default(),
         InheritedVisibility::default(),
         ViewVisibility::default(),
@@ -150,6 +165,11 @@ pub(super) fn spawn_cube(
         placement.transform.rotation.yaw.to_radians(),
     );
     let cube_material = materials.add(Color::srgb_u8(cube_rgb[0], cube_rgb[1], cube_rgb[2]));
+    let half_extents = Vec3::new(
+        template.dimensions.width * 0.5,
+        template.dimensions.height * 0.5,
+        template.dimensions.depth * 0.5,
+    );
     commands.spawn((
         Name::new(
             placement
@@ -170,6 +190,10 @@ pub(super) fn spawn_cube(
         )
         .with_rotation(cube_rotation)
         .with_scale(Vec3::splat(template.size.uniform_scale * placement.transform.scale)),
+        RigidBody::Dynamic,
+        Collider::cuboid(half_extents.x, half_extents.y, half_extents.z),
+        Restitution::coefficient(template.physics.restitution),
+        Friction::coefficient(template.physics.friction),
         Visibility::default(),
         InheritedVisibility::default(),
         ViewVisibility::default(),
