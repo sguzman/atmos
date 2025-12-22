@@ -40,6 +40,8 @@ pub struct CircleConfig {
     pub name: String,
     #[serde(default = "default_circle_color_name")]
     pub color: String,
+    #[serde(default)]
+    pub physics: PhysicsConfig,
 }
 
 impl Default for CircleConfig {
@@ -47,6 +49,7 @@ impl Default for CircleConfig {
         Self {
             name: "base_circle".to_string(),
             color: default_circle_color_name(),
+            physics: PhysicsConfig::default(),
         }
     }
 }
@@ -58,6 +61,8 @@ pub struct RectangleConfig {
     pub color: String,
     #[serde(default)]
     pub dimensions: DimensionsConfig,
+    #[serde(default)]
+    pub physics: PhysicsConfig,
 }
 
 impl Default for RectangleConfig {
@@ -70,6 +75,7 @@ impl Default for RectangleConfig {
                 height: 3.0,
                 depth: 0.5,
             },
+            physics: PhysicsConfig::default(),
         }
     }
 }

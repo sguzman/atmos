@@ -2,7 +2,9 @@ use bevy::{
     log::{info, warn},
     prelude::*,
 };
-use bevy_rapier3d::prelude::{Collider, Friction, Restitution, RigidBody};
+use bevy_rapier3d::prelude::{
+    AdditionalMassProperties, Collider, Friction, Restitution, RigidBody,
+};
 
 use crate::scenes::config::{
     default_circle_color_name, default_circle_radius, default_circle_rgb, default_color_name,
@@ -38,7 +40,7 @@ pub(super) fn spawn_circle(
     let radius = placement.radius.unwrap_or_else(default_circle_radius);
     let collider_thickness = 0.2;
 
-    commands.spawn((
+    let mut entity = commands.spawn((
         Name::new(
             placement
                 .name_override
@@ -54,14 +56,23 @@ pub(super) fn spawn_circle(
         )
         .with_rotation(circle_rotation)
         .with_scale(Vec3::splat(placement.transform.scale)),
-        RigidBody::Fixed,
-        Collider::cylinder(collider_thickness * 0.5, radius),
-        Restitution::coefficient(0.6),
-        Friction::coefficient(0.8),
         Visibility::default(),
         InheritedVisibility::default(),
         ViewVisibility::default(),
     ));
+
+    if template.physics.enabled {
+        let rigid_body = resolve_rigid_body(&template.physics.body_type);
+        entity.insert((
+            rigid_body,
+            Collider::cylinder(collider_thickness * 0.5, radius),
+            Restitution::coefficient(template.physics.restitution),
+            Friction::coefficient(template.physics.friction),
+        ));
+        if matches!(rigid_body, RigidBody::Dynamic) && template.physics.mass > 0.0 {
+            entity.insert(AdditionalMassProperties::Mass(template.physics.mass));
+        }
+    }
 }
 
 pub(super) fn spawn_rectangle(
@@ -106,7 +117,7 @@ pub(super) fn spawn_rectangle(
         effective.dimensions.depth * 0.5,
     );
 
-    commands.spawn((
+    let mut entity = commands.spawn((
         Name::new(
             placement
                 .name_override
@@ -126,14 +137,23 @@ pub(super) fn spawn_rectangle(
         )
         .with_rotation(rect_rotation)
         .with_scale(Vec3::splat(placement.transform.scale)),
-        RigidBody::Dynamic,
-        Collider::cuboid(half_extents.x, half_extents.y, half_extents.z),
-        Restitution::coefficient(0.4),
-        Friction::coefficient(0.6),
         Visibility::default(),
         InheritedVisibility::default(),
         ViewVisibility::default(),
     ));
+
+    if effective.physics.enabled {
+        let rigid_body = resolve_rigid_body(&effective.physics.body_type);
+        entity.insert((
+            rigid_body,
+            Collider::cuboid(half_extents.x, half_extents.y, half_extents.z),
+            Restitution::coefficient(effective.physics.restitution),
+            Friction::coefficient(effective.physics.friction),
+        ));
+        if matches!(rigid_body, RigidBody::Dynamic) && effective.physics.mass > 0.0 {
+            entity.insert(AdditionalMassProperties::Mass(effective.physics.mass));
+        }
+    }
 }
 
 pub(super) fn spawn_cube(
@@ -170,7 +190,7 @@ pub(super) fn spawn_cube(
         template.dimensions.height * 0.5,
         template.dimensions.depth * 0.5,
     );
-    commands.spawn((
+    let mut entity = commands.spawn((
         Name::new(
             placement
                 .name_override
@@ -190,12 +210,34 @@ pub(super) fn spawn_cube(
         )
         .with_rotation(cube_rotation)
         .with_scale(Vec3::splat(template.size.uniform_scale * placement.transform.scale)),
-        RigidBody::Dynamic,
-        Collider::cuboid(half_extents.x, half_extents.y, half_extents.z),
-        Restitution::coefficient(template.physics.restitution),
-        Friction::coefficient(template.physics.friction),
         Visibility::default(),
         InheritedVisibility::default(),
         ViewVisibility::default(),
     ));
+
+    if template.physics.enabled {
+        let rigid_body = resolve_rigid_body(&template.physics.body_type);
+        entity.insert((
+            rigid_body,
+            Collider::cuboid(half_extents.x, half_extents.y, half_extents.z),
+            Restitution::coefficient(template.physics.restitution),
+            Friction::coefficient(template.physics.friction),
+        ));
+        if matches!(rigid_body, RigidBody::Dynamic) && template.physics.mass > 0.0 {
+            entity.insert(AdditionalMassProperties::Mass(template.physics.mass));
+        }
+    }
+}
+
+fn resolve_rigid_body(body_type: &str) -> RigidBody {
+    match body_type.trim().to_ascii_lowercase().as_str() {
+        "fixed" | "static" => RigidBody::Fixed,
+        "kinematic_position" | "kinematic_position_based" => {
+            RigidBody::KinematicPositionBased
+        }
+        "kinematic_velocity" | "kinematic_velocity_based" => {
+            RigidBody::KinematicVelocityBased
+        }
+        _ => RigidBody::Dynamic,
+    }
 }

@@ -5,3 +5,10 @@ color = "darkslategray"
 width = 0.8
 height = 4.0
 depth = 0.8
+
+[physics]
+enabled = true
+body_type = "dynamic"
+mass = 2.5
+restitution = 0.4
+friction = 0.6

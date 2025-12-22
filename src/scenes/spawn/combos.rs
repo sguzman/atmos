@@ -2,6 +2,9 @@ use bevy::{
     log::warn,
     prelude::*,
 };
+use bevy_rapier3d::prelude::{
+    AdditionalMassProperties, Collider, Friction, Restitution, RigidBody,
+};
 
 use crate::scenes::config::{
     default_color_name, default_color_rgb, ActiveScene, LightConfig, LightEntry,
@@ -74,7 +77,7 @@ pub(super) fn spawn_pillar_with_light(
             .clone()
             .unwrap_or_else(|| combo_template.name.clone())
     );
-    commands.spawn((
+    let mut entity = commands.spawn((
         Name::new(body_name),
         Mesh3d(meshes.add(Cuboid::new(
             rect_effective.dimensions.width,
@@ -87,6 +90,24 @@ pub(super) fn spawn_pillar_with_light(
         InheritedVisibility::default(),
         ViewVisibility::default(),
     ));
+
+    if rect_effective.physics.enabled {
+        let rigid_body = resolve_rigid_body(&rect_effective.physics.body_type);
+        let half_extents = Vec3::new(
+            rect_effective.dimensions.width * 0.5,
+            rect_effective.dimensions.height * 0.5,
+            rect_effective.dimensions.depth * 0.5,
+        );
+        entity.insert((
+            rigid_body,
+            Collider::cuboid(half_extents.x, half_extents.y, half_extents.z),
+            Restitution::coefficient(rect_effective.physics.restitution),
+            Friction::coefficient(rect_effective.physics.friction),
+        ));
+        if matches!(rigid_body, RigidBody::Dynamic) && rect_effective.physics.mass > 0.0 {
+            entity.insert(AdditionalMassProperties::Mass(rect_effective.physics.mass));
+        }
+    }
 
     // Light
     let base_light = light_template
@@ -131,6 +152,19 @@ pub(super) fn spawn_pillar_with_light(
         InheritedVisibility::default(),
         ViewVisibility::default(),
     ));
+}
+
+fn resolve_rigid_body(body_type: &str) -> RigidBody {
+    match body_type.trim().to_ascii_lowercase().as_str() {
+        "fixed" | "static" => RigidBody::Fixed,
+        "kinematic_position" | "kinematic_position_based" => {
+            RigidBody::KinematicPositionBased
+        }
+        "kinematic_velocity" | "kinematic_velocity_based" => {
+            RigidBody::KinematicVelocityBased
+        }
+        _ => RigidBody::Dynamic,
+    }
 }
 
 fn merge_rectangle(
