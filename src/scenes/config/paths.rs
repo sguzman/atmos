@@ -32,6 +32,10 @@ pub fn input_config_path(scene: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/input.toml")
 }
 
+pub fn bounding_box_config_path(scene: &str) -> String {
+    format!("{SCENE_ROOT}/{scene}/boundingbox.toml")
+}
+
 pub fn action_config_path(scene: &str, action_path: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/{action_path}")
 }

@@ -14,6 +14,7 @@ use bevy_rapier3d::prelude::{
 };
 
 use crate::app_config::AppConfig;
+use crate::scenes::bounds::DespawnOutsideBounds;
 use crate::scenes::config::{
     ActionBindingConfig, CameraRotationConfig, MovementConfig, OverlayInputConfig, ShootActionConfig,
     SphereConfig,
@@ -247,6 +248,7 @@ pub fn apply_shoot_action(
             Mesh3d(config.mesh.clone()),
             MeshMaterial3d(config.material.clone()),
             Transform::from_translation(spawn_pos),
+            DespawnOutsideBounds,
             Velocity {
                 linvel: forward * config.action.velocity,
                 angvel: spin,

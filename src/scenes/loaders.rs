@@ -1,12 +1,12 @@
 use std::fs;
 
 use crate::scenes::config::{
-    action_config_path, camera_config_path, circle_config_path, cube_config_path,
-    input_config_path, light_config_path, overlay_config_path, pillar_combo_config_path,
-    rectangle_config_path, skybox_config_path, sphere_config_path, sun_config_path,
-    top_light_config_path, CameraConfig, CircleConfig, CubeConfig, InputConfig, LightConfig,
-    OverlayConfig, PillarComboConfig, RectangleConfig, ShootActionConfig, SkyboxConfig,
-    SphereConfig, SunConfig,
+    action_config_path, bounding_box_config_path, camera_config_path, circle_config_path,
+    cube_config_path, input_config_path, light_config_path, overlay_config_path,
+    pillar_combo_config_path, rectangle_config_path, skybox_config_path, sphere_config_path,
+    sun_config_path, top_light_config_path, BoundingBoxConfig, CameraConfig, CircleConfig,
+    CubeConfig, InputConfig, LightConfig, OverlayConfig, PillarComboConfig, RectangleConfig,
+    ShootActionConfig, SkyboxConfig, SphereConfig, SunConfig,
 };
 use crate::scenes::world::WorldConfig;
 use bevy::log::{info, warn};
@@ -139,6 +139,28 @@ pub fn load_camera_config(scene: &str) -> CameraConfig {
         Err(err) => {
             warn!("Failed to parse {path}: {err}. Falling back to defaults.");
             CameraConfig::default()
+        }
+    }
+}
+
+pub fn load_bounding_box_config(scene: &str) -> BoundingBoxConfig {
+    let path = bounding_box_config_path(scene);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Falling back to defaults.");
+            return BoundingBoxConfig::default();
+        }
+    };
+
+    match toml::from_str::<BoundingBoxConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded bounding box config from {path}.");
+            config
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Falling back to defaults.");
+            BoundingBoxConfig::default()
         }
     }
 }

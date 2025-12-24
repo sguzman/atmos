@@ -2,6 +2,7 @@
 
 mod active;
 mod actions;
+mod bounds;
 mod camera;
 mod colors;
 mod combos;
@@ -17,6 +18,7 @@ mod transforms;
 
 pub use active::{ActiveScene, OVERLAY_ROOT, SCENE_ROOT};
 pub use actions::ShootActionConfig;
+pub use bounds::BoundingBoxConfig;
 pub use camera::{CameraConfig, TransformConfig};
 pub use colors::{
     default_circle_color_name, default_circle_rgb, default_circle_radius, default_color_name,
@@ -33,10 +35,10 @@ pub use overlay::{
     OverlayOffset, TextOverlay,
 };
 pub use paths::{
-    action_config_path, camera_config_path, circle_config_path, cube_config_path,
-    input_config_path, light_config_path, overlay_config_path, pillar_combo_config_path,
-    rectangle_config_path, skybox_config_path, sphere_config_path, sun_config_path,
-    top_light_config_path,
+    action_config_path, bounding_box_config_path, camera_config_path, circle_config_path,
+    cube_config_path, input_config_path, light_config_path, overlay_config_path,
+    pillar_combo_config_path, rectangle_config_path, skybox_config_path, sphere_config_path,
+    sun_config_path, top_light_config_path,
 };
 pub use physics::PhysicsConfig;
 pub use shapes::{CircleConfig, CubeConfig, RectangleConfig, RectangleOverrides, SphereConfig};

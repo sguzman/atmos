@@ -5,6 +5,7 @@ use bevy::{
 
 use crate::app_config::AppConfig;
 use crate::scenes::{
+    bounds::{despawn_out_of_bounds, SceneBounds},
     config::{
         ActiveScene, CameraConfig, CircleConfig, CubeConfig, InputConfig, LightConfig,
         PillarComboConfig, RectangleConfig,
@@ -15,8 +16,8 @@ use crate::scenes::{
         SceneShootConfig,
     },
     loaders::{
-        load_camera_config, load_circle_config, load_cube_config, load_input_config,
-        load_light_config, load_pillar_combo_config, load_rectangle_config,
+        load_bounding_box_config, load_camera_config, load_circle_config, load_cube_config,
+        load_input_config, load_light_config, load_pillar_combo_config, load_rectangle_config,
         load_shoot_action_config, load_skybox_config, load_sphere_config, load_sun_config,
         load_top_light_config, load_world_config,
     },
@@ -47,6 +48,7 @@ impl Plugin for ScenePlugin {
         app.add_systems(Startup, setup_scene);
         app.add_systems(Update, apply_camera_input);
         app.add_systems(Update, apply_shoot_action);
+        app.add_systems(Update, despawn_out_of_bounds);
         app.add_systems(
             PostStartup,
             (log_lights, log_camera, spawn_overlays_from_config).after(setup_scene),
@@ -78,6 +80,7 @@ fn setup_scene(
 
     let cube_config: CubeConfig = load_cube_config(&active_scene.name);
     let camera_config: CameraConfig = load_camera_config(&active_scene.name);
+    let bounds_config = load_bounding_box_config(&active_scene.name);
     let circle_config: CircleConfig = load_circle_config(&active_scene.name);
     let rectangle_config: RectangleConfig = load_rectangle_config(&active_scene.name);
     let sphere_config = load_sphere_config(&active_scene.name);
@@ -87,6 +90,8 @@ fn setup_scene(
     let light_config = load_light_config(&active_scene.name);
     let sun_config = load_sun_config(&active_scene.name);
     let skybox_config = load_skybox_config(&active_scene.name);
+
+    commands.insert_resource(SceneBounds::from(bounds_config));
 
     if let Some(action_binding) = input_config
         .actions

@@ -1,0 +1,6 @@
+shape = "rectangle"
+
+[dimensions]
+width = 500.0
+height = 10000.0
+depth = 500.0
