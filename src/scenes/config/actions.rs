@@ -10,6 +10,8 @@ pub struct ShootActionConfig {
     pub start_delay: f32,
     pub velocity: f32,
     pub spawn_offset: f32,
+    #[serde(default)]
+    pub ccd: bool,
     pub spin: Vec3Config,
 }
 
@@ -21,6 +23,7 @@ impl Default for ShootActionConfig {
             start_delay: 0.0,
             velocity: 18.0,
             spawn_offset: 1.2,
+            ccd: false,
             spin: Vec3Config {
                 x: 0.0,
                 y: 0.0,

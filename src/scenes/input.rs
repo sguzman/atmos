@@ -10,7 +10,7 @@ use bevy::{
     },
 };
 use bevy_rapier3d::prelude::{
-    AdditionalMassProperties, Collider, Friction, Restitution, RigidBody, Velocity,
+    AdditionalMassProperties, Ccd, Collider, Friction, Restitution, RigidBody, Velocity,
 };
 
 use crate::app_config::AppConfig;
@@ -268,6 +268,9 @@ pub fn apply_shoot_action(
             ));
             if matches!(rigid_body, RigidBody::Dynamic) && config.sphere.physics.mass > 0.0 {
                 entity.insert(AdditionalMassProperties::Mass(config.sphere.physics.mass));
+            }
+            if config.action.ccd {
+                entity.insert(Ccd::enabled());
             }
         }
     };
