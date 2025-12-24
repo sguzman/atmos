@@ -7,6 +7,7 @@ use super::transforms::Vec3Config;
 pub struct ShootActionConfig {
     pub name: String,
     pub rate: f32,
+    pub start_delay: f32,
     pub velocity: f32,
     pub spawn_offset: f32,
     pub spin: Vec3Config,
@@ -17,6 +18,7 @@ impl Default for ShootActionConfig {
         Self {
             name: "shoot_balls".to_string(),
             rate: 8.0,
+            start_delay: 0.0,
             velocity: 18.0,
             spawn_offset: 1.2,
             spin: Vec3Config {

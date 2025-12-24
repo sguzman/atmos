@@ -206,6 +206,7 @@ pub fn apply_camera_input(
 #[derive(Default)]
 pub struct ShootState {
     accumulator: f32,
+    delay_remaining: f32,
 }
 
 pub fn apply_shoot_action(
@@ -222,6 +223,7 @@ pub fn apply_shoot_action(
 
     if !buttons.pressed(config.trigger) {
         state.accumulator = 0.0;
+        state.delay_remaining = 0.0;
         return;
     }
 
@@ -268,12 +270,25 @@ pub fn apply_shoot_action(
         }
     };
 
+    let dt = time.delta_secs();
     if buttons.just_pressed(config.trigger) {
+        state.delay_remaining = config.action.start_delay.max(0.0);
+        state.accumulator = 0.0;
+        if state.delay_remaining <= 0.0 {
+            spawn_ball(&mut commands);
+        }
+    }
+
+    if state.delay_remaining > 0.0 {
+        state.delay_remaining -= dt;
+        if state.delay_remaining > 0.0 {
+            return;
+        }
         spawn_ball(&mut commands);
         state.accumulator = 0.0;
     }
 
-    state.accumulator += time.delta_secs();
+    state.accumulator += dt;
     while state.accumulator >= interval {
         state.accumulator -= interval;
         spawn_ball(&mut commands);

@@ -1,5 +1,6 @@
 name = "shoot_balls"
 rate = 20.0
+start_delay = 0.0
 velocity = 100.0
 spawn_offset = 1.2
 spin = { x = 0.0, y = 0.0, z = 0.0 }
