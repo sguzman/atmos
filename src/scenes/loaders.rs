@@ -6,7 +6,7 @@ use crate::scenes::config::{
     pillar_combo_config_path, rectangle_config_path, skybox_config_path, sphere_config_path,
     sun_config_path, top_light_config_path, BoundingBoxConfig, CameraConfig, CircleConfig,
     CubeConfig, InputConfig, LightConfig, OverlayConfig, PillarComboConfig, RectangleConfig,
-    ShootActionConfig, SkyboxConfig, SphereConfig, SunConfig,
+    ShootActionConfig, SkyboxConfig, SphereConfig, SprintActionConfig, SunConfig,
 };
 use crate::scenes::world::WorldConfig;
 use bevy::log::{info, warn};
@@ -112,6 +112,28 @@ pub fn load_shoot_action_config(scene: &str, action_path: &str) -> Option<ShootA
     match toml::from_str::<ShootActionConfig>(&contents) {
         Ok(config) => {
             info!("Loaded shoot action config from {path}.");
+            Some(config)
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Action disabled.");
+            None
+        }
+    }
+}
+
+pub fn load_sprint_action_config(scene: &str, action_path: &str) -> Option<SprintActionConfig> {
+    let path = action_config_path(scene, action_path);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Action disabled.");
+            return None;
+        }
+    };
+
+    match toml::from_str::<SprintActionConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded sprint action config from {path}.");
             Some(config)
         }
         Err(err) => {

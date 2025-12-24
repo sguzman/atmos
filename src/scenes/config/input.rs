@@ -47,7 +47,10 @@ pub struct OverlayInputConfig {
 pub struct ActionBindingConfig {
     pub name: String,
     pub action: String,
+    #[serde(default)]
     pub mouse: String,
+    #[serde(default)]
+    pub key: String,
 }
 
 #[derive(Debug, Deserialize)]

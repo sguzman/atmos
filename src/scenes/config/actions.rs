@@ -32,3 +32,21 @@ impl Default for ShootActionConfig {
         }
     }
 }
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct SprintActionConfig {
+    pub name: String,
+    pub multiplier: f32,
+    pub toggle: bool,
+}
+
+impl Default for SprintActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "sprint".to_string(),
+            multiplier: 1.75,
+            toggle: true,
+        }
+    }
+}

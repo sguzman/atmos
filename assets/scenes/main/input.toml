@@ -22,3 +22,8 @@ toggle = "v"
 name = "shoot_balls"
 action = "actions/shoot-balls.toml"
 mouse = "left"
+
+[[actions]]
+name = "sprint"
+action = "actions/sprint.toml"
+key = "Shift"

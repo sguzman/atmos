@@ -5,8 +5,8 @@ use bevy::{
     log::warn,
     prelude::{
         ButtonInput, Commands, Component, GlobalTransform, Handle, InheritedVisibility, Mesh,
-        Local, Mesh3d, MeshMaterial3d, MessageReader, MessageWriter, Name, Query, Res, Resource,
-        StandardMaterial, Time, Transform, Vec2, Vec3, ViewVisibility, Visibility, With,
+        Local, Mesh3d, MeshMaterial3d, MessageReader, MessageWriter, Name, Query, Res, ResMut,
+        Resource, StandardMaterial, Time, Transform, Vec2, Vec3, ViewVisibility, Visibility, With,
     },
 };
 use bevy_rapier3d::prelude::{
@@ -17,7 +17,7 @@ use crate::app_config::AppConfig;
 use crate::scenes::bounds::DespawnOutsideBounds;
 use crate::scenes::config::{
     ActionBindingConfig, CameraRotationConfig, MovementConfig, OverlayInputConfig, ShootActionConfig,
-    SphereConfig,
+    SphereConfig, SprintActionConfig,
 };
 
 #[derive(Resource, Debug, Clone)]
@@ -69,6 +69,7 @@ pub struct ResolvedActionBinding {
     pub name: String,
     pub action: String,
     pub mouse: Option<MouseButton>,
+    pub key: Option<KeyCode>,
 }
 
 #[derive(Resource, Clone)]
@@ -80,6 +81,17 @@ pub struct SceneShootConfig {
     pub material: Handle<StandardMaterial>,
 }
 
+#[derive(Resource, Clone)]
+pub struct SceneSprintConfig {
+    pub action: SprintActionConfig,
+    pub trigger: KeyCode,
+}
+
+#[derive(Resource, Default)]
+pub struct SprintState {
+    pub active: bool,
+}
+
 #[derive(Component)]
 pub struct SceneCamera;
 
@@ -88,6 +100,8 @@ pub fn apply_camera_input(
     keys: Res<ButtonInput<KeyCode>>,
     mut mouse_motion: MessageReader<MouseMotion>,
     app_config: Res<AppConfig>,
+    sprint: Option<Res<SprintState>>,
+    sprint_config: Option<Res<SceneSprintConfig>>,
     config: Option<Res<SceneInputConfig>>,
     mut cameras: Query<&mut Transform, With<SceneCamera>>,
     mut app_exit: MessageWriter<AppExit>,
@@ -141,7 +155,13 @@ pub fn apply_camera_input(
             let mut direction = forward * forward_axis + right * right_axis;
             if direction.length_squared() > 0.0 {
                 direction = direction.normalize();
-                transform.translation += direction * move_cfg.speed * dt;
+                let mut speed = move_cfg.speed;
+                if let (Some(state), Some(cfg)) = (sprint.as_ref(), sprint_config.as_ref()) {
+                    if state.active {
+                        speed *= cfg.action.multiplier.max(1.0);
+                    }
+                }
+                transform.translation += direction * speed * dt;
             }
         }
 
@@ -201,6 +221,19 @@ pub fn apply_camera_input(
                 }
             }
         }
+    }
+}
+
+pub fn apply_sprint_toggle(
+    keys: Res<ButtonInput<KeyCode>>,
+    config: Option<Res<SceneSprintConfig>>,
+    mut state: ResMut<SprintState>,
+) {
+    let Some(config) = config else {
+        return;
+    };
+    if config.action.toggle && keys.just_pressed(config.trigger) {
+        state.active = !state.active;
     }
 }
 
@@ -340,11 +373,12 @@ pub fn resolve_action_bindings(actions: &[ActionBindingConfig]) -> Vec<ResolvedA
             name: action.name.clone(),
             action: action.action.clone(),
             mouse: resolve_mouse_button_or_warn(&action.mouse, "action mouse"),
+            key: resolve_key_or_warn(&action.key, "action key"),
         })
         .collect()
 }
 
-fn resolve_key_or_warn(key: &str, action: &str) -> Option<KeyCode> {
+pub fn resolve_key_or_warn(key: &str, action: &str) -> Option<KeyCode> {
     if key.trim().is_empty() {
         return None;
     }
