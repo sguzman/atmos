@@ -5,19 +5,16 @@ use crate::scenes::config::BoundingBoxConfig;
 #[derive(Resource, Clone)]
 pub struct SceneBounds {
     pub shape: String,
-    pub half_extents: Vec3,
+    pub min: Vec3,
+    pub max: Vec3,
 }
 
 impl From<BoundingBoxConfig> for SceneBounds {
     fn from(config: BoundingBoxConfig) -> Self {
-        let half_extents = Vec3::new(
-            config.dimensions.width * 0.5,
-            config.dimensions.height * 0.5,
-            config.dimensions.depth * 0.5,
-        );
         Self {
             shape: config.shape,
-            half_extents,
+            min: Vec3::new(config.x.min, config.y.min, config.z.min),
+            max: Vec3::new(config.x.max, config.y.max, config.z.max),
         }
     }
 }
@@ -36,10 +33,15 @@ pub fn despawn_out_of_bounds(
     if bounds.shape.trim().to_ascii_lowercase() != "rectangle" {
         return;
     }
-    let half = bounds.half_extents;
     for (entity, transform) in &query {
         let pos = transform.translation;
-        if pos.x.abs() > half.x || pos.y.abs() > half.y || pos.z.abs() > half.z {
+        if pos.x < bounds.min.x
+            || pos.x > bounds.max.x
+            || pos.y < bounds.min.y
+            || pos.y > bounds.max.y
+            || pos.z < bounds.min.z
+            || pos.z > bounds.max.z
+        {
             commands.entity(entity).despawn();
         }
     }

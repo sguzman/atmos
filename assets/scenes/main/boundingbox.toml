@@ -1,6 +1,13 @@
 shape = "rectangle"
 
-[dimensions]
-width = 500.0
-height = 10000.0
-depth = 500.0
+[x]
+min = -500.0
+max = 500.0
+
+[y]
+min = -10000.0
+max = 10000.0
+
+[z]
+min = -500.0
+max = 500.0
