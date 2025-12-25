@@ -4,9 +4,10 @@
 include = ["assets/**/*.toml"]
 exclude = ["target/**", "**/node_modules/**"]
 
-[[schemas]]
-path = "schemas/entities.schema.json"
+[[rule]]
 include = ["assets/scenes/**/entities/*.toml"]
+[rule.schema]
+path = "schemas/entities.schema.json"
 
 [formatting]
 indent_string = "  "     # 2 spaces
