@@ -6,10 +6,7 @@ use bevy::{
 use crate::app_config::AppConfig;
 use crate::scenes::{
     bounds::{despawn_out_of_bounds, SceneBounds},
-    config::{
-        ActiveScene, CameraConfig, CircleConfig, CubeConfig, InputConfig, LightConfig,
-        PillarComboConfig, RectangleConfig,
-    },
+    config::{ActiveScene, CameraConfig, InputConfig},
     input::{
         apply_camera_input, apply_fov_action, apply_shoot_action, apply_sprint_toggle,
         apply_zoom_action, resolve_action_bindings, resolve_camera_input_config,
@@ -17,11 +14,10 @@ use crate::scenes::{
         SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
     },
     loaders::{
-        load_bounding_box_config, load_camera_config, load_circle_config, load_cube_config,
-        load_input_config, load_light_config, load_pillar_combo_config, load_rectangle_config,
-        load_fov_action_config, load_shoot_action_config, load_skybox_config, load_sphere_config,
-        load_sprint_action_config, load_sun_config, load_top_light_config, load_world_config,
-        load_zoom_action_config,
+        load_bounding_box_config, load_camera_config, load_entity_template_from_path,
+        load_fov_action_config, load_input_config, load_light_config,
+        load_shoot_action_config, load_skybox_config, load_sprint_action_config, load_sun_config,
+        load_world_config, load_zoom_action_config,
     },
     world::WorldConfig,
 };
@@ -83,14 +79,8 @@ fn setup_scene(
         actions: resolve_action_bindings(&input_config.actions),
     });
 
-    let cube_config: CubeConfig = load_cube_config(&active_scene.name);
     let camera_config: CameraConfig = load_camera_config(&active_scene.name);
     let bounds_config = load_bounding_box_config(&active_scene.name);
-    let circle_config: CircleConfig = load_circle_config(&active_scene.name);
-    let rectangle_config: RectangleConfig = load_rectangle_config(&active_scene.name);
-    let sphere_config = load_sphere_config(&active_scene.name);
-    let top_light_template: LightConfig = load_top_light_config(&active_scene.name);
-    let combo_config: PillarComboConfig = load_pillar_combo_config(&active_scene.name);
     let world_config: WorldConfig = load_world_config(&active_scene.name);
     let light_config = load_light_config(&active_scene.name);
     let sun_config = load_sun_config(&active_scene.name);
@@ -109,18 +99,33 @@ fn setup_scene(
             if let Some(action) =
                 load_shoot_action_config(&active_scene.name, &action_binding.action)
             {
-                let sphere_color =
-                    crate::scenes::config::parse_color(&sphere_config.color).unwrap_or([255, 165, 0]);
-                let sphere_material = materials.add(Color::srgb_u8(
-                    sphere_color[0],
-                    sphere_color[1],
-                    sphere_color[2],
-                ));
-                let sphere_mesh = meshes.add(Sphere::new(sphere_config.radius));
+                let Some(projectile) = load_entity_template_from_path(
+                    &active_scene.name,
+                    "entities/sphere.toml",
+                ) else {
+                    warn!("Projectile template missing; shoot action disabled.");
+                    return;
+                };
+
+                let Some(shape) = projectile.shape.clone() else {
+                    warn!("Projectile template has no shape; shoot action disabled.");
+                    return;
+                };
+                if shape.kind != crate::scenes::config::ShapeKind::Sphere {
+                    warn!("Projectile template is not a sphere; shoot action disabled.");
+                    return;
+                }
+                let radius = shape.radius.unwrap_or(0.2);
+                let color = shape.color.as_deref().and_then(crate::scenes::config::parse_color)
+                    .unwrap_or([255, 165, 0]);
+                let sphere_material = materials.add(Color::srgb_u8(color[0], color[1], color[2]));
+                let sphere_mesh = meshes.add(Sphere::new(radius));
                 commands.insert_resource(SceneShootConfig {
                     action,
                     trigger,
-                    sphere: sphere_config.clone(),
+                    name: projectile.name.clone(),
+                    shape,
+                    physics: projectile.physics.clone(),
                     mesh: sphere_mesh,
                     material: sphere_material,
                 });
@@ -199,24 +204,8 @@ fn setup_scene(
         }
     }
 
-    if cube_config.physics.enabled {
-        warn!(
-            "Cube physics config is enabled for scene '{}' but not applied yet (body_type={}, mass={}, restitution={}, friction={}).",
-            active_scene.name,
-            cube_config.physics.body_type,
-            cube_config.physics.mass,
-            cube_config.physics.restitution,
-            cube_config.physics.friction,
-        );
-    }
-
     spawn_world_entities(
         &world_config,
-        &circle_config,
-        &cube_config,
-        &rectangle_config,
-        &top_light_template,
-        &combo_config,
         &mut commands,
         &mut meshes,
         &mut materials,

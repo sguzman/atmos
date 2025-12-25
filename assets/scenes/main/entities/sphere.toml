@@ -1,4 +1,7 @@
 name = "projectile_sphere"
+
+[shape]
+kind = "sphere"
 color = "orange"
 radius = 0.2
 

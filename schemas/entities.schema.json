@@ -1,16 +1,29 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Atmos entity templates",
+  "title": "Atmos entity template",
   "type": "object",
+  "additionalProperties": false,
+  "required": ["name"],
+  "properties": {
+    "name": { "type": "string" },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "transform": { "$ref": "#/$defs/transform" },
+    "shape": { "$ref": "#/$defs/shape" },
+    "physics": { "$ref": "#/$defs/physics" },
+    "light": { "$ref": "#/$defs/light" },
+    "stack": { "$ref": "#/$defs/stack" }
+  },
   "anyOf": [
-    { "$ref": "#/$defs/lightEntity" },
-    { "$ref": "#/$defs/rectangleStackEntity" },
-    { "$ref": "#/$defs/pillarWithLightEntity" },
-    { "$ref": "#/$defs/sphereEntity" },
-    { "$ref": "#/$defs/rectangleEntity" },
-    { "$ref": "#/$defs/cubeEntity" },
-    { "$ref": "#/$defs/circleEntity" }
+    { "required": ["shape"] },
+    { "required": ["light"] },
+    { "required": ["stack"] }
   ],
+  "dependentRequired": {
+    "stack": ["shape"]
+  },
   "$defs": {
     "vec3": {
       "type": "object",
@@ -19,6 +32,24 @@
         "x": { "type": "number" },
         "y": { "type": "number" },
         "z": { "type": "number" }
+      }
+    },
+    "rotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "roll": { "type": "number" },
+        "pitch": { "type": "number" },
+        "yaw": { "type": "number" }
+      }
+    },
+    "transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "position": { "$ref": "#/$defs/vec3" },
+        "rotation": { "$ref": "#/$defs/rotation" },
+        "scale": { "type": "number" }
       }
     },
     "dimensions": {
@@ -30,6 +61,34 @@
         "depth": { "type": "number" }
       }
     },
+    "shape": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["box", "sphere", "circle"]
+        },
+        "color": { "type": "string" },
+        "dimensions": { "$ref": "#/$defs/dimensions" },
+        "radius": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "box" } } },
+          "then": { "required": ["dimensions"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "sphere" } } },
+          "then": { "required": ["radius"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "circle" } } },
+          "then": { "required": ["radius"] }
+        }
+      ]
+    },
     "physics": {
       "type": "object",
       "additionalProperties": false,
@@ -37,41 +96,25 @@
         "enabled": { "type": "boolean" },
         "body_type": {
           "type": "string",
-          "enum": ["dynamic", "fixed", "kinematic"]
+          "enum": [
+            "dynamic",
+            "fixed",
+            "kinematic_position",
+            "kinematic_position_based",
+            "kinematic_velocity",
+            "kinematic_velocity_based"
+          ]
         },
         "mass": { "type": "number" },
         "restitution": { "type": "number" },
         "friction": { "type": "number" }
       }
     },
-    "lightEntry": {
+    "light": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "kind": {
-          "type": "string",
-          "enum": ["point", "directional", "ambient"]
-        },
-        "color": { "type": "string" },
-        "intensity": { "type": "number" },
-        "range": { "type": "number" },
-        "shadows": { "type": "boolean" },
-        "position": { "$ref": "#/$defs/vec3" },
-        "look_at": { "$ref": "#/$defs/vec3" },
-        "brightness": { "type": "number" },
-        "radius": { "type": "number" },
-        "offset": { "$ref": "#/$defs/vec3" }
-      }
-    },
-    "lightOverrides": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "template": { "type": "string" },
-        "kind": {
-          "type": "string",
-          "enum": ["point", "directional", "ambient"]
-        },
+        "kind": { "type": "string", "enum": ["point"] },
         "color": { "type": "string" },
         "intensity": { "type": "number" },
         "range": { "type": "number" },
@@ -80,89 +123,14 @@
         "offset": { "$ref": "#/$defs/vec3" }
       }
     },
-    "rectangleOverrides": {
+    "stack": {
       "type": "object",
       "additionalProperties": false,
+      "required": ["count", "spacing", "start_offset"],
       "properties": {
-        "template": { "type": "string" },
-        "color": { "type": "string" },
-        "dimensions": { "$ref": "#/$defs/dimensions" }
-      }
-    },
-    "lightEntity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["lights"],
-      "properties": {
-        "lights": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/lightEntry" }
-        }
-      }
-    },
-    "rectangleStackEntity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["name", "count", "spacing", "start_offset"],
-      "properties": {
-        "name": { "type": "string" },
         "count": { "type": "integer", "minimum": 1 },
         "spacing": { "$ref": "#/$defs/vec3" },
-        "start_offset": { "$ref": "#/$defs/vec3" },
-        "rectangle": { "$ref": "#/$defs/rectangleOverrides" }
-      }
-    },
-    "pillarWithLightEntity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["name"],
-      "properties": {
-        "name": { "type": "string" },
-        "rectangle": { "$ref": "#/$defs/rectangleOverrides" },
-        "light": { "$ref": "#/$defs/lightOverrides" }
-      }
-    },
-    "sphereEntity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["name", "radius"],
-      "properties": {
-        "name": { "type": "string" },
-        "color": { "type": "string" },
-        "radius": { "type": "number", "exclusiveMinimum": 0 },
-        "physics": { "$ref": "#/$defs/physics" }
-      }
-    },
-    "rectangleEntity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["name", "dimensions"],
-      "properties": {
-        "name": { "type": "string" },
-        "color": { "type": "string" },
-        "dimensions": { "$ref": "#/$defs/dimensions" },
-        "physics": { "$ref": "#/$defs/physics" }
-      }
-    },
-    "cubeEntity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["name", "dimensions"],
-      "properties": {
-        "name": { "type": "string" },
-        "color": { "type": "string" },
-        "dimensions": { "$ref": "#/$defs/dimensions" },
-        "physics": { "$ref": "#/$defs/physics" }
-      }
-    },
-    "circleEntity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["name"],
-      "properties": {
-        "name": { "type": "string" },
-        "color": { "type": "string" },
-        "physics": { "$ref": "#/$defs/physics" }
+        "start_offset": { "$ref": "#/$defs/vec3" }
       }
     }
   }

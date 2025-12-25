@@ -1,10 +1,9 @@
 name = "base_cube"
-color = "green"
 
-[dimensions]
-width = 200.0
-height = 2.0
-depth = 200.0
+[shape]
+kind = "box"
+color = "green"
+dimensions = { width = 200.0, height = 2.0, depth = 200.0 }
 
 [physics]
 enabled = true

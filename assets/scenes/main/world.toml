@@ -18,9 +18,9 @@ name_override = "lit_pillar"
 [entities.transform]
 position = { x = 2.0, y = 2.0, z = 2.0 }
 
-[entities.rectangle]
+[entities.overrides.shape]
 color = "steelblue"
-[entities.light]
+[entities.overrides.light]
 intensity = 75000.0
 range = 30.0
 
@@ -30,9 +30,9 @@ name_override = "lit_pillar2"
 [entities.transform]
 position = { x = 20.0, y = 2.0, z = 2.0 }
 
-[entities.rectangle]
+[entities.overrides.shape]
 color = "steelblue"
-[entities.light]
+[entities.overrides.light]
 intensity = 75000.0
 range = 30.0
 

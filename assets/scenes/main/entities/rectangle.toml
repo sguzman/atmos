@@ -1,10 +1,9 @@
 name = "pillar_body"
-color = "darkslategray"
 
-[dimensions]
-width = 0.8
-height = 4.0
-depth = 0.8
+[shape]
+kind = "box"
+color = "darkslategray"
+dimensions = { width = 0.8, height = 4.0, depth = 0.8 }
 
 [physics]
 enabled = true

@@ -1,14 +1,12 @@
 name = "cube"
-color = "red"
 
-[dimensions]
-width = 1.0
-height = 1.0
-depth = 1.0
+[shape]
+kind = "box"
+color = "red"
+dimensions = { width = 1.0, height = 1.0, depth = 1.0 }
 
 [physics]
 enabled = true
-# Future rapier 3D properties:
 body_type = "dynamic"
 mass = 1.0
 restitution = 0.6

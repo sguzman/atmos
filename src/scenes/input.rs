@@ -18,7 +18,7 @@ use crate::app_config::AppConfig;
 use crate::scenes::bounds::DespawnOutsideBounds;
 use crate::scenes::config::{
     ActionBindingConfig, CameraRotationConfig, FovActionConfig, MovementConfig, OverlayInputConfig,
-    ShootActionConfig, SphereConfig, SprintActionConfig, ZoomActionConfig,
+    PhysicsConfig, ShapeConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig,
 };
 
 #[derive(Resource, Debug, Clone)]
@@ -78,7 +78,9 @@ pub struct ResolvedActionBinding {
 pub struct SceneShootConfig {
     pub action: ShootActionConfig,
     pub trigger: MouseButton,
-    pub sphere: SphereConfig,
+    pub name: String,
+    pub shape: ShapeConfig,
+    pub physics: Option<PhysicsConfig>,
     pub mesh: Handle<Mesh>,
     pub material: Handle<StandardMaterial>,
 }
@@ -381,7 +383,7 @@ pub fn apply_shoot_action(
     let spawn_ball = |commands: &mut Commands| {
         let spawn_pos = camera.translation() + forward * config.action.spawn_offset;
         let mut entity = commands.spawn((
-            Name::new(config.sphere.name.clone()),
+            Name::new(config.name.clone()),
             Mesh3d(config.mesh.clone()),
             MeshMaterial3d(config.material.clone()),
             Transform::from_translation(spawn_pos),
@@ -395,16 +397,19 @@ pub fn apply_shoot_action(
             ViewVisibility::default(),
         ));
 
-        if config.sphere.physics.enabled {
-            let rigid_body = resolve_rigid_body(&config.sphere.physics.body_type);
+        if let Some(physics) = config.physics.as_ref() {
+            if !physics.enabled {
+                return;
+            }
+            let rigid_body = resolve_rigid_body(&physics.body_type);
             entity.insert((
                 rigid_body,
-                Collider::ball(config.sphere.radius),
-                Restitution::coefficient(config.sphere.physics.restitution),
-                Friction::coefficient(config.sphere.physics.friction),
+                Collider::ball(config.shape.radius.unwrap_or(0.2)),
+                Restitution::coefficient(physics.restitution),
+                Friction::coefficient(physics.friction),
             ));
-            if matches!(rigid_body, RigidBody::Dynamic) && config.sphere.physics.mass > 0.0 {
-                entity.insert(AdditionalMassProperties::Mass(config.sphere.physics.mass));
+            if matches!(rigid_body, RigidBody::Dynamic) && physics.mass > 0.0 {
+                entity.insert(AdditionalMassProperties::Mass(physics.mass));
             }
             if config.action.ccd {
                 entity.insert(Ccd::enabled());

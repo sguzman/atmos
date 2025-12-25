@@ -1,5 +1,9 @@
 name = "base_circle"
+
+[shape]
+kind = "circle"
 color = "green"
+radius = 4.0
 
 [physics]
 enabled = true

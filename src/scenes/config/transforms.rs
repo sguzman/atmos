@@ -20,7 +20,7 @@ impl Default for Vec3Config {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct CubeRotationConfig {
     #[serde(default)]
     pub roll: f32,
