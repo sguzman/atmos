@@ -4,7 +4,7 @@
 template = "entities/base_cube.toml"
 name_override = "base_cube"
 [entities.transform]
-position = { x = 0.0, y = 0.0, z = 0.0 }
+position = { x = 0.0, y = -1.0, z = 0.0 }
 
 [[entities]]
 template = "entities/cube.toml"
@@ -46,4 +46,22 @@ position = { x = -8.0, y = 2.0, z = 2.0 }
 template = "entities/stack_of_rectangles.toml"
 name_override = "stack_rects2"
 [entities.transform]
-position = { x = -8.0, y = 2.0, z = 22.0 }
+position = { x = -8.0, y = 2.0, z = 4.0 }
+
+[[entities]]
+template = "entities/stack_of_rectangles.toml"
+name_override = "stack_rects3"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 6.0 }
+
+[[entities]]
+template = "entities/stack_of_rectangles.toml"
+name_override = "stack_rects4"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 8.0 }
+
+[[entities]]
+template = "entities/stack_of_rectangles.toml"
+name_override = "stack_rects5"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 10.0 }
