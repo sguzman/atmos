@@ -27,3 +27,57 @@ mouse = "left"
 name = "sprint"
 action = "actions/sprint.toml"
 key = "Shift"
+
+[[actions]]
+name = "fov_1"
+action = "actions/fov.toml"
+key = "1"
+value = 20.0
+
+[[actions]]
+name = "fov_2"
+action = "actions/fov.toml"
+key = "2"
+value = 40.0
+
+[[actions]]
+name = "fov_3"
+action = "actions/fov.toml"
+key = "3"
+value = 60.0
+
+[[actions]]
+name = "fov_4"
+action = "actions/fov.toml"
+key = "4"
+value = 80.0
+
+[[actions]]
+name = "fov_5"
+action = "actions/fov.toml"
+key = "5"
+value = 100.0
+
+[[actions]]
+name = "fov_6"
+action = "actions/fov.toml"
+key = "6"
+value = 120.0
+
+[[actions]]
+name = "fov_7"
+action = "actions/fov.toml"
+key = "7"
+value = 140.0
+
+[[actions]]
+name = "fov_8"
+action = "actions/fov.toml"
+key = "8"
+value = 160.0
+
+[[actions]]
+name = "fov_9"
+action = "actions/fov.toml"
+key = "9"
+value = 180.0

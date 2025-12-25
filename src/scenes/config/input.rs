@@ -51,6 +51,8 @@ pub struct ActionBindingConfig {
     pub mouse: String,
     #[serde(default)]
     pub key: String,
+    #[serde(default)]
+    pub value: Option<f32>,
 }
 
 #[derive(Debug, Deserialize)]

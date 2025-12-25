@@ -5,8 +5,9 @@ use bevy::{
     log::warn,
     prelude::{
         ButtonInput, Commands, Component, GlobalTransform, Handle, InheritedVisibility, Mesh,
-        Local, Mesh3d, MeshMaterial3d, MessageReader, MessageWriter, Name, Query, Res, ResMut,
-        Resource, StandardMaterial, Time, Transform, Vec2, Vec3, ViewVisibility, Visibility, With,
+        Local, Mesh3d, MeshMaterial3d, MessageReader, MessageWriter, Name, Projection, Query, Res,
+        ResMut, Resource, StandardMaterial, Time, Transform, Vec2, Vec3, ViewVisibility,
+        Visibility, With,
     },
 };
 use bevy_rapier3d::prelude::{
@@ -16,8 +17,8 @@ use bevy_rapier3d::prelude::{
 use crate::app_config::AppConfig;
 use crate::scenes::bounds::DespawnOutsideBounds;
 use crate::scenes::config::{
-    ActionBindingConfig, CameraRotationConfig, MovementConfig, OverlayInputConfig, ShootActionConfig,
-    SphereConfig, SprintActionConfig,
+    ActionBindingConfig, CameraRotationConfig, FovActionConfig, MovementConfig, OverlayInputConfig,
+    ShootActionConfig, SphereConfig, SprintActionConfig,
 };
 
 #[derive(Resource, Debug, Clone)]
@@ -70,6 +71,7 @@ pub struct ResolvedActionBinding {
     pub action: String,
     pub mouse: Option<MouseButton>,
     pub key: Option<KeyCode>,
+    pub value: Option<f32>,
 }
 
 #[derive(Resource, Clone)]
@@ -85,6 +87,18 @@ pub struct SceneShootConfig {
 pub struct SceneSprintConfig {
     pub action: SprintActionConfig,
     pub trigger: KeyCode,
+}
+
+#[derive(Clone)]
+pub struct FovBinding {
+    pub trigger: KeyCode,
+    pub fov_degrees: f32,
+}
+
+#[derive(Resource, Clone)]
+pub struct SceneFovConfig {
+    pub action: FovActionConfig,
+    pub bindings: Vec<FovBinding>,
 }
 
 #[derive(Resource, Default)]
@@ -237,6 +251,33 @@ pub fn apply_sprint_toggle(
     }
 }
 
+pub fn apply_fov_action(
+    keys: Res<ButtonInput<KeyCode>>,
+    config: Option<Res<SceneFovConfig>>,
+    mut cameras: Query<&mut Projection, With<SceneCamera>>,
+) {
+    let Some(config) = config else {
+        return;
+    };
+
+    let mut selected = None;
+    for binding in &config.bindings {
+        if keys.just_pressed(binding.trigger) {
+            selected = Some(binding.fov_degrees);
+        }
+    }
+
+    let Some(fov_degrees) = selected else {
+        return;
+    };
+
+    for mut projection in cameras.iter_mut() {
+        if let Projection::Perspective(ref mut perspective) = *projection {
+            perspective.fov = fov_degrees.to_radians();
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct ShootState {
     accumulator: f32,
@@ -374,6 +415,7 @@ pub fn resolve_action_bindings(actions: &[ActionBindingConfig]) -> Vec<ResolvedA
             action: action.action.clone(),
             mouse: resolve_mouse_button_or_warn(&action.mouse, "action mouse"),
             key: resolve_key_or_warn(&action.key, "action key"),
+            value: action.value,
         })
         .collect()
 }
