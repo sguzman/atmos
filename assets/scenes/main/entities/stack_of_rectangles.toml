@@ -1,0 +1,7 @@
+name = "rectangle_stack"
+count = 5
+spacing = { x = 0.0, y = 4.1, z = 0.0 }
+start_offset = { x = 0.0, y = 0.0, z = 0.0 }
+
+[rectangle]
+template = "entities/rectangle.toml"

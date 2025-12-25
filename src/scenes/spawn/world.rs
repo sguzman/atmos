@@ -13,6 +13,8 @@ use crate::scenes::{
 use super::combos::spawn_pillar_with_light;
 use super::lights::spawn_light_entity;
 use super::shapes::{spawn_circle, spawn_cube, spawn_rectangle};
+use super::stack::spawn_rectangle_stack;
+use crate::scenes::loaders::load_rectangle_stack_config;
 
 pub(super) fn spawn_world_entities(
     world: &WorldConfig,
@@ -68,6 +70,21 @@ pub(super) fn spawn_world_entities(
                 materials,
                 active_scene,
             ),
+            path if path.ends_with("stack_of_rectangles.toml") => {
+                if let Some(stack_config) =
+                    load_rectangle_stack_config(&active_scene.name, path)
+                {
+                    spawn_rectangle_stack(
+                        entity,
+                        rectangle_template,
+                        &stack_config,
+                        commands,
+                        meshes,
+                        materials,
+                        active_scene,
+                    );
+                }
+            }
             other => {
                 warn!(
                     "Unknown template '{other}' in world; skipping entity placement in scene '{}'.",

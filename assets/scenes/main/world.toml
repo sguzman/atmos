@@ -44,41 +44,9 @@ intensity = 75000.0
 range = 30.0
 
 [[entities]]
-template = "entities/rectangle.toml"
-name_override = "stack_rect_1"
+template = "entities/stack_of_rectangles.toml"
+name_override = "stack_rects"
 [entities.transform]
 position = { x = -8.0, y = 2.0, z = 2.0 }
-rotation = { roll = 0.0, pitch = 0.0, yaw = 0.0 }
-scale = 1.0
-
-[[entities]]
-template = "entities/rectangle.toml"
-name_override = "stack_rect_2"
-[entities.transform]
-position = { x = -8.0, y = 6.0, z = 2.0 }
-rotation = { roll = 0.0, pitch = 0.0, yaw = 0.0 }
-scale = 1.0
-
-[[entities]]
-template = "entities/rectangle.toml"
-name_override = "stack_rect_3"
-[entities.transform]
-position = { x = -8.0, y = 10.0, z = 2.0 }
-rotation = { roll = 0.0, pitch = 0.0, yaw = 0.0 }
-scale = 1.0
-
-[[entities]]
-template = "entities/rectangle.toml"
-name_override = "stack_rect_4"
-[entities.transform]
-position = { x = -8.0, y = 14.0, z = 2.0 }
-rotation = { roll = 0.0, pitch = 0.0, yaw = 0.0 }
-scale = 1.0
-
-[[entities]]
-template = "entities/rectangle.toml"
-name_override = "stack_rect_5"
-[entities.transform]
-position = { x = -8.0, y = 18.0, z = 2.0 }
 rotation = { roll = 0.0, pitch = 0.0, yaw = 0.0 }
 scale = 1.0

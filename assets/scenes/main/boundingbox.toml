@@ -1,13 +1,13 @@
 shape = "rectangle"
 
 [x]
-min = -500.0
-max = 500.0
+min = -300.0
+max = 300.0
 
 [y]
 min = -100.0
 max = 200.0
 
 [z]
-min = -5000.0
-max = 500.0
+min = -300.0
+max = 300.0

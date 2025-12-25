@@ -12,6 +12,7 @@ mod overlay;
 mod paths;
 mod physics;
 mod shapes;
+mod stack;
 mod sun;
 mod skybox;
 mod transforms;
@@ -42,6 +43,7 @@ pub use paths::{
 };
 pub use physics::PhysicsConfig;
 pub use shapes::{CircleConfig, CubeConfig, RectangleConfig, RectangleOverrides, SphereConfig};
+pub use stack::RectangleStackConfig;
 pub use skybox::SkyboxConfig;
 pub use sun::SunConfig;
 pub use transforms::{CubeRotationConfig, DimensionsConfig, PositionConfig, SizeConfig, Vec3Config};

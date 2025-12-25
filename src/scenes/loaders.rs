@@ -6,7 +6,8 @@ use crate::scenes::config::{
     pillar_combo_config_path, rectangle_config_path, skybox_config_path, sphere_config_path,
     sun_config_path, top_light_config_path, BoundingBoxConfig, CameraConfig, CircleConfig,
     CubeConfig, InputConfig, LightConfig, OverlayConfig, PillarComboConfig, RectangleConfig,
-    ShootActionConfig, SkyboxConfig, SphereConfig, SprintActionConfig, SunConfig,
+    RectangleStackConfig, ShootActionConfig, SkyboxConfig, SphereConfig, SprintActionConfig,
+    SunConfig,
 };
 use crate::scenes::world::WorldConfig;
 use bevy::log::{info, warn};
@@ -138,6 +139,31 @@ pub fn load_sprint_action_config(scene: &str, action_path: &str) -> Option<Sprin
         }
         Err(err) => {
             warn!("Failed to parse {path}: {err}. Action disabled.");
+            None
+        }
+    }
+}
+
+pub fn load_rectangle_stack_config(
+    scene: &str,
+    stack_path: &str,
+) -> Option<RectangleStackConfig> {
+    let path = action_config_path(scene, stack_path);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Stack disabled.");
+            return None;
+        }
+    };
+
+    match toml::from_str::<RectangleStackConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded rectangle stack config from {path}.");
+            Some(config)
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Stack disabled.");
             None
         }
     }
