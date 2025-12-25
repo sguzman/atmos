@@ -24,6 +24,11 @@ include = ["assets/scenes/**/combo/*.toml"]
 [rule.schema]
 path = "schemas/combo.entity.schema.json"
 
+[[rule]]
+include = ["assets/scenes/**/world.toml"]
+[rule.schema]
+path = "schemas/world.schema.json"
+
 [formatting]
 indent_string = "  "     # 2 spaces
 column_width = 40

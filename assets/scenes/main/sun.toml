@@ -1,6 +1,0 @@
-# Sun position/appearance driven by time of day.
-time = 12.0
-color = "gold"
-brightness = 600.0
-distance = 500.0
-size = 30.0

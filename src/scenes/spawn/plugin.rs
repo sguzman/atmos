@@ -6,7 +6,7 @@ use bevy::{
 use crate::app_config::AppConfig;
 use crate::scenes::{
     bounds::{despawn_out_of_bounds, SceneBounds},
-    config::{ActiveScene, CameraConfig, InputConfig},
+    config::{ActiveScene, InputConfig},
     input::{
         apply_camera_input, apply_fov_action, apply_shoot_action, apply_sprint_toggle,
         apply_zoom_action, resolve_action_bindings, resolve_camera_input_config,
@@ -14,10 +14,9 @@ use crate::scenes::{
         SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
     },
     loaders::{
-        load_bounding_box_config, load_camera_config, load_entity_template_from_path,
-        load_fov_action_config, load_input_config, load_light_config,
-        load_shoot_action_config, load_skybox_config, load_sprint_action_config, load_sun_config,
-        load_world_config, load_zoom_action_config,
+        load_entity_template_from_path, load_fov_action_config, load_input_config,
+        load_shoot_action_config, load_sprint_action_config, load_world_config,
+        load_zoom_action_config,
     },
     world::WorldConfig,
 };
@@ -79,14 +78,9 @@ fn setup_scene(
         actions: resolve_action_bindings(&input_config.actions),
     });
 
-    let camera_config: CameraConfig = load_camera_config(&active_scene.name);
-    let bounds_config = load_bounding_box_config(&active_scene.name);
     let world_config: WorldConfig = load_world_config(&active_scene.name);
-    let light_config = load_light_config(&active_scene.name);
-    let sun_config = load_sun_config(&active_scene.name);
-    let skybox_config = load_skybox_config(&active_scene.name);
 
-    commands.insert_resource(SceneBounds::from(bounds_config));
+    commands.insert_resource(SceneBounds::from(world_config.bounds.clone()));
 
     if let Some(action_binding) = input_config
         .actions
@@ -213,10 +207,16 @@ fn setup_scene(
     );
 
     // sun derived from world config
-    spawn_sun(sun_config.as_ref(), &mut commands, &mut meshes, &mut materials, &active_scene);
+    spawn_sun(
+        world_config.sun.as_ref(),
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        &active_scene,
+    );
 
     // skybox clear color
-    if let Some(skybox) = skybox_config {
+    if let Some(skybox) = world_config.skybox.clone() {
         if let Some(rgb) = crate::scenes::config::parse_color(&skybox.color) {
             commands.insert_resource(ClearColor(Color::srgb_u8(rgb[0], rgb[1], rgb[2])));
         } else {
@@ -225,28 +225,28 @@ fn setup_scene(
     }
 
     // lights
-    spawn_lights(&light_config, &mut commands);
+    spawn_lights(&world_config.lights, &mut commands);
 
     // camera
     let camera_components = (
-        Name::new(camera_config.name),
+        Name::new(world_config.camera.name.clone()),
         Camera3d::default(),
         SceneCamera,
         Transform::from_xyz(
-            camera_config.transform.position.x,
-            camera_config.transform.position.y,
-            camera_config.transform.position.z,
+            world_config.camera.transform.position.x,
+            world_config.camera.transform.position.y,
+            world_config.camera.transform.position.z,
         )
         .looking_at(
             Vec3::new(
-                camera_config.transform.look_at.x,
-                camera_config.transform.look_at.y,
-                camera_config.transform.look_at.z,
+                world_config.camera.transform.look_at.x,
+                world_config.camera.transform.look_at.y,
+                world_config.camera.transform.look_at.z,
             ),
             Vec3::new(
-                camera_config.transform.up.x,
-                camera_config.transform.up.y,
-                camera_config.transform.up.z,
+                world_config.camera.transform.up.x,
+                world_config.camera.transform.up.y,
+                world_config.camera.transform.up.z,
             ),
         ),
     );

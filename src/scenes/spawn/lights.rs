@@ -3,11 +3,11 @@ use bevy::{
     prelude::*,
 };
 
-use crate::scenes::config::{LightConfig, LightKind};
+use crate::scenes::config::{LightEntry, LightKind};
 
-pub(super) fn spawn_lights(light_config: &LightConfig, commands: &mut Commands) {
+pub(super) fn spawn_lights(lights: &[LightEntry], commands: &mut Commands) {
     let mut ambient_set = false;
-    for light in &light_config.lights {
+    for light in lights {
         let color = crate::scenes::config::parse_color(&light.color).unwrap_or([255, 255, 255]);
         let color = Color::srgb_u8(color[0], color[1], color[2]);
         match light.kind {
