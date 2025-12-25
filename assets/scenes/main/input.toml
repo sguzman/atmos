@@ -29,6 +29,11 @@ action = "actions/sprint.toml"
 key = "Shift"
 
 [[actions]]
+name = "zoom"
+action = "actions/zoom.toml"
+key = "z"
+
+[[actions]]
 name = "fov_1"
 action = "actions/fov.toml"
 key = "1"

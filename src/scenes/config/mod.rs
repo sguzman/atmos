@@ -18,7 +18,7 @@ mod skybox;
 mod transforms;
 
 pub use active::{ActiveScene, OVERLAY_ROOT, SCENE_ROOT};
-pub use actions::{FovActionConfig, ShootActionConfig, SprintActionConfig};
+pub use actions::{FovActionConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig};
 pub use bounds::BoundingBoxConfig;
 pub use camera::{CameraConfig, TransformConfig};
 pub use colors::{

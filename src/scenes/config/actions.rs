@@ -53,6 +53,26 @@ impl Default for SprintActionConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(default)]
+pub struct ZoomActionConfig {
+    pub name: String,
+    pub fov_degrees: f32,
+    pub sensitivity_multiplier: f32,
+    pub toggle: bool,
+}
+
+impl Default for ZoomActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "zoom".to_string(),
+            fov_degrees: 25.0,
+            sensitivity_multiplier: 0.4,
+            toggle: false,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
 pub struct FovActionConfig {
     pub name: String,
 }

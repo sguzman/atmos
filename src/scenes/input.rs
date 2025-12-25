@@ -18,7 +18,7 @@ use crate::app_config::AppConfig;
 use crate::scenes::bounds::DespawnOutsideBounds;
 use crate::scenes::config::{
     ActionBindingConfig, CameraRotationConfig, FovActionConfig, MovementConfig, OverlayInputConfig,
-    ShootActionConfig, SphereConfig, SprintActionConfig,
+    ShootActionConfig, SphereConfig, SprintActionConfig, ZoomActionConfig,
 };
 
 #[derive(Resource, Debug, Clone)]
@@ -89,6 +89,18 @@ pub struct SceneSprintConfig {
     pub trigger: KeyCode,
 }
 
+#[derive(Resource, Clone)]
+pub struct SceneZoomConfig {
+    pub action: ZoomActionConfig,
+    pub trigger: KeyCode,
+}
+
+#[derive(Resource, Default)]
+pub struct ZoomState {
+    pub active: bool,
+    pub base_fov: Option<f32>,
+}
+
 #[derive(Clone)]
 pub struct FovBinding {
     pub trigger: KeyCode,
@@ -116,6 +128,8 @@ pub fn apply_camera_input(
     app_config: Res<AppConfig>,
     sprint: Option<Res<SprintState>>,
     sprint_config: Option<Res<SceneSprintConfig>>,
+    zoom_state: Option<Res<ZoomState>>,
+    zoom_config: Option<Res<SceneZoomConfig>>,
     config: Option<Res<SceneInputConfig>>,
     mut cameras: Query<&mut Transform, With<SceneCamera>>,
     mut app_exit: MessageWriter<AppExit>,
@@ -183,8 +197,14 @@ pub fn apply_camera_input(
             CameraControl::Mouse => {
                 if mouse_delta.length_squared() > 0.0 {
                     let mouse_cfg = &app_config.mouse;
-                    let mut yaw = -mouse_delta.x * mouse_cfg.sensitivity;
-                    let mut pitch = -mouse_delta.y * mouse_cfg.sensitivity;
+                    let mut sensitivity = mouse_cfg.sensitivity;
+                    if let (Some(state), Some(cfg)) = (zoom_state.as_ref(), zoom_config.as_ref()) {
+                        if state.active {
+                            sensitivity *= cfg.action.sensitivity_multiplier.max(0.01);
+                        }
+                    }
+                    let mut yaw = -mouse_delta.x * sensitivity;
+                    let mut pitch = -mouse_delta.y * sensitivity;
                     if mouse_cfg.invert_x {
                         yaw = -yaw;
                     }
@@ -248,6 +268,49 @@ pub fn apply_sprint_toggle(
     };
     if config.action.toggle && keys.just_pressed(config.trigger) {
         state.active = !state.active;
+    }
+}
+
+pub fn apply_zoom_action(
+    keys: Res<ButtonInput<KeyCode>>,
+    config: Option<Res<SceneZoomConfig>>,
+    mut state: ResMut<ZoomState>,
+    mut cameras: Query<&mut Projection, With<SceneCamera>>,
+) {
+    let Some(config) = config else {
+        return;
+    };
+
+    let Ok(mut projection) = cameras.single_mut() else {
+        return;
+    };
+
+    if state.base_fov.is_none() {
+        if let Projection::Perspective(ref perspective) = *projection {
+            state.base_fov = Some(perspective.fov);
+        }
+    }
+
+    let Some(base_fov) = state.base_fov else {
+        return;
+    };
+
+    if config.action.toggle {
+        if keys.just_pressed(config.trigger) {
+            state.active = !state.active;
+        }
+    } else {
+        state.active = keys.pressed(config.trigger);
+    }
+
+    let target_fov = if state.active {
+        config.action.fov_degrees.to_radians()
+    } else {
+        base_fov
+    };
+
+    if let Projection::Perspective(ref mut perspective) = *projection {
+        perspective.fov = target_fov;
     }
 }
 

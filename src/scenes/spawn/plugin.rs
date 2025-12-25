@@ -12,15 +12,16 @@ use crate::scenes::{
     },
     input::{
         apply_camera_input, apply_fov_action, apply_shoot_action, apply_sprint_toggle,
-        resolve_action_bindings, resolve_camera_input_config, resolve_overlay_toggles,
-        FovBinding, SceneCamera, SceneFovConfig, SceneInputConfig, SceneShootConfig,
-        SceneSprintConfig, SprintState,
+        apply_zoom_action, resolve_action_bindings, resolve_camera_input_config,
+        resolve_overlay_toggles, FovBinding, SceneCamera, SceneFovConfig, SceneInputConfig,
+        SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
     },
     loaders::{
         load_bounding_box_config, load_camera_config, load_circle_config, load_cube_config,
         load_input_config, load_light_config, load_pillar_combo_config, load_rectangle_config,
         load_fov_action_config, load_shoot_action_config, load_skybox_config, load_sphere_config,
         load_sprint_action_config, load_sun_config, load_top_light_config, load_world_config,
+        load_zoom_action_config,
     },
     world::WorldConfig,
 };
@@ -51,6 +52,7 @@ impl Plugin for ScenePlugin {
         app.add_systems(Update, apply_fov_action);
         app.add_systems(Update, apply_shoot_action);
         app.add_systems(Update, apply_sprint_toggle);
+        app.add_systems(Update, apply_zoom_action);
         app.add_systems(Update, despawn_out_of_bounds);
         app.add_systems(
             PostStartup,
@@ -139,6 +141,23 @@ fn setup_scene(
             {
                 commands.insert_resource(SceneSprintConfig { action, trigger });
                 commands.insert_resource(SprintState::default());
+            }
+        }
+    }
+
+    if let Some(action_binding) = input_config
+        .actions
+        .iter()
+        .find(|action| action.action.ends_with("zoom.toml"))
+    {
+        if let Some(trigger) =
+            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "zoom")
+        {
+            if let Some(action) =
+                load_zoom_action_config(&active_scene.name, &action_binding.action)
+            {
+                commands.insert_resource(SceneZoomConfig { action, trigger });
+                commands.insert_resource(ZoomState::default());
             }
         }
     }

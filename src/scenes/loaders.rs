@@ -7,7 +7,7 @@ use crate::scenes::config::{
     sun_config_path, top_light_config_path, BoundingBoxConfig, CameraConfig, CircleConfig,
     CubeConfig, InputConfig, LightConfig, OverlayConfig, PillarComboConfig, RectangleConfig,
     FovActionConfig, RectangleStackConfig, ShootActionConfig, SkyboxConfig, SphereConfig,
-    SprintActionConfig, SunConfig,
+    SprintActionConfig, SunConfig, ZoomActionConfig,
 };
 use crate::scenes::world::WorldConfig;
 use bevy::log::{info, warn};
@@ -179,6 +179,28 @@ pub fn load_fov_action_config(scene: &str, action_path: &str) -> Option<FovActio
     match toml::from_str::<FovActionConfig>(&contents) {
         Ok(config) => {
             info!("Loaded fov action config from {path}.");
+            Some(config)
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Action disabled.");
+            None
+        }
+    }
+}
+
+pub fn load_zoom_action_config(scene: &str, action_path: &str) -> Option<ZoomActionConfig> {
+    let path = action_config_path(scene, action_path);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Action disabled.");
+            return None;
+        }
+    };
+
+    match toml::from_str::<ZoomActionConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded zoom action config from {path}.");
             Some(config)
         }
         Err(err) => {
