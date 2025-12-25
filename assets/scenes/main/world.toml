@@ -1,29 +1,23 @@
 # Scene composition for the main world. References entity templates in `entities/`.
 
 [[entities]]
-template = "entities/circle.toml"
-name_override = "base_circle"
-radius = 100.0
+template = "entities/cube.toml"
+name_override = "base_cube"
 [entities.transform]
 position = { x = 0.0, y = 0.0, z = 0.0 }
-rotation = { roll = -90.0, pitch = 0.0, yaw = 0.0 }
-scale = 1.0
 
 [[entities]]
 template = "entities/cube.toml"
 name_override = "cube"
 [entities.transform]
 position = { x = 0.0, y = 0.5, z = 0.0 }
-rotation = { roll = 0.0, pitch = 0.0, yaw = 0.0 }
-scale = 1.0
 
 [[entities]]
 template = "entities/pillar_with_light.toml"
 name_override = "lit_pillar"
 [entities.transform]
 position = { x = 2.0, y = 2.0, z = 2.0 }
-rotation = { roll = 0.0, pitch = 0.0, yaw = 0.0 }
-scale = 1.0
+
 [entities.rectangle]
 color = "steelblue"
 [entities.light]
@@ -35,8 +29,7 @@ template = "entities/pillar_with_light.toml"
 name_override = "lit_pillar2"
 [entities.transform]
 position = { x = 20.0, y = 2.0, z = 2.0 }
-rotation = { roll = 0.0, pitch = 0.0, yaw = 0.0 }
-scale = 1.0
+
 [entities.rectangle]
 color = "steelblue"
 [entities.light]
@@ -48,5 +41,9 @@ template = "entities/stack_of_rectangles.toml"
 name_override = "stack_rects"
 [entities.transform]
 position = { x = -8.0, y = 2.0, z = 2.0 }
-rotation = { roll = 0.0, pitch = 0.0, yaw = 0.0 }
-scale = 1.0
+
+[[entities]]
+template = "entities/stack_of_rectangles.toml"
+name_override = "stack_rects2"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 22.0 }
