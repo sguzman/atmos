@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use super::light::LightKind;
 use super::physics::PhysicsConfig;
-use super::transforms::{CubeRotationConfig, DimensionsConfig, PositionConfig, Vec3Config};
+use super::transforms::{CubeRotationConfig, DimensionsConfig, PositionConfig};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct EntityTemplate {
@@ -17,22 +17,16 @@ pub struct EntityTemplate {
     pub physics: Option<PhysicsConfig>,
     #[serde(default)]
     pub light: Option<LightComponent>,
-    #[serde(default)]
-    pub stack: Option<StackConfig>,
 }
 
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct EntityOverrides {
-    #[serde(default)]
-    pub transform: Option<TransformOverrides>,
     #[serde(default)]
     pub shape: Option<ShapeOverrides>,
     #[serde(default)]
     pub physics: Option<PhysicsOverrides>,
     #[serde(default)]
     pub light: Option<LightOverridesConfig>,
-    #[serde(default)]
-    pub stack: Option<StackOverrides>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -144,24 +138,7 @@ pub struct LightOverridesConfig {
     pub offset: Option<PositionConfig>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct StackConfig {
-    pub count: u32,
-    #[serde(default)]
-    pub spacing: Vec3Config,
-    #[serde(default)]
-    pub start_offset: Vec3Config,
-}
-
-#[derive(Debug, Deserialize, Clone, Default)]
-pub struct StackOverrides {
-    #[serde(default)]
-    pub count: Option<u32>,
-    #[serde(default)]
-    pub spacing: Option<Vec3Config>,
-    #[serde(default)]
-    pub start_offset: Option<Vec3Config>,
-}
+// Vec3Config is used in combo templates for stacking and offsets.
 
 fn default_unit_scale() -> f32 {
     1.0

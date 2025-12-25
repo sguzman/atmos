@@ -11,7 +11,7 @@ use crate::scenes::config::{
     parse_color, ActiveScene, EntityOverrides, EntityTemplate, EntityTransformConfig,
     LightComponent, LightKind,
     LightOverridesConfig, PhysicsConfig, PhysicsOverrides, ShapeConfig, ShapeKind, ShapeOverrides,
-    StackConfig, StackOverrides, TransformOverrides,
+    TransformOverrides,
 };
 
 pub fn spawn_entity_from_template(
@@ -24,7 +24,7 @@ pub fn spawn_entity_from_template(
     materials: &mut Assets<StandardMaterial>,
     active_scene: &ActiveScene,
 ) {
-    let transform = merge_transform(&template.transform, placement_transform, overrides.transform.as_ref());
+    let transform = merge_transform(&template.transform, placement_transform, None);
     let shape = template
         .shape
         .as_ref()
@@ -37,35 +37,11 @@ pub fn spawn_entity_from_template(
         .light
         .as_ref()
         .map(|light| merge_light(light, overrides.light.as_ref()));
-    let stack = template
-        .stack
-        .as_ref()
-        .map(|stack| merge_stack(stack, overrides.stack.as_ref()));
-
     let base_name = name_override
         .cloned()
         .unwrap_or_else(|| template.name.clone());
 
-    if let Some(stack) = stack {
-        if let Some(shape) = shape {
-            spawn_shape_stack(
-                &base_name,
-                &shape,
-                physics.as_ref(),
-                &transform,
-                &stack,
-                commands,
-                meshes,
-                materials,
-                active_scene,
-            );
-        } else {
-            warn!(
-                "Stacked entity '{}' in scene '{}' has no shape; skipping.",
-                base_name, active_scene.name
-            );
-        }
-    } else if let Some(shape) = shape {
+    if let Some(shape) = shape {
         spawn_shape_instance(
             &base_name,
             &shape,
@@ -111,7 +87,7 @@ fn merge_transform(
     merged
 }
 
-fn merge_shape(base: &ShapeConfig, overrides: Option<&ShapeOverrides>) -> ShapeConfig {
+pub(super) fn merge_shape(base: &ShapeConfig, overrides: Option<&ShapeOverrides>) -> ShapeConfig {
     let mut merged = base.clone();
     if let Some(ovr) = overrides {
         if let Some(color) = &ovr.color {
@@ -127,7 +103,10 @@ fn merge_shape(base: &ShapeConfig, overrides: Option<&ShapeOverrides>) -> ShapeC
     merged
 }
 
-fn merge_physics(base: &PhysicsConfig, overrides: Option<&PhysicsOverrides>) -> PhysicsConfig {
+pub(super) fn merge_physics(
+    base: &PhysicsConfig,
+    overrides: Option<&PhysicsOverrides>,
+) -> PhysicsConfig {
     let mut merged = base.clone();
     if let Some(ovr) = overrides {
         if let Some(enabled) = ovr.enabled {
@@ -149,7 +128,10 @@ fn merge_physics(base: &PhysicsConfig, overrides: Option<&PhysicsOverrides>) -> 
     merged
 }
 
-fn merge_light(base: &LightComponent, overrides: Option<&LightOverridesConfig>) -> LightComponent {
+pub(super) fn merge_light(
+    base: &LightComponent,
+    overrides: Option<&LightOverridesConfig>,
+) -> LightComponent {
     let mut merged = base.clone();
     if let Some(ovr) = overrides {
         if let Some(kind) = ovr.kind {
@@ -177,80 +159,7 @@ fn merge_light(base: &LightComponent, overrides: Option<&LightOverridesConfig>) 
     merged
 }
 
-fn merge_stack(base: &StackConfig, overrides: Option<&StackOverrides>) -> StackConfig {
-    let mut merged = base.clone();
-    if let Some(ovr) = overrides {
-        if let Some(count) = ovr.count {
-            merged.count = count;
-        }
-        if let Some(spacing) = &ovr.spacing {
-            merged.spacing = spacing.clone();
-        }
-        if let Some(start_offset) = &ovr.start_offset {
-            merged.start_offset = start_offset.clone();
-        }
-    }
-    merged
-}
-
-fn spawn_shape_stack(
-    base_name: &str,
-    shape: &ShapeConfig,
-    physics: Option<&PhysicsConfig>,
-    transform: &EntityTransformConfig,
-    stack: &StackConfig,
-    commands: &mut Commands,
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
-    active_scene: &ActiveScene,
-) {
-    let rotation = Quat::from_euler(
-        EulerRot::XYZ,
-        transform.rotation.roll.to_radians(),
-        transform.rotation.pitch.to_radians(),
-        transform.rotation.yaw.to_radians(),
-    );
-    let base_transform = Transform::from_xyz(
-        transform.position.x,
-        transform.position.y,
-        transform.position.z,
-    )
-    .with_rotation(rotation)
-    .with_scale(Vec3::splat(transform.scale));
-
-    let spacing = Vec3::new(
-        stack.spacing.x * transform.scale,
-        stack.spacing.y * transform.scale,
-        stack.spacing.z * transform.scale,
-    );
-    let start_offset = Vec3::new(
-        stack.start_offset.x * transform.scale,
-        stack.start_offset.y * transform.scale,
-        stack.start_offset.z * transform.scale,
-    );
-
-    for i in 0..stack.count {
-        let offset = start_offset + spacing * (i as f32);
-        let world_pos = base_transform.transform_point(offset);
-        let name = format!("{base_name}_{}", i + 1);
-        let mut local_transform = transform.clone();
-        local_transform.position.x = world_pos.x;
-        local_transform.position.y = world_pos.y;
-        local_transform.position.z = world_pos.z;
-        spawn_shape_instance(
-            &name,
-            shape,
-            physics,
-            &local_transform,
-            commands,
-            meshes,
-            materials,
-            active_scene,
-        );
-    }
-}
-
-fn spawn_shape_instance(
+pub(super) fn spawn_shape_instance(
     name: &str,
     shape: &ShapeConfig,
     physics: Option<&PhysicsConfig>,
@@ -392,7 +301,37 @@ fn spawn_shape_instance(
     }
 }
 
-fn spawn_light_component(
+pub(super) fn apply_transform_additive(
+    mut base: EntityTransformConfig,
+    delta: &TransformOverrides,
+) -> EntityTransformConfig {
+    if let Some(position) = &delta.position {
+        base.position.x += position.x;
+        base.position.y += position.y;
+        base.position.z += position.z;
+    }
+    if let Some(rotation) = &delta.rotation {
+        base.rotation.roll += rotation.roll;
+        base.rotation.pitch += rotation.pitch;
+        base.rotation.yaw += rotation.yaw;
+    }
+    if let Some(scale) = delta.scale {
+        base.scale *= scale;
+    }
+    base
+}
+
+pub(super) fn apply_translation(
+    mut base: EntityTransformConfig,
+    offset: &crate::scenes::config::Vec3Config,
+) -> EntityTransformConfig {
+    base.position.x += offset.x;
+    base.position.y += offset.y;
+    base.position.z += offset.z;
+    base
+}
+
+pub(super) fn spawn_light_component(
     name: &str,
     light: &LightComponent,
     transform: &EntityTransformConfig,

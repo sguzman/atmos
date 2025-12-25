@@ -1,28 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Atmos entity template",
+  "title": "Atmos combo entity",
   "type": "object",
   "additionalProperties": false,
-  "required": ["name"],
+  "required": ["name", "parts"],
   "properties": {
     "name": { "type": "string" },
-    "tags": {
+    "parts": {
       "type": "array",
-      "items": { "type": "string" }
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/part" }
     },
-    "transform": { "$ref": "#/$defs/transform" },
-    "shape": { "$ref": "#/$defs/shape" },
-    "physics": { "$ref": "#/$defs/physics" },
-    "light": { "$ref": "#/$defs/light" },
+    "overrides": { "$ref": "#/$defs/overrides" },
     "stack": { "$ref": "#/$defs/stack" }
-  },
-  "anyOf": [
-    { "required": ["shape"] },
-    { "required": ["light"] },
-    { "required": ["stack"] }
-  ],
-  "dependentRequired": {
-    "stack": ["shape"]
   },
   "$defs": {
     "vec3": {
@@ -61,35 +51,16 @@
         "depth": { "type": "number" }
       }
     },
-    "shape": {
+    "shapeOverrides": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind"],
       "properties": {
-        "kind": {
-          "type": "string",
-          "enum": ["box", "sphere", "circle"]
-        },
         "color": { "type": "string" },
         "dimensions": { "$ref": "#/$defs/dimensions" },
         "radius": { "type": "number", "exclusiveMinimum": 0 }
-      },
-      "allOf": [
-        {
-          "if": { "properties": { "kind": { "const": "box" } } },
-          "then": { "required": ["dimensions"] }
-        },
-        {
-          "if": { "properties": { "kind": { "const": "sphere" } } },
-          "then": { "required": ["radius"] }
-        },
-        {
-          "if": { "properties": { "kind": { "const": "circle" } } },
-          "then": { "required": ["radius"] }
-        }
-      ]
+      }
     },
-    "physics": {
+    "physicsOverrides": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -110,7 +81,7 @@
         "friction": { "type": "number" }
       }
     },
-    "light": {
+    "lightOverrides": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -121,6 +92,29 @@
         "shadows": { "type": "boolean" },
         "radius": { "type": "number" },
         "offset": { "$ref": "#/$defs/vec3" }
+      }
+    },
+    "overrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shape": { "$ref": "#/$defs/shapeOverrides" },
+        "physics": { "$ref": "#/$defs/physicsOverrides" },
+        "light": { "$ref": "#/$defs/lightOverrides" }
+      }
+    },
+    "part": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template"],
+      "properties": {
+        "template": {
+          "type": "string",
+          "pattern": ".*\\.(3D|2D|light)\\.toml$"
+        },
+        "name_override": { "type": "string" },
+        "transform": { "$ref": "#/$defs/transform" },
+        "overrides": { "$ref": "#/$defs/overrides" }
       }
     },
     "stack": {

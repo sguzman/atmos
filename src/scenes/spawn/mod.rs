@@ -1,4 +1,5 @@
 mod entities;
+mod combo;
 mod lights;
 mod logging;
 mod plugin;

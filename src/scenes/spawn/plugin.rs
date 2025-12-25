@@ -101,7 +101,7 @@ fn setup_scene(
             {
                 let Some(projectile) = load_entity_template_from_path(
                     &active_scene.name,
-                    "entities/sphere.toml",
+                    "entities/sphere.3D.toml",
                 ) else {
                     warn!("Projectile template missing; shoot action disabled.");
                     return;

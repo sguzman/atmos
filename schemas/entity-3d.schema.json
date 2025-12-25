@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atmos 3D entity",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "shape"],
+  "properties": {
+    "name": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "transform": { "$ref": "#/$defs/transform" },
+    "shape": { "$ref": "#/$defs/shape3d" },
+    "physics": { "$ref": "#/$defs/physics" }
+  },
+  "$defs": {
+    "vec3": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      }
+    },
+    "rotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "roll": { "type": "number" },
+        "pitch": { "type": "number" },
+        "yaw": { "type": "number" }
+      }
+    },
+    "transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "position": { "$ref": "#/$defs/vec3" },
+        "rotation": { "$ref": "#/$defs/rotation" },
+        "scale": { "type": "number" }
+      }
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "depth": { "type": "number" }
+      }
+    },
+    "shape3d": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["box", "sphere"] },
+        "color": { "type": "string" },
+        "dimensions": { "$ref": "#/$defs/dimensions" },
+        "radius": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "box" } } },
+          "then": { "required": ["dimensions"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "sphere" } } },
+          "then": { "required": ["radius"] }
+        }
+      ]
+    },
+    "physics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "body_type": {
+          "type": "string",
+          "enum": [
+            "dynamic",
+            "fixed",
+            "kinematic_position",
+            "kinematic_position_based",
+            "kinematic_velocity",
+            "kinematic_velocity_based"
+          ]
+        },
+        "mass": { "type": "number" },
+        "restitution": { "type": "number" },
+        "friction": { "type": "number" }
+      }
+    }
+  }
+}

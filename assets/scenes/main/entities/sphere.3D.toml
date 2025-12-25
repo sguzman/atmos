@@ -8,6 +8,6 @@ radius = 0.2
 [physics]
 enabled = true
 body_type = "dynamic"
-mass = 10
+mass = 0.5
 restitution = 0.3
 friction = 0.4

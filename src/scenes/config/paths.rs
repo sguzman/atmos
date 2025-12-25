@@ -1,27 +1,27 @@
 use super::SCENE_ROOT;
 
 pub fn cube_config_path(scene: &str) -> String {
-    format!("{SCENE_ROOT}/{scene}/entities/cube.toml")
+    format!("{SCENE_ROOT}/{scene}/entities/cube.3D.toml")
 }
 
 pub fn circle_config_path(scene: &str) -> String {
-    format!("{SCENE_ROOT}/{scene}/entities/circle.toml")
+    format!("{SCENE_ROOT}/{scene}/entities/circle.2D.toml")
 }
 
 pub fn rectangle_config_path(scene: &str) -> String {
-    format!("{SCENE_ROOT}/{scene}/entities/rectangle.toml")
+    format!("{SCENE_ROOT}/{scene}/entities/rectangle.3D.toml")
 }
 
 pub fn sphere_config_path(scene: &str) -> String {
-    format!("{SCENE_ROOT}/{scene}/entities/sphere.toml")
+    format!("{SCENE_ROOT}/{scene}/entities/sphere.3D.toml")
 }
 
 pub fn top_light_config_path(scene: &str) -> String {
-    format!("{SCENE_ROOT}/{scene}/entities/top_light.toml")
+    format!("{SCENE_ROOT}/{scene}/entities/top_light.light.toml")
 }
 
 pub fn pillar_combo_config_path(scene: &str) -> String {
-    format!("{SCENE_ROOT}/{scene}/entities/pillar_with_light.toml")
+    format!("{SCENE_ROOT}/{scene}/combo/pillar_with_light.toml")
 }
 
 pub fn camera_config_path(scene: &str) -> String {

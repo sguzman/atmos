@@ -5,6 +5,7 @@ mod actions;
 mod bounds;
 mod camera;
 mod colors;
+mod combo_entity;
 mod entity;
 mod combos;
 mod input;
@@ -26,9 +27,10 @@ pub use colors::{
     default_circle_color_name, default_circle_rgb, default_circle_radius, default_color_name,
     default_color_rgb, parse_color,
 };
+pub use combo_entity::{ComboPart, ComboStackConfig, ComboTemplate};
 pub use entity::{
     EntityOverrides, EntityTemplate, LightComponent, LightOverridesConfig, PhysicsOverrides,
-    ShapeConfig, ShapeKind, ShapeOverrides, StackConfig, StackOverrides,
+    ShapeConfig, ShapeKind, ShapeOverrides,
     TransformConfig as EntityTransformConfig, TransformOverrides,
 };
 pub use combos::PillarComboConfig;

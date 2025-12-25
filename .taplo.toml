@@ -5,9 +5,24 @@ include = ["assets/**/*.toml"]
 exclude = ["target/**", "**/node_modules/**"]
 
 [[rule]]
-include = ["assets/scenes/**/entities/*.toml"]
+include = ["assets/scenes/**/entities/*.3D.toml"]
 [rule.schema]
-path = "schemas/entities.schema.json"
+path = "schemas/entity-3d.schema.json"
+
+[[rule]]
+include = ["assets/scenes/**/entities/*.2D.toml"]
+[rule.schema]
+path = "schemas/entity-2d.schema.json"
+
+[[rule]]
+include = ["assets/scenes/**/entities/*.light.toml"]
+[rule.schema]
+path = "schemas/entity-light.schema.json"
+
+[[rule]]
+include = ["assets/scenes/**/combo/*.toml"]
+[rule.schema]
+path = "schemas/combo.schema.json"
 
 [formatting]
 indent_string = "  "     # 2 spaces

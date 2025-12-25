@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atmos light entity",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "light"],
+  "properties": {
+    "name": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "transform": { "$ref": "#/$defs/transform" },
+    "light": { "$ref": "#/$defs/light" }
+  },
+  "$defs": {
+    "vec3": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      }
+    },
+    "rotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "roll": { "type": "number" },
+        "pitch": { "type": "number" },
+        "yaw": { "type": "number" }
+      }
+    },
+    "transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "position": { "$ref": "#/$defs/vec3" },
+        "rotation": { "$ref": "#/$defs/rotation" },
+        "scale": { "type": "number" }
+      }
+    },
+    "light": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["point"] },
+        "color": { "type": "string" },
+        "intensity": { "type": "number" },
+        "range": { "type": "number" },
+        "shadows": { "type": "boolean" },
+        "radius": { "type": "number" },
+        "offset": { "$ref": "#/$defs/vec3" }
+      }
+    }
+  }
+}

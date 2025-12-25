@@ -2,7 +2,7 @@ use std::fs;
 
 use crate::scenes::config::{
     action_config_path, bounding_box_config_path, camera_config_path, circle_config_path,
-    cube_config_path, input_config_path, light_config_path, overlay_config_path,
+    ComboTemplate, cube_config_path, input_config_path, light_config_path, overlay_config_path,
     pillar_combo_config_path, rectangle_config_path, skybox_config_path, sphere_config_path,
     sun_config_path, top_light_config_path, BoundingBoxConfig, CameraConfig, CircleConfig,
     CubeConfig, EntityTemplate, InputConfig, LightConfig, OverlayConfig, PillarComboConfig,
@@ -29,6 +29,28 @@ pub fn load_entity_template_from_path(scene: &str, template_path: &str) -> Optio
         }
         Err(err) => {
             warn!("Failed to parse {path}: {err}. Skipping entity template.");
+            None
+        }
+    }
+}
+
+pub fn load_combo_template_from_path(scene: &str, template_path: &str) -> Option<ComboTemplate> {
+    let path = action_config_path(scene, template_path);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Skipping combo template.");
+            return None;
+        }
+    };
+
+    match toml::from_str::<ComboTemplate>(&contents) {
+        Ok(config) => {
+            info!("Loaded combo template from {path}.");
+            Some(config)
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Skipping combo template.");
             None
         }
     }
