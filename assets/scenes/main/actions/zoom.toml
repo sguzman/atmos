@@ -1,4 +1,4 @@
 name = "zoom"
-fov_degrees = 25.0
+fov_degrees = 10.0
 sensitivity_multiplier = 0.4
 toggle = false
