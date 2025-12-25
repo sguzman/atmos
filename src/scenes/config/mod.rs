@@ -27,7 +27,7 @@ pub use colors::{
     default_circle_color_name, default_circle_rgb, default_circle_radius, default_color_name,
     default_color_rgb, parse_color,
 };
-pub use combo_entity::{ComboPart, ComboStackConfig, ComboTemplate};
+pub use combo_entity::{AttachConfig, ComboPart, ComboPhysics, ComboStackConfig, ComboTemplate};
 pub use entity::{
     EntityOverrides, EntityTemplate, LightComponent, LightOverridesConfig, PhysicsOverrides,
     ShapeConfig, ShapeKind, ShapeOverrides,

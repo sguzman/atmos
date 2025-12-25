@@ -12,6 +12,7 @@
       "items": { "$ref": "#/$defs/part" }
     },
     "overrides": { "$ref": "#/$defs/overrides" },
+    "physics": { "$ref": "#/$defs/comboPhysics" },
     "stack": { "$ref": "#/$defs/stack" }
   },
   "$defs": {
@@ -49,6 +50,14 @@
         "width": { "type": "number" },
         "height": { "type": "number" },
         "depth": { "type": "number" }
+      }
+    },
+    "comboPhysics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shared": { "type": "boolean" },
+        "root": { "type": "string" }
       }
     },
     "shapeOverrides": {
@@ -103,6 +112,15 @@
         "light": { "$ref": "#/$defs/lightOverrides" }
       }
     },
+    "attach": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target"],
+      "properties": {
+        "target": { "type": "string" },
+        "offset": { "$ref": "#/$defs/vec3" }
+      }
+    },
     "part": {
       "type": "object",
       "additionalProperties": false,
@@ -114,7 +132,9 @@
         },
         "name_override": { "type": "string" },
         "transform": { "$ref": "#/$defs/transform" },
-        "overrides": { "$ref": "#/$defs/overrides" }
+        "overrides": { "$ref": "#/$defs/overrides" },
+        "physics_root": { "type": "boolean" },
+        "attach": { "$ref": "#/$defs/attach" }
       }
     },
     "stack": {

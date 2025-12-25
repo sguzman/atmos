@@ -55,7 +55,7 @@ pub fn spawn_entity_from_template(
     }
 
     if let Some(light) = light {
-        spawn_light_component(
+        let _ = spawn_light_component(
             &base_name,
             &light,
             &transform,
@@ -168,7 +168,7 @@ pub(super) fn spawn_shape_instance(
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
     active_scene: &ActiveScene,
-) {
+) -> Entity {
     let rotation = Quat::from_euler(
         EulerRot::XYZ,
         transform.rotation.roll.to_radians(),
@@ -179,7 +179,7 @@ pub(super) fn spawn_shape_instance(
     let color = resolve_shape_color(shape, active_scene);
     let material = materials.add(Color::srgb_u8(color[0], color[1], color[2]));
 
-    match shape.kind {
+    let entity_id = match shape.kind {
         ShapeKind::Box => {
             let dimensions = shape.dimensions.as_ref().cloned().unwrap_or_default();
             let half_extents = Vec3::new(
@@ -221,6 +221,7 @@ pub(super) fn spawn_shape_instance(
                     }
                 }
             }
+            entity.id()
         }
         ShapeKind::Sphere => {
             let radius = shape.radius.unwrap_or(0.5);
@@ -254,6 +255,7 @@ pub(super) fn spawn_shape_instance(
                     }
                 }
             }
+            entity.id()
         }
         ShapeKind::Circle => {
             let radius = shape.radius.unwrap_or(4.0);
@@ -293,12 +295,15 @@ pub(super) fn spawn_shape_instance(
                     });
                 }
             }
+            entity.id()
         }
-    }
+    };
 
     if physics.is_none() {
         info!("Spawned shape '{}' in scene '{}'.", name, active_scene.name);
     }
+
+    entity_id
 }
 
 pub(super) fn apply_transform_additive(
@@ -337,7 +342,7 @@ pub(super) fn spawn_light_component(
     transform: &EntityTransformConfig,
     commands: &mut Commands,
     active_scene: &ActiveScene,
-) {
+) -> Option<Entity> {
     let mut entry = crate::scenes::config::LightEntry::point_default();
     if let Some(kind) = light.kind {
         entry.kind = kind;
@@ -366,7 +371,7 @@ pub(super) fn spawn_light_component(
             "Entity light '{}' in scene '{}' is not a point light; skipping.",
             name, active_scene.name
         );
-        return;
+        return None;
     }
 
     let color = parse_color(&entry.color).unwrap_or([255, 255, 255]);
@@ -386,7 +391,7 @@ pub(super) fn spawn_light_component(
     let offset = Vec3::new(entry.offset.x, entry.offset.y, entry.offset.z);
     let world_pos = base_transform.transform_point(offset);
 
-    commands.spawn((
+    let entity = commands.spawn((
         Name::new(name.to_string()),
         PointLight {
             intensity: entry.intensity,
@@ -401,6 +406,7 @@ pub(super) fn spawn_light_component(
         InheritedVisibility::default(),
         ViewVisibility::default(),
     ));
+    Some(entity.id())
 }
 
 fn resolve_shape_color(shape: &ShapeConfig, active_scene: &ActiveScene) -> [u8; 3] {

@@ -10,6 +10,8 @@ pub struct ComboTemplate {
     #[serde(default)]
     pub overrides: Option<EntityOverrides>,
     #[serde(default)]
+    pub physics: Option<ComboPhysics>,
+    #[serde(default)]
     pub stack: Option<ComboStackConfig>,
 }
 
@@ -22,6 +24,25 @@ pub struct ComboPart {
     pub transform: Option<TransformOverrides>,
     #[serde(default)]
     pub overrides: Option<EntityOverrides>,
+    #[serde(default)]
+    pub attach: Option<AttachConfig>,
+    #[serde(default)]
+    pub physics_root: bool,
+}
+
+#[derive(Debug, Deserialize, Clone, Default)]
+pub struct ComboPhysics {
+    #[serde(default)]
+    pub shared: bool,
+    #[serde(default)]
+    pub root: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct AttachConfig {
+    pub target: String,
+    #[serde(default)]
+    pub offset: Vec3Config,
 }
 
 #[derive(Debug, Deserialize, Clone)]
