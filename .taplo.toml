@@ -7,22 +7,22 @@ exclude = ["target/**", "**/node_modules/**"]
 [[rule]]
 include = ["assets/scenes/**/entities/*.3D.toml"]
 [rule.schema]
-path = "schemas/entity-3d.schema.json"
+path = "schemas/3d.entity.schema.json"
 
 [[rule]]
 include = ["assets/scenes/**/entities/*.2D.toml"]
 [rule.schema]
-path = "schemas/entity-2d.schema.json"
+path = "schemas/2d.entity.schema.json"
 
 [[rule]]
 include = ["assets/scenes/**/entities/*.light.toml"]
 [rule.schema]
-path = "schemas/entity-light.schema.json"
+path = "schemas/light.entity.schema.json"
 
 [[rule]]
 include = ["assets/scenes/**/combo/*.toml"]
 [rule.schema]
-path = "schemas/combo.schema.json"
+path = "schemas/combo.entity.schema.json"
 
 [formatting]
 indent_string = "  "     # 2 spaces
