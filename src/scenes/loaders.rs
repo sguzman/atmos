@@ -34,6 +34,28 @@ pub fn load_cube_config(scene: &str) -> CubeConfig {
     }
 }
 
+pub fn load_cube_config_from_path(scene: &str, template_path: &str) -> Option<CubeConfig> {
+    let path = action_config_path(scene, template_path);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Skipping cube template.");
+            return None;
+        }
+    };
+
+    match toml::from_str::<CubeConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded cube config from {path}.");
+            Some(config)
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Skipping cube template.");
+            None
+        }
+    }
+}
+
 pub fn load_circle_config(scene: &str) -> CircleConfig {
     let path = circle_config_path(scene);
     let contents = match fs::read_to_string(&path) {

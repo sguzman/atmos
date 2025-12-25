@@ -1,7 +1,7 @@
 # Scene composition for the main world. References entity templates in `entities/`.
 
 [[entities]]
-template = "entities/cube.toml"
+template = "entities/base_cube.toml"
 name_override = "base_cube"
 [entities.transform]
 position = { x = 0.0, y = 0.0, z = 0.0 }

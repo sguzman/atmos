@@ -1,0 +1,14 @@
+name = "base_cube"
+color = "green"
+
+[dimensions]
+width = 200.0
+height = 2.0
+depth = 200.0
+
+[physics]
+enabled = true
+body_type = "fixed"
+mass = 1.0
+restitution = 0.8
+friction = 0.6

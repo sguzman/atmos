@@ -7,6 +7,7 @@ use crate::scenes::{
     config::{
         ActiveScene, CircleConfig, CubeConfig, LightConfig, PillarComboConfig, RectangleConfig,
     },
+    loaders::load_cube_config_from_path,
     world::WorldConfig,
 };
 
@@ -38,14 +39,29 @@ pub(super) fn spawn_world_entities(
                 materials,
                 active_scene,
             ),
-            path if path.ends_with("cube.toml") => spawn_cube(
-                entity,
-                cube_template,
-                commands,
-                meshes,
-                materials,
-                active_scene,
-            ),
+            path if path.ends_with("cube.toml") => {
+                if path == "entities/cube.toml" {
+                    spawn_cube(
+                        entity,
+                        cube_template,
+                        commands,
+                        meshes,
+                        materials,
+                        active_scene,
+                    );
+                } else if let Some(config) =
+                    load_cube_config_from_path(&active_scene.name, path)
+                {
+                    spawn_cube(
+                        entity,
+                        &config,
+                        commands,
+                        meshes,
+                        materials,
+                        active_scene,
+                    );
+                }
+            }
             path if path.ends_with("rectangle.toml") => spawn_rectangle(
                 entity,
                 rectangle_template,
