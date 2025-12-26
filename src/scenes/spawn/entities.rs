@@ -6,6 +6,7 @@ use bevy_rapier3d::prelude::{
     AdditionalMassProperties, Collider, Friction, Restitution, RigidBody,
 };
 
+use crate::scenes::bounds::DespawnOutsideBounds;
 use crate::scenes::config::{
     default_circle_color_name, default_circle_rgb, default_color_name, default_color_rgb,
     parse_color, ActiveScene, EntityOverrides, EntityTemplate, EntityTransformConfig,
@@ -215,6 +216,7 @@ pub(super) fn spawn_shape_instance(
                         Collider::cuboid(half_extents.x, half_extents.y, half_extents.z),
                         Restitution::coefficient(physics.restitution),
                         Friction::coefficient(physics.friction),
+                        DespawnOutsideBounds,
                     ));
                     if matches!(rigid_body, RigidBody::Dynamic) && physics.mass > 0.0 {
                         entity.insert(AdditionalMassProperties::Mass(physics.mass));
@@ -249,6 +251,7 @@ pub(super) fn spawn_shape_instance(
                         Collider::ball(radius),
                         Restitution::coefficient(physics.restitution),
                         Friction::coefficient(physics.friction),
+                        DespawnOutsideBounds,
                     ));
                     if matches!(rigid_body, RigidBody::Dynamic) && physics.mass > 0.0 {
                         entity.insert(AdditionalMassProperties::Mass(physics.mass));
@@ -279,7 +282,7 @@ pub(super) fn spawn_shape_instance(
             if let Some(physics) = physics {
                 if physics.enabled {
                     let rigid_body = resolve_rigid_body(&physics.body_type);
-                    entity.insert(rigid_body);
+                    entity.insert((rigid_body, DespawnOutsideBounds));
                     if matches!(rigid_body, RigidBody::Dynamic) && physics.mass > 0.0 {
                         entity.insert(AdditionalMassProperties::Mass(physics.mass));
                     }
