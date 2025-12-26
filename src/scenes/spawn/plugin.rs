@@ -2,7 +2,7 @@ use bevy::{
     log::{info, warn},
     prelude::*,
 };
-use bevy::camera::Exposure;
+use bevy::camera::{ClearColorConfig, Exposure};
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::post_process::bloom::{Bloom, BloomCompositeMode, BloomPrefilter};
 use bevy::pbr::{DistanceFog, FogFalloff};
@@ -255,9 +255,24 @@ fn setup_scene(
 
     // UI overlay camera
     if let Some(msaa) = app_config.msaa_component() {
-        commands.spawn((Camera2d::default(), Camera { order: 1, ..default() }, msaa));
+        commands.spawn((
+            Camera2d::default(),
+            Camera {
+                order: 1,
+                clear_color: ClearColorConfig::None,
+                ..default()
+            },
+            msaa,
+        ));
     } else {
-        commands.spawn((Camera2d::default(), Camera { order: 1, ..default() }));
+        commands.spawn((
+            Camera2d::default(),
+            Camera {
+                order: 1,
+                clear_color: ClearColorConfig::None,
+                ..default()
+            },
+        ));
     }
 }
 
@@ -289,7 +304,12 @@ fn apply_render_settings(camera: &mut EntityCommands, render: &RenderConfig) {
             camera.insert(Tonemapping::default());
         }
         if render.exposure_ev100.is_none() {
-            camera.insert(Exposure::default());
+            let exposure = if bloom_enabled {
+                Exposure::INDOOR
+            } else {
+                Exposure::default()
+            };
+            camera.insert(exposure);
         }
     }
 
