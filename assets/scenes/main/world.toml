@@ -31,10 +31,8 @@ distance = 500.0
 size = 30.0
 
 [render]
-hdr = true
-tonemapping = "tony_mc_mapface"
-exposure_ev100 = 9.7
-deband_dither = true
+hdr = false
+tonemapping = "reinhard"
 
 [render.bloom]
 enabled = false
