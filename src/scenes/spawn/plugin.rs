@@ -282,8 +282,15 @@ fn toggle_overlays(
 
 fn apply_render_settings(camera: &mut EntityCommands, render: &RenderConfig) {
     let bloom_enabled = render.bloom.as_ref().is_some_and(|bloom| bloom.enabled);
-    if render.hdr.unwrap_or(false) || bloom_enabled {
+    let wants_hdr = render.hdr.unwrap_or(false) || bloom_enabled;
+    if wants_hdr {
         camera.insert(Hdr);
+        if render.tonemapping.is_none() {
+            camera.insert(Tonemapping::default());
+        }
+        if render.exposure_ev100.is_none() {
+            camera.insert(Exposure::default());
+        }
     }
 
     if let Some(tonemapping) = render
