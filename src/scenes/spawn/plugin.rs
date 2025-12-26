@@ -8,6 +8,7 @@ use bevy::post_process::bloom::{Bloom, BloomCompositeMode, BloomPrefilter};
 use bevy::pbr::{DistanceFog, FogFalloff};
 use bevy::render::render_resource::BlendState;
 use bevy::render::view::Hdr;
+use bevy_rapier3d::prelude::{DefaultRapierContext, RapierConfiguration};
 
 use crate::app_config::AppConfig;
 use crate::scenes::{
@@ -69,6 +70,7 @@ fn setup_scene(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut rapier_config: Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
 ) {
     info!(
         "Bootstrapping scene '{}' with inspector overlay enabled.",
@@ -219,6 +221,12 @@ fn setup_scene(
             commands.insert_resource(ClearColor(Color::srgb_u8(rgb[0], rgb[1], rgb[2])));
         } else {
             warn!("Failed to parse skybox color '{}'; leaving default clear color", skybox.color);
+        }
+    }
+
+    if let Some(gravity) = world_config.gravity.as_ref() {
+        if let Ok(mut config) = rapier_config.single_mut() {
+            config.gravity = Vec3::new(gravity.x, gravity.y, gravity.z);
         }
     }
 

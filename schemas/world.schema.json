@@ -6,6 +6,7 @@
   "properties": {
     "camera": { "$ref": "#/$defs/camera" },
     "bounds": { "$ref": "#/$defs/bounds" },
+    "gravity": { "$ref": "#/$defs/vec3" },
     "lights": {
       "type": "array",
       "items": { "$ref": "#/$defs/lightEntry" }
