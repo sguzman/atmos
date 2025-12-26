@@ -181,6 +181,7 @@
         "time": { "type": "number" },
         "color": { "type": "string" },
         "brightness": { "type": "number" },
+        "shadows": { "type": "boolean" },
         "distance": { "type": "number" },
         "size": { "type": "number" }
       }

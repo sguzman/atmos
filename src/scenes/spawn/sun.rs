@@ -23,7 +23,7 @@ pub(super) fn spawn_sun(
     commands.spawn((
         DirectionalLight {
             illuminance: sun.brightness,
-            shadows_enabled: false,
+            shadows_enabled: sun.shadows,
             color: sun_color,
             ..default()
         },
