@@ -20,8 +20,9 @@ use crate::scenes::{
         SceneZoomConfig, SprintState, ZoomState,
     },
     loaders::{
-        load_entity_template_from_path, load_input_config, load_shoot_action_config,
-        load_sprint_action_config, load_world_config, load_zoom_action_config,
+        load_entity_template_from_path, load_entities_config, load_input_config,
+        load_shoot_action_config, load_sprint_action_config, load_world_config,
+        load_zoom_action_config,
     },
     world::WorldConfig,
 };
@@ -83,6 +84,7 @@ fn setup_scene(
     });
 
     let world_config: WorldConfig = load_world_config(&active_scene.name);
+    let entities_config = load_entities_config(&active_scene.name);
 
     commands.insert_resource(SceneBounds::from(world_config.bounds.clone()));
 
@@ -195,7 +197,7 @@ fn setup_scene(
     }
 
     spawn_world_entities(
-        &world_config,
+        &entities_config,
         &mut commands,
         &mut meshes,
         &mut materials,

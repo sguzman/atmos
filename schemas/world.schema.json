@@ -4,10 +4,6 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "entities": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/entityPlacement" }
-    },
     "camera": { "$ref": "#/$defs/camera" },
     "bounds": { "$ref": "#/$defs/bounds" },
     "lights": {
@@ -52,78 +48,6 @@
         "position": { "$ref": "#/$defs/vec3" },
         "rotation": { "$ref": "#/$defs/rotation" },
         "scale": { "type": "number" }
-      }
-    },
-    "dimensions": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "width": { "type": "number" },
-        "height": { "type": "number" },
-        "depth": { "type": "number" }
-      }
-    },
-    "shapeOverrides": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "color": { "type": "string" },
-        "dimensions": { "$ref": "#/$defs/dimensions" },
-        "radius": { "type": "number", "exclusiveMinimum": 0 }
-      }
-    },
-    "physicsOverrides": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "enabled": { "type": "boolean" },
-        "body_type": {
-          "type": "string",
-          "enum": [
-            "dynamic",
-            "fixed",
-            "kinematic_position",
-            "kinematic_position_based",
-            "kinematic_velocity",
-            "kinematic_velocity_based"
-          ]
-        },
-        "mass": { "type": "number" },
-        "restitution": { "type": "number" },
-        "friction": { "type": "number" }
-      }
-    },
-    "lightOverrides": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "kind": { "type": "string", "enum": ["point", "directional", "ambient"] },
-        "color": { "type": "string" },
-        "intensity": { "type": "number" },
-        "range": { "type": "number" },
-        "shadows": { "type": "boolean" },
-        "radius": { "type": "number" },
-        "offset": { "$ref": "#/$defs/vec3" }
-      }
-    },
-    "entityOverrides": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "shape": { "$ref": "#/$defs/shapeOverrides" },
-        "physics": { "$ref": "#/$defs/physicsOverrides" },
-        "light": { "$ref": "#/$defs/lightOverrides" }
-      }
-    },
-    "entityPlacement": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["template"],
-      "properties": {
-        "template": { "type": "string" },
-        "name_override": { "type": "string" },
-        "transform": { "$ref": "#/$defs/transform" },
-        "overrides": { "$ref": "#/$defs/entityOverrides" }
       }
     },
     "camera": {

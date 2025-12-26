@@ -29,6 +29,11 @@ include = ["assets/scenes/**/world.toml"]
 [rule.schema]
 path = "schemas/world.schema.json"
 
+[[rule]]
+include = ["assets/scenes/**/entities.toml"]
+[rule.schema]
+path = "schemas/entities.schema.json"
+
 [formatting]
 indent_string = "  "     # 2 spaces
 column_width = 40

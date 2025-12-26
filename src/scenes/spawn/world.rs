@@ -5,21 +5,21 @@ use bevy::{
 
 use crate::scenes::{
     config::ActiveScene,
+    entities::EntitiesConfig,
     loaders::{load_combo_template_from_path, load_entity_template_from_path},
-    world::WorldConfig,
 };
 
 use super::combo::spawn_combo_template;
 use super::entities::spawn_entity_from_template;
 
 pub(super) fn spawn_world_entities(
-    world: &WorldConfig,
+    entities: &EntitiesConfig,
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
     active_scene: &ActiveScene,
 ) {
-    for entity in &world.entities {
+    for entity in &entities.entities {
         if entity.template.starts_with("combo/")
             || entity.template.ends_with(".combo.toml")
         {

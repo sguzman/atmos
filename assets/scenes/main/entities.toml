@@ -1,0 +1,67 @@
+# Entity placements for the main world.
+
+[[entities]]
+template = "entities/base_cube.3D.toml"
+name_override = "base_cube"
+[entities.transform]
+position = { x = 0.0, y = -1.0, z = 0.0 }
+
+[[entities]]
+template = "entities/cube.3D.toml"
+name_override = "cube"
+[entities.transform]
+position = { x = 0.0, y = 0.5, z = 0.0 }
+
+[[entities]]
+template = "combo/pillar_with_light.toml"
+name_override = "lit_pillar"
+[entities.transform]
+position = { x = 2.0, y = 2.0, z = 2.0 }
+
+[entities.overrides.shape]
+color = "steelblue"
+[entities.overrides.light]
+intensity = 75000.0
+range = 30.0
+
+[[entities]]
+template = "combo/pillar_with_light.toml"
+name_override = "lit_pillar2"
+[entities.transform]
+position = { x = 20.0, y = 2.0, z = 2.0 }
+
+[entities.overrides.shape]
+color = "steelblue"
+[entities.overrides.light]
+intensity = 75000.0
+range = 30.0
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 2.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects2"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 4.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects3"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 6.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects4"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 8.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects5"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 10.0 }
