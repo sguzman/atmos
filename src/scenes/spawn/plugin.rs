@@ -2,11 +2,16 @@ use bevy::{
     log::{info, warn},
     prelude::*,
 };
+use bevy::camera::Exposure;
+use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
+use bevy::post_process::bloom::{Bloom, BloomCompositeMode, BloomPrefilter};
+use bevy::pbr::{DistanceFog, FogFalloff};
+use bevy::render::view::Hdr;
 
 use crate::app_config::AppConfig;
 use crate::scenes::{
     bounds::{despawn_out_of_bounds, SceneBounds},
-    config::{ActiveScene, InputConfig},
+    config::{ActiveScene, BloomConfig, FogConfig, FogFalloffConfig, InputConfig, RenderConfig},
     input::{
         apply_camera_input, apply_fov_action, apply_shoot_action, apply_sprint_toggle,
         apply_zoom_action, resolve_camera_input_config, resolve_overlay_toggles, FovBinding,
@@ -240,10 +245,12 @@ fn setup_scene(
             ),
         ),
     );
+    let mut camera = commands.spawn(camera_components);
     if let Some(msaa) = app_config.msaa_component() {
-        commands.spawn((camera_components, msaa));
-    } else {
-        commands.spawn(camera_components);
+        camera.insert(msaa);
+    }
+    if let Some(render) = world_config.render.as_ref() {
+        apply_render_settings(&mut camera, render);
     }
 
     // UI overlay camera
@@ -270,5 +277,161 @@ fn toggle_overlays(
                 vis.toggle_visible_hidden();
             }
         }
+    }
+}
+
+fn apply_render_settings(camera: &mut EntityCommands, render: &RenderConfig) {
+    let bloom_enabled = render.bloom.as_ref().is_some_and(|bloom| bloom.enabled);
+    if render.hdr.unwrap_or(false) || bloom_enabled {
+        camera.insert(Hdr);
+    }
+
+    if let Some(tonemapping) = render
+        .tonemapping
+        .as_deref()
+        .and_then(parse_tonemapping)
+    {
+        camera.insert(tonemapping);
+    }
+
+    if let Some(ev100) = render.exposure_ev100 {
+        camera.insert(Exposure { ev100 });
+    }
+
+    if let Some(enabled) = render.deband_dither {
+        let dither = if enabled {
+            DebandDither::Enabled
+        } else {
+            DebandDither::Disabled
+        };
+        camera.insert(dither);
+    }
+
+    if let Some(bloom) = render.bloom.as_ref().filter(|bloom| bloom.enabled) {
+        camera.insert(resolve_bloom(bloom));
+    }
+
+    if let Some(fog) = render.fog.as_ref().filter(|fog| fog.enabled) {
+        camera.insert(resolve_fog(fog));
+    }
+}
+
+fn parse_tonemapping(value: &str) -> Option<Tonemapping> {
+    let normalized = value.trim().to_ascii_lowercase().replace('-', "_");
+    match normalized.as_str() {
+        "none" => Some(Tonemapping::None),
+        "reinhard" => Some(Tonemapping::Reinhard),
+        "reinhard_luminance" => Some(Tonemapping::ReinhardLuminance),
+        "aces_fitted" => Some(Tonemapping::AcesFitted),
+        "agx" => Some(Tonemapping::AgX),
+        "somewhat_boring_display_transform" => {
+            Some(Tonemapping::SomewhatBoringDisplayTransform)
+        }
+        "tony_mc_mapface" => Some(Tonemapping::TonyMcMapface),
+        "blender_filmic" => Some(Tonemapping::BlenderFilmic),
+        _ => None,
+    }
+}
+
+fn resolve_bloom(config: &BloomConfig) -> Bloom {
+    let mut bloom = match config
+        .preset
+        .as_deref()
+        .map(|preset| preset.trim().to_ascii_lowercase().replace('-', "_"))
+        .as_deref()
+    {
+        Some("natural") => Bloom::NATURAL,
+        Some("old_school") => Bloom::OLD_SCHOOL,
+        Some("screen_blur") => Bloom::SCREEN_BLUR,
+        _ => Bloom::default(),
+    };
+
+    if let Some(value) = config.intensity {
+        bloom.intensity = value;
+    }
+    if let Some(value) = config.low_frequency_boost {
+        bloom.low_frequency_boost = value;
+    }
+    if let Some(value) = config.low_frequency_boost_curvature {
+        bloom.low_frequency_boost_curvature = value;
+    }
+    if let Some(value) = config.high_pass_frequency {
+        bloom.high_pass_frequency = value;
+    }
+    if let Some(prefilter) = config.prefilter.as_ref() {
+        bloom.prefilter = BloomPrefilter {
+            threshold: prefilter.threshold,
+            threshold_softness: prefilter.threshold_softness,
+        };
+    }
+    if let Some(mode) = config
+        .composite_mode
+        .as_deref()
+        .map(|mode| mode.trim().to_ascii_lowercase().replace('-', "_"))
+    {
+        bloom.composite_mode = match mode.as_str() {
+            "additive" => BloomCompositeMode::Additive,
+            _ => BloomCompositeMode::EnergyConserving,
+        };
+    }
+    if let Some(value) = config.max_mip_dimension {
+        bloom.max_mip_dimension = value;
+    }
+    if let Some(scale) = config.scale.as_ref() {
+        bloom.scale = Vec2::new(scale.x, scale.y);
+    }
+
+    bloom
+}
+
+fn resolve_fog(config: &FogConfig) -> DistanceFog {
+    let color = config
+        .color
+        .as_deref()
+        .and_then(crate::scenes::config::parse_color)
+        .unwrap_or([255, 255, 255]);
+    let alpha = config.alpha.unwrap_or(1.0).clamp(0.0, 1.0);
+    let fog_color = Color::srgba_u8(color[0], color[1], color[2], (alpha * 255.0) as u8);
+
+    let directional_light_color = if let Some(color) = config
+        .directional_light_color
+        .as_deref()
+        .and_then(crate::scenes::config::parse_color)
+    {
+        let alpha = config
+            .directional_light_alpha
+            .unwrap_or(1.0)
+            .clamp(0.0, 1.0);
+        Color::srgba_u8(color[0], color[1], color[2], (alpha * 255.0) as u8)
+    } else {
+        Color::NONE
+    };
+
+    let falloff = match config.falloff.as_ref() {
+        Some(FogFalloffConfig::Linear { start, end }) => FogFalloff::Linear {
+            start: *start,
+            end: *end,
+        },
+        Some(FogFalloffConfig::Exponential { density }) => {
+            FogFalloff::Exponential { density: *density }
+        }
+        Some(FogFalloffConfig::ExponentialSquared { density }) => {
+            FogFalloff::ExponentialSquared { density: *density }
+        }
+        Some(FogFalloffConfig::Atmospheric {
+            extinction,
+            inscattering,
+        }) => FogFalloff::Atmospheric {
+            extinction: Vec3::new(extinction.x, extinction.y, extinction.z),
+            inscattering: Vec3::new(inscattering.x, inscattering.y, inscattering.z),
+        },
+        None => FogFalloff::Linear { start: 0.0, end: 100.0 },
+    };
+
+    DistanceFog {
+        color: fog_color,
+        directional_light_color,
+        directional_light_exponent: config.directional_light_exponent.unwrap_or(8.0),
+        falloff,
     }
 }

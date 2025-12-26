@@ -30,6 +30,38 @@ shadows = true
 distance = 500.0
 size = 30.0
 
+[render]
+hdr = true
+tonemapping = "tony_mc_mapface"
+exposure_ev100 = 9.7
+deband_dither = true
+
+[render.bloom]
+enabled = false
+preset = "natural"
+intensity = 0.15
+low_frequency_boost = 0.7
+low_frequency_boost_curvature = 0.95
+high_pass_frequency = 1.0
+composite_mode = "energy_conserving"
+max_mip_dimension = 512
+scale = { x = 1.0, y = 1.0 }
+[render.bloom.prefilter]
+threshold = 0.0
+threshold_softness = 0.0
+
+[render.fog]
+enabled = false
+color = "white"
+alpha = 1.0
+directional_light_color = "white"
+directional_light_alpha = 1.0
+directional_light_exponent = 8.0
+[render.fog.falloff]
+kind = "linear"
+start = 0.0
+end = 100.0
+
 [[lights]]
 kind = "point"
 color = "white"

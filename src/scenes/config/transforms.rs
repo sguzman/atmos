@@ -10,6 +10,20 @@ pub struct Vec3Config {
     pub z: f32,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct Vec2Config {
+    #[serde(default)]
+    pub x: f32,
+    #[serde(default)]
+    pub y: f32,
+}
+
+impl Default for Vec2Config {
+    fn default() -> Self {
+        Self { x: 0.0, y: 0.0 }
+    }
+}
+
 impl Default for Vec3Config {
     fn default() -> Self {
         Self {

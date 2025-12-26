@@ -15,7 +15,8 @@
       "items": { "$ref": "#/$defs/lightEntry" }
     },
     "skybox": { "$ref": "#/$defs/skybox" },
-    "sun": { "$ref": "#/$defs/sun" }
+    "sun": { "$ref": "#/$defs/sun" },
+    "render": { "$ref": "#/$defs/render" }
   },
   "$defs": {
     "vec3": {
@@ -25,6 +26,14 @@
         "x": { "type": "number" },
         "y": { "type": "number" },
         "z": { "type": "number" }
+      }
+    },
+    "vec2": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" }
       }
     },
     "rotation": {
@@ -184,6 +193,82 @@
         "shadows": { "type": "boolean" },
         "distance": { "type": "number" },
         "size": { "type": "number" }
+      }
+    },
+    "bloomPrefilter": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "threshold": { "type": "number" },
+        "threshold_softness": { "type": "number" }
+      }
+    },
+    "bloom": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "preset": { "type": "string", "enum": ["natural", "old_school", "screen_blur"] },
+        "intensity": { "type": "number" },
+        "low_frequency_boost": { "type": "number" },
+        "low_frequency_boost_curvature": { "type": "number" },
+        "high_pass_frequency": { "type": "number" },
+        "prefilter": { "$ref": "#/$defs/bloomPrefilter" },
+        "composite_mode": { "type": "string", "enum": ["energy_conserving", "additive"] },
+        "max_mip_dimension": { "type": "integer", "minimum": 1 },
+        "scale": { "$ref": "#/$defs/vec2" }
+      }
+    },
+    "fogFalloff": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["linear", "exponential", "exponential_squared", "atmospheric"]
+        },
+        "start": { "type": "number" },
+        "end": { "type": "number" },
+        "density": { "type": "number" },
+        "extinction": { "$ref": "#/$defs/vec3" },
+        "inscattering": { "$ref": "#/$defs/vec3" }
+      }
+    },
+    "fog": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "color": { "type": "string" },
+        "alpha": { "type": "number" },
+        "directional_light_color": { "type": "string" },
+        "directional_light_alpha": { "type": "number" },
+        "directional_light_exponent": { "type": "number" },
+        "falloff": { "$ref": "#/$defs/fogFalloff" }
+      }
+    },
+    "render": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tonemapping": {
+          "type": "string",
+          "enum": [
+            "none",
+            "reinhard",
+            "reinhard_luminance",
+            "aces_fitted",
+            "agx",
+            "somewhat_boring_display_transform",
+            "tony_mc_mapface",
+            "blender_filmic"
+          ]
+        },
+        "exposure_ev100": { "type": "number" },
+        "deband_dither": { "type": "boolean" },
+        "hdr": { "type": "boolean" },
+        "bloom": { "$ref": "#/$defs/bloom" },
+        "fog": { "$ref": "#/$defs/fog" }
       }
     }
   }

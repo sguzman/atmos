@@ -10,6 +10,7 @@ mod light;
 mod overlay;
 mod paths;
 mod physics;
+mod render;
 mod sun;
 mod skybox;
 mod transforms;
@@ -33,6 +34,7 @@ pub use light::{LightEntry, LightKind};
 pub use overlay::{
     OverlayAnchor, OverlayConfig, OverlayElement, TextOverlay,
 };
+pub use render::{BloomConfig, FogConfig, FogFalloffConfig, RenderConfig};
 pub use paths::{
     action_config_path, input_config_path, overlay_config_path,
 };

@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 use crate::scenes::config::{EntityOverrides, TransformOverrides};
 use crate::scenes::config::{
-    BoundingBoxConfig, CameraConfig, LightEntry, SkyboxConfig, SunConfig,
+    BoundingBoxConfig, CameraConfig, LightEntry, RenderConfig, SkyboxConfig, SunConfig,
 };
 
 #[derive(Debug, Deserialize)]
@@ -20,6 +20,8 @@ pub struct WorldConfig {
     pub skybox: Option<SkyboxConfig>,
     #[serde(default)]
     pub sun: Option<SunConfig>,
+    #[serde(default)]
+    pub render: Option<RenderConfig>,
 }
 
 impl Default for WorldConfig {
@@ -31,6 +33,7 @@ impl Default for WorldConfig {
             lights: Vec::new(),
             skybox: None,
             sun: None,
+            render: None,
         }
     }
 }
