@@ -71,20 +71,6 @@ impl Default for DimensionsConfig {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct SizeConfig {
-    #[serde(default = "default_unit")]
-    pub uniform_scale: f32,
-}
-
-impl Default for SizeConfig {
-    fn default() -> Self {
-        Self {
-            uniform_scale: default_unit(),
-        }
-    }
-}
-
 fn default_unit() -> f32 {
     1.0
 }

@@ -8,8 +8,6 @@ use super::transforms::{CubeRotationConfig, DimensionsConfig, PositionConfig};
 pub struct EntityTemplate {
     pub name: String,
     #[serde(default)]
-    pub tags: Vec<String>,
-    #[serde(default)]
     pub transform: TransformConfig,
     #[serde(default)]
     pub shape: Option<ShapeConfig>,

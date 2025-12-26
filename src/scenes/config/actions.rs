@@ -70,17 +70,3 @@ impl Default for ZoomActionConfig {
         }
     }
 }
-
-#[derive(Debug, Deserialize, Clone)]
-#[serde(default)]
-pub struct FovActionConfig {
-    pub name: String,
-}
-
-impl Default for FovActionConfig {
-    fn default() -> Self {
-        Self {
-            name: "set_fov".to_string(),
-        }
-    }
-}

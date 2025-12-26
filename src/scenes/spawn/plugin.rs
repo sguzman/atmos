@@ -9,14 +9,13 @@ use crate::scenes::{
     config::{ActiveScene, InputConfig},
     input::{
         apply_camera_input, apply_fov_action, apply_shoot_action, apply_sprint_toggle,
-        apply_zoom_action, resolve_action_bindings, resolve_camera_input_config,
-        resolve_overlay_toggles, FovBinding, SceneCamera, SceneFovConfig, SceneInputConfig,
-        SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
+        apply_zoom_action, resolve_camera_input_config, resolve_overlay_toggles, FovBinding,
+        SceneCamera, SceneFovConfig, SceneInputConfig, SceneShootConfig, SceneSprintConfig,
+        SceneZoomConfig, SprintState, ZoomState,
     },
     loaders::{
-        load_entity_template_from_path, load_fov_action_config, load_input_config,
-        load_shoot_action_config, load_sprint_action_config, load_world_config,
-        load_zoom_action_config,
+        load_entity_template_from_path, load_input_config, load_shoot_action_config,
+        load_sprint_action_config, load_world_config, load_zoom_action_config,
     },
     world::WorldConfig,
 };
@@ -75,7 +74,6 @@ fn setup_scene(
     commands.insert_resource(SceneInputConfig {
         camera: camera_input,
         overlays: resolve_overlay_toggles(&input_config.overlays),
-        actions: resolve_action_bindings(&input_config.actions),
     });
 
     let world_config: WorldConfig = load_world_config(&active_scene.name);
@@ -162,7 +160,6 @@ fn setup_scene(
     }
 
     let mut fov_bindings = Vec::new();
-    let mut fov_action = None;
     for action_binding in input_config
         .actions
         .iter()
@@ -183,19 +180,12 @@ fn setup_scene(
                 );
             }
         }
-        if fov_action.is_none() {
-            fov_action =
-                load_fov_action_config(&active_scene.name, &action_binding.action);
-        }
     }
 
-    if let Some(action) = fov_action {
-        if !fov_bindings.is_empty() {
-            commands.insert_resource(SceneFovConfig {
-                action,
-                bindings: fov_bindings,
-            });
-        }
+    if !fov_bindings.is_empty() {
+        commands.insert_resource(SceneFovConfig {
+            bindings: fov_bindings,
+        });
     }
 
     spawn_world_entities(

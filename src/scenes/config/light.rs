@@ -3,20 +3,6 @@ use serde::Deserialize;
 use super::colors::default_color_name;
 use super::transforms::PositionConfig;
 
-#[derive(Debug, Deserialize)]
-pub struct LightConfig {
-    #[serde(default)]
-    pub lights: Vec<LightEntry>,
-}
-
-impl Default for LightConfig {
-    fn default() -> Self {
-        Self {
-            lights: vec![LightEntry::point_default()],
-        }
-    }
-}
-
 #[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum LightKind {
@@ -78,26 +64,6 @@ impl LightEntry {
             offset: PositionConfig::default(),
         }
     }
-}
-
-#[derive(Debug, Deserialize, Clone, Default)]
-pub struct LightOverrides {
-    #[serde(default)]
-    pub template: Option<String>,
-    #[serde(default)]
-    pub kind: Option<LightKind>,
-    #[serde(default)]
-    pub color: Option<String>,
-    #[serde(default)]
-    pub intensity: Option<f32>,
-    #[serde(default)]
-    pub range: Option<f32>,
-    #[serde(default)]
-    pub shadows: Option<bool>,
-    #[serde(default)]
-    pub radius: Option<f32>,
-    #[serde(default)]
-    pub offset: Option<PositionConfig>,
 }
 
 fn default_light_intensity() -> f32 {

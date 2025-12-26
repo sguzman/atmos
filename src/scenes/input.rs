@@ -17,7 +17,7 @@ use bevy_rapier3d::prelude::{
 use crate::app_config::AppConfig;
 use crate::scenes::bounds::DespawnOutsideBounds;
 use crate::scenes::config::{
-    ActionBindingConfig, CameraRotationConfig, FovActionConfig, MovementConfig, OverlayInputConfig,
+    CameraRotationConfig, MovementConfig, OverlayInputConfig,
     PhysicsConfig, ShapeConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig,
 };
 
@@ -25,7 +25,6 @@ use crate::scenes::config::{
 pub struct SceneInputConfig {
     pub camera: ResolvedCameraInputConfig,
     pub overlays: Vec<ResolvedOverlayToggle>,
-    pub actions: Vec<ResolvedActionBinding>,
 }
 
 #[derive(Debug, Clone)]
@@ -65,15 +64,6 @@ pub struct ResolvedOverlayToggle {
     pub toggle: Option<KeyCode>,
 }
 
-#[derive(Debug, Clone)]
-pub struct ResolvedActionBinding {
-    pub name: String,
-    pub action: String,
-    pub mouse: Option<MouseButton>,
-    pub key: Option<KeyCode>,
-    pub value: Option<f32>,
-}
-
 #[derive(Resource, Clone)]
 pub struct SceneShootConfig {
     pub action: ShootActionConfig,
@@ -111,7 +101,6 @@ pub struct FovBinding {
 
 #[derive(Resource, Clone)]
 pub struct SceneFovConfig {
-    pub action: FovActionConfig,
     pub bindings: Vec<FovBinding>,
 }
 
@@ -487,19 +476,6 @@ pub fn resolve_overlay_toggles(overlays: &[OverlayInputConfig]) -> Vec<ResolvedO
         .map(|ovr| ResolvedOverlayToggle {
             name: ovr.name.clone(),
             toggle: resolve_key_or_warn(&ovr.toggle, &format!("overlay toggle '{}'", ovr.name)),
-        })
-        .collect()
-}
-
-pub fn resolve_action_bindings(actions: &[ActionBindingConfig]) -> Vec<ResolvedActionBinding> {
-    actions
-        .iter()
-        .map(|action| ResolvedActionBinding {
-            name: action.name.clone(),
-            action: action.action.clone(),
-            mouse: resolve_mouse_button_or_warn(&action.mouse, "action mouse"),
-            key: resolve_key_or_warn(&action.key, "action key"),
-            value: action.value,
         })
         .collect()
 }

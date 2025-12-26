@@ -6,7 +6,6 @@
   "required": ["name", "light"],
   "properties": {
     "name": { "type": "string" },
-    "tags": { "type": "array", "items": { "type": "string" } },
     "transform": { "$ref": "#/$defs/transform" },
     "light": { "$ref": "#/$defs/light" }
   },

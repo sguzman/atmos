@@ -21,10 +21,6 @@ pub fn parse_color(color_name: &str) -> Option<[u8; 3]> {
     }
 }
 
-pub fn default_circle_radius() -> f32 {
-    4.0
-}
-
 pub fn default_circle_color_name() -> String {
     "white".to_string()
 }
