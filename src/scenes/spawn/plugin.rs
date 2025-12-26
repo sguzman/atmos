@@ -260,7 +260,7 @@ fn setup_scene(
             Camera2d::default(),
             Camera {
                 order: 1,
-                clear_color: ClearColorConfig::None,
+                clear_color: ClearColorConfig::Custom(Color::NONE),
                 output_mode: CameraOutputMode::Write {
                     blend_state: Some(BlendState::ALPHA_BLENDING),
                     clear_color: ClearColorConfig::None,
@@ -275,7 +275,7 @@ fn setup_scene(
             Camera2d::default(),
             Camera {
                 order: 1,
-                clear_color: ClearColorConfig::None,
+                clear_color: ClearColorConfig::Custom(Color::NONE),
                 output_mode: CameraOutputMode::Write {
                     blend_state: Some(BlendState::ALPHA_BLENDING),
                     clear_color: ClearColorConfig::None,
