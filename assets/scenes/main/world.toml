@@ -21,7 +21,7 @@ max = 300.0
 
 [gravity]
 x = 0.0
-y = 20
+y = -20
 z = 0.0
 
 [skybox]
