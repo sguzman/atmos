@@ -1,3 +1,4 @@
+use bevy::light::{NotShadowCaster, NotShadowReceiver};
 use bevy::prelude::*;
 
 use crate::scenes::config::SunConfig;
@@ -44,6 +45,8 @@ pub(super) fn spawn_sun(
         Name::new("sun_sphere"),
         Mesh3d(meshes.add(Sphere::new(sun.size))),
         MeshMaterial3d(sun_material),
+        NotShadowCaster,
+        NotShadowReceiver,
         Transform::from_translation(-dir * sun.distance),
         Visibility::default(),
         InheritedVisibility::default(),
