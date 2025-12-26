@@ -2,10 +2,11 @@ use bevy::{
     log::{info, warn},
     prelude::*,
 };
-use bevy::camera::{ClearColorConfig, Exposure};
+use bevy::camera::{CameraOutputMode, ClearColorConfig, Exposure};
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::post_process::bloom::{Bloom, BloomCompositeMode, BloomPrefilter};
 use bevy::pbr::{DistanceFog, FogFalloff};
+use bevy::render::render_resource::BlendState;
 use bevy::render::view::Hdr;
 
 use crate::app_config::AppConfig;
@@ -260,6 +261,10 @@ fn setup_scene(
             Camera {
                 order: 1,
                 clear_color: ClearColorConfig::None,
+                output_mode: CameraOutputMode::Write {
+                    blend_state: Some(BlendState::ALPHA_BLENDING),
+                    clear_color: ClearColorConfig::None,
+                },
                 msaa_writeback: false,
                 ..default()
             },
@@ -271,6 +276,10 @@ fn setup_scene(
             Camera {
                 order: 1,
                 clear_color: ClearColorConfig::None,
+                output_mode: CameraOutputMode::Write {
+                    blend_state: Some(BlendState::ALPHA_BLENDING),
+                    clear_color: ClearColorConfig::None,
+                },
                 msaa_writeback: false,
                 ..default()
             },
