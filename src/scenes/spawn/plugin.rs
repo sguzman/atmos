@@ -260,6 +260,7 @@ fn setup_scene(
             Camera {
                 order: 1,
                 clear_color: ClearColorConfig::None,
+                msaa_writeback: false,
                 ..default()
             },
             msaa,
@@ -270,6 +271,7 @@ fn setup_scene(
             Camera {
                 order: 1,
                 clear_color: ClearColorConfig::None,
+                msaa_writeback: false,
                 ..default()
             },
         ));
