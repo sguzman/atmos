@@ -297,6 +297,7 @@ pub fn apply_zoom_action(
         return;
     };
 
+    let was_active = state.active;
     if config.action.toggle {
         if keys.just_pressed(config.trigger) {
             state.active = !state.active;
@@ -305,20 +306,27 @@ pub fn apply_zoom_action(
         state.active = keys.pressed(config.trigger);
     }
 
-    let target_fov = if state.active {
-        config.action.fov_degrees.to_radians()
-    } else {
-        base_fov
-    };
+    if !was_active && state.active {
+        if let Projection::Perspective(ref perspective) = *projection {
+            state.base_fov = Some(perspective.fov);
+        }
+    }
 
-    if let Projection::Perspective(ref mut perspective) = *projection {
-        perspective.fov = target_fov;
+    if state.active {
+        if let Projection::Perspective(ref mut perspective) = *projection {
+            perspective.fov = config.action.fov_degrees.to_radians();
+        }
+    } else if was_active {
+        if let Projection::Perspective(ref mut perspective) = *projection {
+            perspective.fov = base_fov;
+        }
     }
 }
 
 pub fn apply_fov_action(
     keys: Res<ButtonInput<KeyCode>>,
     config: Option<Res<SceneFovConfig>>,
+    zoom_state: Option<ResMut<ZoomState>>,
     mut cameras: Query<&mut Projection, With<SceneCamera>>,
 ) {
     let Some(config) = config else {
@@ -336,9 +344,17 @@ pub fn apply_fov_action(
         return;
     };
 
+    let fov_radians = fov_degrees.to_radians();
+    if let Some(mut zoom_state) = zoom_state {
+        zoom_state.base_fov = Some(fov_radians);
+        if zoom_state.active {
+            return;
+        }
+    }
+
     for mut projection in cameras.iter_mut() {
         if let Projection::Perspective(ref mut perspective) = *projection {
-            perspective.fov = fov_degrees.to_radians();
+            perspective.fov = fov_radians;
         }
     }
 }
