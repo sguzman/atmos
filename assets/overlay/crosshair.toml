@@ -1,0 +1,14 @@
+# Crosshair overlay centered on screen
+
+[[elements]]
+kind = "text"
+content = "+"
+color = "white"
+font_size = 28.0
+font_family = "monospace"
+visible = true
+opacity = 1.0
+anchor = "center"
+offset = { x = 0.0, y = 0.0 }
+rotation_deg = 0.0
+scale = 1.0

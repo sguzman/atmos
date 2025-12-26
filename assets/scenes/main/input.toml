@@ -18,6 +18,10 @@ quit = "Escape"
 name = "debug"
 toggle = "v"
 
+[[overlays]]
+name = "crosshair"
+toggle = ""
+
 [[actions]]
 name = "shoot_balls"
 action = "actions/shoot-balls.toml"
