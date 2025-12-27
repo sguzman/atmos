@@ -65,3 +65,9 @@ template = "combo/stack_of_rectangles.toml"
 name_override = "stack_rects5"
 [entities.transform]
 position = { x = -8.0, y = 2.0, z = 10.0 }
+
+[[entities]]
+template = "entities/billboard.2D.toml"
+name_override = "pink_billboard"
+[entities.transform]
+position = { x = 0.0, y = 10.0, z = 0.0 }

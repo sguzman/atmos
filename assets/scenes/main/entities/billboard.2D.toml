@@ -1,0 +1,9 @@
+name = "billboard"
+
+[shape]
+kind = "box"
+color = "pink"
+[shape.dimensions]
+width = 0.1
+height = 5.0
+depth = 5.0

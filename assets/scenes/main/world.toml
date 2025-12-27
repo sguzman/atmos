@@ -40,7 +40,7 @@ hdr = false
 tonemapping = "reinhard_luminance"
 
 [render.bloom]
-enabled = true
+enabled = false
 preset = "natural"
 intensity = 0.15
 low_frequency_boost = 0.7

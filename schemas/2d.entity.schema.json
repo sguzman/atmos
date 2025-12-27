@@ -38,15 +38,28 @@
         "scale": { "type": "number" }
       }
     },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "depth": { "type": "number" }
+      }
+    },
     "shape2d": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "radius"],
       "properties": {
-        "kind": { "type": "string", "enum": ["circle"] },
+        "kind": { "type": "string", "enum": ["circle", "box"] },
         "color": { "type": "string" },
-        "radius": { "type": "number", "exclusiveMinimum": 0 }
-      }
+        "radius": { "type": "number", "exclusiveMinimum": 0 },
+        "dimensions": { "$ref": "#/$defs/dimensions" }
+      },
+      "oneOf": [
+        { "required": ["kind", "radius"], "properties": { "kind": { "const": "circle" } } },
+        { "required": ["kind", "dimensions"], "properties": { "kind": { "const": "box" } } }
+      ]
     },
     "physics": {
       "type": "object",
