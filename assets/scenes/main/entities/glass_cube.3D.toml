@@ -9,3 +9,10 @@ depth = 1.0
 
 [material]
 preset = "glass"
+
+[physics]
+enabled = true
+body_type = "dynamic"
+mass = 0.8
+restitution = 0.05
+friction = 0.2

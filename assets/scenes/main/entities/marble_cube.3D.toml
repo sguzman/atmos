@@ -9,3 +9,10 @@ depth = 1.0
 
 [material]
 preset = "marble"
+
+[physics]
+enabled = true
+body_type = "dynamic"
+mass = 1.5
+restitution = 0.15
+friction = 0.5

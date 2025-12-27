@@ -9,3 +9,10 @@ depth = 1.0
 
 [material]
 preset = "stone"
+
+[physics]
+enabled = true
+body_type = "dynamic"
+mass = 2.5
+restitution = 0.05
+friction = 0.9

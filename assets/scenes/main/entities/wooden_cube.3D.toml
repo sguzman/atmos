@@ -9,3 +9,10 @@ depth = 1.0
 
 [material]
 preset = "wooden"
+
+[physics]
+enabled = true
+body_type = "dynamic"
+mass = 1.0
+restitution = 0.2
+friction = 0.8
