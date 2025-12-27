@@ -8,6 +8,7 @@
     "name": { "type": "string" },
     "transform": { "$ref": "#/$defs/transform" },
     "shape": { "$ref": "#/$defs/shape2d" },
+    "material": { "$ref": "#/$defs/material" },
     "physics": { "$ref": "#/$defs/physics" }
   },
   "$defs": {
@@ -60,6 +61,42 @@
         { "required": ["kind", "radius"], "properties": { "kind": { "const": "circle" } } },
         { "required": ["kind", "dimensions"], "properties": { "kind": { "const": "box" } } }
       ]
+    },
+    "material": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "preset": { "type": "string" },
+        "base_color": { "type": "string" },
+        "base_color_texture": { "type": "string" },
+        "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "metallic": { "type": "number", "minimum": 0, "maximum": 1 },
+        "roughness": { "type": "number", "minimum": 0, "maximum": 1 },
+        "reflectance": { "type": "number", "minimum": 0, "maximum": 1 },
+        "specular_tint": { "type": "string" },
+        "emissive_color": { "type": "string" },
+        "emissive_intensity": { "type": "number" },
+        "emissive_texture": { "type": "string" },
+        "normal_map": { "type": "string" },
+        "flip_normal_map_y": { "type": "boolean" },
+        "metallic_roughness_texture": { "type": "string" },
+        "occlusion_texture": { "type": "string" },
+        "alpha_mode": {
+          "type": "string",
+          "enum": ["opaque", "mask", "blend", "premultiplied", "add", "multiply"]
+        },
+        "alpha_cutoff": { "type": "number", "minimum": 0, "maximum": 1 },
+        "unlit": { "type": "boolean" },
+        "double_sided": { "type": "boolean" },
+        "clearcoat": { "type": "number", "minimum": 0, "maximum": 1 },
+        "clearcoat_roughness": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ior": { "type": "number" },
+        "specular_transmission": { "type": "number", "minimum": 0, "maximum": 1 },
+        "diffuse_transmission": { "type": "number", "minimum": 0, "maximum": 1 },
+        "thickness": { "type": "number", "minimum": 0 },
+        "attenuation_color": { "type": "string" },
+        "attenuation_distance": { "type": "number", "minimum": 0 }
+      }
     },
     "physics": {
       "type": "object",

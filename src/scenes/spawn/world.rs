@@ -17,6 +17,7 @@ pub(super) fn spawn_world_entities(
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
+    asset_server: &AssetServer,
     active_scene: &ActiveScene,
 ) {
     for entity in &entities.entities {
@@ -40,6 +41,7 @@ pub(super) fn spawn_world_entities(
                 commands,
                 meshes,
                 materials,
+                asset_server,
                 active_scene,
             );
         } else {
@@ -60,6 +62,7 @@ pub(super) fn spawn_world_entities(
                 commands,
                 meshes,
                 materials,
+                asset_server,
                 active_scene,
             );
         }

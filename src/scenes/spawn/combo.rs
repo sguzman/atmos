@@ -23,6 +23,7 @@ pub(super) fn spawn_combo_template(
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
+    asset_server: &AssetServer,
     active_scene: &ActiveScene,
 ) {
     let combo_name = name_override
@@ -96,6 +97,7 @@ pub(super) fn spawn_combo_template(
                     commands,
                     meshes,
                     materials,
+                    asset_server,
                     active_scene,
                 );
                 if let Some(entity) = entity {
@@ -122,6 +124,7 @@ pub(super) fn spawn_combo_template(
                 commands,
                 meshes,
                 materials,
+                asset_server,
                 active_scene,
             );
             if let Some(entity) = entity {
@@ -167,6 +170,7 @@ fn spawn_combo_part(
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
+    asset_server: &AssetServer,
     active_scene: &ActiveScene,
 ) -> Option<Entity> {
     let mut transform = part.template.transform.clone();
@@ -188,6 +192,7 @@ fn spawn_combo_part(
     }
 
     let mut shape = part.template.shape.as_ref().cloned();
+    let material = part.template.material.as_ref();
     let mut physics = part.template.physics.as_ref().cloned();
     let mut light = part.template.light.as_ref().cloned();
 
@@ -223,11 +228,13 @@ fn spawn_combo_part(
         let entity = spawn_shape_instance(
             &full_name,
             &shape,
+            material,
             if physics_allowed { physics.as_ref() } else { None },
             &transform,
             commands,
             meshes,
             materials,
+            asset_server,
             active_scene,
         );
         entity_id = Some(entity);

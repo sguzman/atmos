@@ -71,3 +71,33 @@ template = "entities/billboard.2D.toml"
 name_override = "pink_billboard"
 [entities.transform]
 position = { x = 0.0, y = 10.0, z = 0.0 }
+
+[[entities]]
+template = "entities/wooden_cube.3D.toml"
+name_override = "wooden_cube"
+[entities.transform]
+position = { x = -4.0, y = 1.0, z = -6.0 }
+
+[[entities]]
+template = "entities/metal_cube.3D.toml"
+name_override = "metal_cube"
+[entities.transform]
+position = { x = -2.0, y = 1.0, z = -6.0 }
+
+[[entities]]
+template = "entities/marble_cube.3D.toml"
+name_override = "marble_cube"
+[entities.transform]
+position = { x = 0.0, y = 1.0, z = -6.0 }
+
+[[entities]]
+template = "entities/stone_cube.3D.toml"
+name_override = "stone_cube"
+[entities.transform]
+position = { x = 2.0, y = 1.0, z = -6.0 }
+
+[[entities]]
+template = "entities/glass_cube.3D.toml"
+name_override = "glass_cube"
+[entities.transform]
+position = { x = 4.0, y = 1.0, z = -6.0 }

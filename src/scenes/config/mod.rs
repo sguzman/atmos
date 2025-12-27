@@ -7,6 +7,7 @@ mod combo_entity;
 mod entity;
 mod input;
 mod light;
+mod material;
 mod overlay;
 mod paths;
 mod physics;
@@ -31,6 +32,7 @@ pub use entity::{
 };
 pub use input::{CameraRotationConfig, InputConfig, MovementConfig, OverlayInputConfig};
 pub use light::{LightEntry, LightKind};
+pub use material::MaterialConfig;
 pub use overlay::{
     OverlayAnchor, OverlayConfig, OverlayElement, TextOverlay,
 };

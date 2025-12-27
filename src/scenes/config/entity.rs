@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
 use super::light::LightKind;
+use super::material::MaterialConfig;
 use super::physics::PhysicsConfig;
 use super::transforms::{CubeRotationConfig, DimensionsConfig, PositionConfig};
 
@@ -11,6 +12,8 @@ pub struct EntityTemplate {
     pub transform: TransformConfig,
     #[serde(default)]
     pub shape: Option<ShapeConfig>,
+    #[serde(default)]
+    pub material: Option<MaterialConfig>,
     #[serde(default)]
     pub physics: Option<PhysicsConfig>,
     #[serde(default)]

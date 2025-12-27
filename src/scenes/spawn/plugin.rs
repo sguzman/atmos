@@ -70,6 +70,7 @@ fn setup_scene(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
     mut rapier_config: Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
 ) {
     info!(
@@ -203,6 +204,7 @@ fn setup_scene(
         &mut commands,
         &mut meshes,
         &mut materials,
+        &asset_server,
         &active_scene,
     );
 
