@@ -113,6 +113,15 @@ pub fn apply_noclip_toggle(
 
     if let Ok((entity, mut body, mut gravity, mut velocity, sensor)) = bodies.single_mut() {
         if state.active {
+            if config.action.speed_toggle {
+                if let Some(key) = config.speed_toggle_key {
+                    if keys.just_pressed(key) {
+                        state.fast = !state.fast;
+                    }
+                }
+            } else if let Some(key) = config.speed_toggle_key {
+                state.fast = keys.pressed(key);
+            }
             *body = RigidBody::KinematicVelocityBased;
             gravity.0 = 0.0;
             velocity.linvel = Vec3::ZERO;
@@ -127,6 +136,7 @@ pub fn apply_noclip_toggle(
             if sensor.is_some() {
                 commands.entity(entity).remove::<Sensor>();
             }
+            state.fast = false;
         }
     }
 }

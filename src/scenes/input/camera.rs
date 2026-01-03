@@ -130,9 +130,35 @@ pub fn apply_camera_input(
                     (forward * forward_axis + right * right_axis).normalize_or_zero();
             }
             let noclip_cfg = noclip_config.as_ref().map(|cfg| &cfg.action);
-            let speed = noclip_cfg.map(|cfg| cfg.speed).unwrap_or(move_cfg.speed);
+            let mut speed = noclip_cfg.map(|cfg| cfg.speed).unwrap_or(move_cfg.speed);
+            if state.fast {
+                if let Some(cfg) = noclip_cfg {
+                    speed = cfg.fast_speed.max(speed);
+                }
+            }
             let acceleration = noclip_cfg.map(|cfg| cfg.acceleration).unwrap_or(10.0);
             let damping = noclip_cfg.map(|cfg| cfg.damping).unwrap_or(5.0);
+            let mut vertical_axis = 0.0;
+            if let Some(cfg) = noclip_config.as_ref() {
+                if let Some(key) = cfg.up_key {
+                    if keys.pressed(key) {
+                        vertical_axis += 1.0;
+                    }
+                }
+                if let Some(key) = cfg.down_key {
+                    if keys.pressed(key) {
+                        vertical_axis -= 1.0;
+                    }
+                }
+            }
+
+            if vertical_axis != 0.0 {
+                direction += Vec3::Y * vertical_axis;
+                if direction.length_squared() > 0.0 {
+                    direction = direction.normalize();
+                }
+            }
+
             let target = direction * speed;
 
             let accel_factor = (acceleration * dt).min(1.0);

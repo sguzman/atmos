@@ -98,6 +98,11 @@ pub struct NoclipActionConfig {
     pub enabled: bool,
     pub toggle: bool,
     pub speed: f32,
+    pub fast_speed: f32,
+    pub speed_toggle: bool,
+    pub speed_toggle_key: String,
+    pub up_key: String,
+    pub down_key: String,
     pub acceleration: f32,
     pub damping: f32,
 }
@@ -109,6 +114,11 @@ impl Default for NoclipActionConfig {
             enabled: false,
             toggle: true,
             speed: 8.0,
+            fast_speed: 14.0,
+            speed_toggle: true,
+            speed_toggle_key: "Shift".to_string(),
+            up_key: "Space".to_string(),
+            down_key: "lctrl".to_string(),
             acceleration: 20.0,
             damping: 8.0,
         }

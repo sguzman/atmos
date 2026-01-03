@@ -85,6 +85,9 @@ pub struct SceneJumpConfig {
 pub struct SceneNoclipConfig {
     pub action: NoclipActionConfig,
     pub trigger: KeyCode,
+    pub speed_toggle_key: Option<KeyCode>,
+    pub up_key: Option<KeyCode>,
+    pub down_key: Option<KeyCode>,
 }
 
 #[derive(Resource, Default)]
@@ -113,6 +116,7 @@ pub struct SprintState {
 pub struct NoclipState {
     pub active: bool,
     pub velocity: Vec3,
+    pub fast: bool,
 }
 
 #[derive(Resource, Clone)]

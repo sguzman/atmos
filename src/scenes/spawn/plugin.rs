@@ -210,9 +210,24 @@ fn setup_scene(
                 let state = NoclipState {
                     active: action.enabled,
                     velocity: Vec3::ZERO,
+                    fast: false,
                 };
+                let speed_toggle_key = crate::scenes::input::resolve_key_or_warn(
+                    &action.speed_toggle_key,
+                    "noclip speed toggle",
+                );
+                let up_key =
+                    crate::scenes::input::resolve_key_or_warn(&action.up_key, "noclip up");
+                let down_key =
+                    crate::scenes::input::resolve_key_or_warn(&action.down_key, "noclip down");
                 initial_noclip = Some(action.enabled);
-                commands.insert_resource(SceneNoclipConfig { action, trigger });
+                commands.insert_resource(SceneNoclipConfig {
+                    action,
+                    trigger,
+                    speed_toggle_key,
+                    up_key,
+                    down_key,
+                });
                 commands.insert_resource(state);
             }
         }
