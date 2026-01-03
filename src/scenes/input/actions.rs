@@ -7,7 +7,7 @@ use bevy::{
 };
 use bevy_rapier3d::prelude::{
     AdditionalMassProperties, Ccd, Collider, Friction, GravityScale, QueryFilter, ReadRapierContext,
-    Restitution, RigidBody, Velocity,
+    Restitution, RigidBody, Sensor, Velocity,
 };
 
 use crate::scenes::bounds::DespawnOutsideBounds;
@@ -97,7 +97,8 @@ pub fn apply_noclip_toggle(
     keys: Res<ButtonInput<KeyCode>>,
     config: Option<Res<SceneNoclipConfig>>,
     state: Option<ResMut<NoclipState>>,
-    mut bodies: Query<(&mut RigidBody, &mut GravityScale, &mut Velocity), With<PlayerBody>>,
+    mut bodies: Query<(Entity, &mut RigidBody, &mut GravityScale, &mut Velocity, Option<&Sensor>), With<PlayerBody>>,
+    mut commands: Commands,
 ) {
     let Some(config) = config else {
         return;
@@ -110,15 +111,22 @@ pub fn apply_noclip_toggle(
         state.active = !state.active;
     }
 
-    if let Ok((mut body, mut gravity, mut velocity)) = bodies.single_mut() {
+    if let Ok((entity, mut body, mut gravity, mut velocity, sensor)) = bodies.single_mut() {
         if state.active {
-            *body = RigidBody::KinematicPositionBased;
+            *body = RigidBody::KinematicVelocityBased;
             gravity.0 = 0.0;
             velocity.linvel = Vec3::ZERO;
             velocity.angvel = Vec3::ZERO;
+            if sensor.is_none() {
+                commands.entity(entity).insert(Sensor);
+            }
+            state.velocity = Vec3::ZERO;
         } else {
             *body = RigidBody::Dynamic;
             gravity.0 = 1.0;
+            if sensor.is_some() {
+                commands.entity(entity).remove::<Sensor>();
+            }
         }
     }
 }

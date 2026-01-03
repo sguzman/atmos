@@ -119,15 +119,16 @@ pub fn apply_camera_input(
         }
     }
 
-    let mut direction = Vec3::ZERO;
-    if forward_axis != 0.0 || right_axis != 0.0 {
-        let forward = body_transform.rotation * -Vec3::Z;
-        let right = body_transform.rotation * Vec3::X;
-        direction = (forward * forward_axis + right * right_axis).normalize_or_zero();
-    }
-
     if let Some(state) = noclip_state.as_mut() {
         if state.active {
+            let mut direction = Vec3::ZERO;
+            if forward_axis != 0.0 || right_axis != 0.0 {
+                let look_rotation = body_transform.rotation * camera_transform.rotation;
+                let forward = look_rotation * -Vec3::Z;
+                let right = look_rotation * Vec3::X;
+                direction =
+                    (forward * forward_axis + right * right_axis).normalize_or_zero();
+            }
             let noclip_cfg = noclip_config.as_ref().map(|cfg| &cfg.action);
             let speed = noclip_cfg.map(|cfg| cfg.speed).unwrap_or(move_cfg.speed);
             let acceleration = noclip_cfg.map(|cfg| cfg.acceleration).unwrap_or(10.0);
@@ -142,9 +143,21 @@ pub fn apply_camera_input(
                 state.velocity = state.velocity.lerp(Vec3::ZERO, damping_factor);
             }
 
-            body_transform.translation += state.velocity * dt;
+            if let Some(mut velocity) = body_velocity {
+                velocity.linvel = state.velocity;
+                velocity.angvel = Vec3::ZERO;
+            } else {
+                body_transform.translation += state.velocity * dt;
+            }
             return;
         }
+    }
+
+    let mut direction = Vec3::ZERO;
+    if forward_axis != 0.0 || right_axis != 0.0 {
+        let forward = body_transform.rotation * -Vec3::Z;
+        let right = body_transform.rotation * Vec3::X;
+        direction = (forward * forward_axis + right * right_axis).normalize_or_zero();
     }
 
     if let Some(mut velocity) = body_velocity {
