@@ -1,10 +1,13 @@
 use bevy::{
     input::keyboard::KeyCode,
     input::mouse::MouseButton,
-    prelude::{Component, Handle, Mesh, Resource, StandardMaterial},
+    prelude::{Component, Handle, Mesh, Resource, StandardMaterial, Vec3},
 };
 
-use crate::scenes::config::{PhysicsConfig, ShapeConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig};
+use crate::scenes::config::{
+    JumpActionConfig, NoclipActionConfig, PhysicsConfig, ShapeConfig, ShootActionConfig,
+    SprintActionConfig, ZoomActionConfig,
+};
 
 #[derive(Resource, Debug, Clone)]
 pub struct SceneInputConfig {
@@ -72,6 +75,18 @@ pub struct SceneZoomConfig {
     pub trigger: KeyCode,
 }
 
+#[derive(Resource, Clone)]
+pub struct SceneJumpConfig {
+    pub action: JumpActionConfig,
+    pub trigger: KeyCode,
+}
+
+#[derive(Resource, Clone)]
+pub struct SceneNoclipConfig {
+    pub action: NoclipActionConfig,
+    pub trigger: KeyCode,
+}
+
 #[derive(Resource, Default)]
 pub struct ZoomState {
     pub active: bool,
@@ -94,5 +109,24 @@ pub struct SprintState {
     pub active: bool,
 }
 
+#[derive(Resource, Clone)]
+pub struct NoclipState {
+    pub active: bool,
+    pub velocity: Vec3,
+}
+
+#[derive(Resource, Clone)]
+pub struct PlayerSpawn {
+    pub position: Vec3,
+}
+
+#[derive(Resource, Default, Clone)]
+pub struct CameraLookState {
+    pub pitch: f32,
+}
+
 #[derive(Component)]
 pub struct SceneCamera;
+
+#[derive(Component)]
+pub struct PlayerBody;

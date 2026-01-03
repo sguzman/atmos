@@ -38,6 +38,16 @@ action = "actions/zoom.toml"
 key = "z"
 
 [[actions]]
+name = "jump"
+action = "actions/jump.toml"
+key = "Space"
+
+[[actions]]
+name = "noclip"
+action = "actions/noclip.toml"
+key = "n"
+
+[[actions]]
 name = "fov_1"
 action = "actions/fov.toml"
 key = "1"

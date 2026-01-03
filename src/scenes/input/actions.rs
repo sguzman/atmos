@@ -2,23 +2,32 @@ use bevy::{
     input::keyboard::KeyCode,
     input::mouse::MouseButton,
     prelude::{
-        ButtonInput, Commands, GlobalTransform, Local, Projection, Query, Res, ResMut, Time, Transform, Vec3, With,
+        ButtonInput, Commands, Entity, GlobalTransform, Local, Projection, Query, Res, ResMut, Time, Transform, Vec3, With,
     },
 };
 use bevy_rapier3d::prelude::{
-    AdditionalMassProperties, Ccd, Collider, Friction, Restitution, RigidBody, Velocity,
+    AdditionalMassProperties, Ccd, Collider, Friction, GravityScale, QueryFilter, ReadRapierContext,
+    Restitution, RigidBody, Velocity,
 };
 
 use crate::scenes::bounds::DespawnOutsideBounds;
+use crate::scenes::bounds::SceneBounds;
 
 use super::types::{
-    SceneCamera, SceneFovConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
+    NoclipState, PlayerBody, PlayerSpawn, SceneCamera, SceneFovConfig, SceneJumpConfig,
+    SceneNoclipConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState,
+    ZoomState,
 };
 
 #[derive(Default)]
 pub(crate) struct ShootState {
     accumulator: f32,
     delay_remaining: f32,
+}
+
+#[derive(Default)]
+pub(crate) struct JumpState {
+    cooldown_remaining: f32,
 }
 
 pub fn apply_sprint_toggle(
@@ -84,6 +93,36 @@ pub fn apply_zoom_action(
     }
 }
 
+pub fn apply_noclip_toggle(
+    keys: Res<ButtonInput<KeyCode>>,
+    config: Option<Res<SceneNoclipConfig>>,
+    state: Option<ResMut<NoclipState>>,
+    mut bodies: Query<(&mut RigidBody, &mut GravityScale, &mut Velocity), With<PlayerBody>>,
+) {
+    let Some(config) = config else {
+        return;
+    };
+    let Some(mut state) = state else {
+        return;
+    };
+
+    if config.action.toggle && keys.just_pressed(config.trigger) {
+        state.active = !state.active;
+    }
+
+    if let Ok((mut body, mut gravity, mut velocity)) = bodies.single_mut() {
+        if state.active {
+            *body = RigidBody::KinematicPositionBased;
+            gravity.0 = 0.0;
+            velocity.linvel = Vec3::ZERO;
+            velocity.angvel = Vec3::ZERO;
+        } else {
+            *body = RigidBody::Dynamic;
+            gravity.0 = 1.0;
+        }
+    }
+}
+
 pub fn apply_fov_action(
     keys: Res<ButtonInput<KeyCode>>,
     config: Option<Res<SceneFovConfig>>,
@@ -117,6 +156,60 @@ pub fn apply_fov_action(
         if let Projection::Perspective(ref mut perspective) = *projection {
             perspective.fov = fov_radians;
         }
+    }
+}
+
+pub fn apply_jump_action(
+    time: Res<Time>,
+    keys: Res<ButtonInput<KeyCode>>,
+    config: Option<Res<SceneJumpConfig>>,
+    noclip: Option<Res<NoclipState>>,
+    mut state: Local<JumpState>,
+    rapier_context: ReadRapierContext,
+    mut bodies: Query<(Entity, &Transform, &mut Velocity), With<PlayerBody>>,
+) {
+    let Some(config) = config else {
+        return;
+    };
+
+    if state.cooldown_remaining > 0.0 {
+        state.cooldown_remaining -= time.delta_secs();
+    }
+
+    if noclip.as_ref().is_some_and(|state| state.active) {
+        return;
+    }
+
+    let Ok((entity, transform, mut velocity)) = bodies.single_mut() else {
+        return;
+    };
+
+    if !keys.just_pressed(config.trigger) {
+        return;
+    }
+
+    let Ok(context) = rapier_context.single() else {
+        return;
+    };
+
+    let ray_origin = transform.translation;
+    let ray_dir = Vec3::NEG_Y;
+    let grounded = context
+        .cast_ray(
+            ray_origin,
+            ray_dir,
+            config.action.ground_check_distance.max(0.0),
+            true,
+            QueryFilter {
+                exclude_rigid_body: Some(entity),
+                ..Default::default()
+            },
+        )
+        .is_some();
+
+    if grounded {
+        velocity.linvel.y = config.action.velocity.max(0.0);
+        state.cooldown_remaining = config.action.cooldown.max(0.0);
     }
 }
 
@@ -210,6 +303,32 @@ pub fn apply_shoot_action(
     while state.accumulator >= interval {
         state.accumulator -= interval;
         spawn_ball(&mut commands);
+    }
+}
+
+pub fn apply_player_respawn(
+    bounds: Option<Res<SceneBounds>>,
+    spawn: Option<Res<PlayerSpawn>>,
+    mut bodies: Query<(&mut Transform, &mut Velocity), With<PlayerBody>>,
+    noclip: Option<ResMut<NoclipState>>,
+) {
+    let (Some(bounds), Some(spawn)) = (bounds, spawn) else {
+        return;
+    };
+
+    let Ok((mut transform, mut velocity)) = bodies.single_mut() else {
+        return;
+    };
+
+    if transform.translation.y >= bounds.min.y {
+        return;
+    }
+
+    transform.translation = spawn.position;
+    velocity.linvel = Vec3::ZERO;
+    velocity.angvel = Vec3::ZERO;
+    if let Some(mut noclip) = noclip {
+        noclip.velocity = Vec3::ZERO;
     }
 }
 

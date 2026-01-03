@@ -8,22 +8,27 @@ use bevy::post_process::bloom::{Bloom, BloomCompositeMode, BloomPrefilter};
 use bevy::pbr::{DistanceFog, FogFalloff};
 use bevy::render::render_resource::BlendState;
 use bevy::render::view::Hdr;
-use bevy_rapier3d::prelude::{DefaultRapierContext, RapierConfiguration};
+use bevy_rapier3d::prelude::{
+    Collider, DefaultRapierContext, GravityScale, LockedAxes, RapierConfiguration, RigidBody,
+    Velocity,
+};
 
 use crate::app_config::AppConfig;
 use crate::scenes::{
     bounds::{despawn_out_of_bounds, SceneBounds},
     config::{ActiveScene, BloomConfig, FogConfig, FogFalloffConfig, InputConfig, RenderConfig},
     input::{
-        apply_camera_input, apply_fov_action, apply_shoot_action, apply_sprint_toggle,
-        apply_zoom_action, resolve_camera_input_config, resolve_overlay_toggles, FovBinding,
-        SceneCamera, SceneFovConfig, SceneInputConfig, SceneShootConfig, SceneSprintConfig,
-        SceneZoomConfig, SprintState, ZoomState,
+        apply_camera_input, apply_fov_action, apply_jump_action, apply_noclip_toggle,
+        apply_player_respawn, apply_shoot_action, apply_sprint_toggle, apply_zoom_action,
+        resolve_camera_input_config, resolve_overlay_toggles, CameraLookState, FovBinding,
+        NoclipState, PlayerBody, PlayerSpawn, SceneCamera, SceneFovConfig, SceneInputConfig,
+        SceneJumpConfig, SceneNoclipConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig,
+        SprintState, ZoomState,
     },
     loaders::{
         load_entity_template_from_path, load_entities_config, load_input_config,
-        load_shoot_action_config, load_sprint_action_config, load_world_config,
-        load_zoom_action_config,
+        load_jump_action_config, load_noclip_action_config, load_shoot_action_config,
+        load_sprint_action_config, load_world_config, load_zoom_action_config,
     },
     world::WorldConfig,
 };
@@ -52,6 +57,9 @@ impl Plugin for ScenePlugin {
         app.add_systems(Startup, setup_scene);
         app.add_systems(Update, apply_camera_input);
         app.add_systems(Update, apply_fov_action);
+        app.add_systems(Update, apply_jump_action);
+        app.add_systems(Update, apply_noclip_toggle);
+        app.add_systems(Update, apply_player_respawn);
         app.add_systems(Update, apply_shoot_action);
         app.add_systems(Update, apply_sprint_toggle);
         app.add_systems(Update, apply_zoom_action);
@@ -85,6 +93,8 @@ fn setup_scene(
         camera: camera_input,
         overlays: resolve_overlay_toggles(&input_config.overlays),
     });
+
+    let mut initial_noclip = None;
 
     let world_config: WorldConfig = load_world_config(&active_scene.name);
     let entities_config = load_entities_config(&active_scene.name);
@@ -170,6 +180,44 @@ fn setup_scene(
         }
     }
 
+    if let Some(action_binding) = input_config
+        .actions
+        .iter()
+        .find(|action| action.action.ends_with("jump.toml"))
+    {
+        if let Some(trigger) =
+            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "jump")
+        {
+            if let Some(action) =
+                load_jump_action_config(&active_scene.name, &action_binding.action)
+            {
+                commands.insert_resource(SceneJumpConfig { action, trigger });
+            }
+        }
+    }
+
+    if let Some(action_binding) = input_config
+        .actions
+        .iter()
+        .find(|action| action.action.ends_with("noclip.toml"))
+    {
+        if let Some(trigger) =
+            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "noclip")
+        {
+            if let Some(action) =
+                load_noclip_action_config(&active_scene.name, &action_binding.action)
+            {
+                let state = NoclipState {
+                    active: action.enabled,
+                    velocity: Vec3::ZERO,
+                };
+                initial_noclip = Some(action.enabled);
+                commands.insert_resource(SceneNoclipConfig { action, trigger });
+                commands.insert_resource(state);
+            }
+        }
+    }
+
     let mut fov_bindings = Vec::new();
     for action_binding in input_config
         .actions
@@ -235,36 +283,72 @@ fn setup_scene(
     // lights
     spawn_lights(&world_config.lights, &mut commands);
 
-    // camera
+    // player body + camera
+    let camera_position = Vec3::new(
+        world_config.camera.transform.position.x,
+        world_config.camera.transform.position.y,
+        world_config.camera.transform.position.z,
+    );
+    let camera_look_at = Vec3::new(
+        world_config.camera.transform.look_at.x,
+        world_config.camera.transform.look_at.y,
+        world_config.camera.transform.look_at.z,
+    );
+    let camera_up = Vec3::new(
+        world_config.camera.transform.up.x,
+        world_config.camera.transform.up.y,
+        world_config.camera.transform.up.z,
+    );
+    let basis = Transform::from_translation(camera_position).looking_at(camera_look_at, camera_up);
+    let (yaw, pitch, _) = basis.rotation.to_euler(EulerRot::YXZ);
+    let pitch = pitch.clamp(-1.4, 1.4);
+
+    commands.insert_resource(PlayerSpawn {
+        position: camera_position,
+    });
+    commands.insert_resource(CameraLookState { pitch });
+
+    let body_half = Vec3::splat(0.25);
+    let (body_type, gravity_scale) = if initial_noclip.unwrap_or(false) {
+        (RigidBody::KinematicPositionBased, 0.0)
+    } else {
+        (RigidBody::Dynamic, 1.0)
+    };
+    let body_id = commands
+        .spawn((
+            Name::new(format!("{}_body", world_config.camera.name)),
+            PlayerBody,
+            body_type,
+            Collider::cuboid(body_half.x, body_half.y, body_half.z),
+            LockedAxes::ROTATION_LOCKED,
+            GravityScale(gravity_scale),
+            Velocity::default(),
+            Transform::from_translation(camera_position)
+                .with_rotation(Quat::from_rotation_y(yaw)),
+            Visibility::default(),
+            InheritedVisibility::default(),
+            ViewVisibility::default(),
+        ))
+        .id();
+
     let camera_components = (
         Name::new(world_config.camera.name.clone()),
         Camera3d::default(),
         SceneCamera,
-        Transform::from_xyz(
-            world_config.camera.transform.position.x,
-            world_config.camera.transform.position.y,
-            world_config.camera.transform.position.z,
-        )
-        .looking_at(
-            Vec3::new(
-                world_config.camera.transform.look_at.x,
-                world_config.camera.transform.look_at.y,
-                world_config.camera.transform.look_at.z,
-            ),
-            Vec3::new(
-                world_config.camera.transform.up.x,
-                world_config.camera.transform.up.y,
-                world_config.camera.transform.up.z,
-            ),
-        ),
+        Transform::from_translation(Vec3::new(0.0, 0.6, 0.0))
+            .with_rotation(Quat::from_rotation_x(pitch)),
     );
-    let mut camera = commands.spawn(camera_components);
-    if let Some(msaa) = app_config.msaa_component() {
-        camera.insert(msaa);
-    }
-    if let Some(render) = world_config.render.as_ref() {
-        apply_render_settings(&mut camera, render);
-    }
+    let camera_id = {
+        let mut camera = commands.spawn(camera_components);
+        if let Some(msaa) = app_config.msaa_component() {
+            camera.insert(msaa);
+        }
+        if let Some(render) = world_config.render.as_ref() {
+            apply_render_settings(&mut camera, render);
+        }
+        camera.id()
+    };
+    commands.entity(body_id).add_child(camera_id);
 
     // UI overlay camera
     if let Some(msaa) = app_config.msaa_component() {

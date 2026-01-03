@@ -70,3 +70,47 @@ impl Default for ZoomActionConfig {
         }
     }
 }
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct JumpActionConfig {
+    pub name: String,
+    pub velocity: f32,
+    pub cooldown: f32,
+    pub ground_check_distance: f32,
+}
+
+impl Default for JumpActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "jump".to_string(),
+            velocity: 6.5,
+            cooldown: 0.1,
+            ground_check_distance: 0.25,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct NoclipActionConfig {
+    pub name: String,
+    pub enabled: bool,
+    pub toggle: bool,
+    pub speed: f32,
+    pub acceleration: f32,
+    pub damping: f32,
+}
+
+impl Default for NoclipActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "noclip".to_string(),
+            enabled: false,
+            toggle: true,
+            speed: 8.0,
+            acceleration: 20.0,
+            damping: 8.0,
+        }
+    }
+}

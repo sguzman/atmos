@@ -1,8 +1,8 @@
 use std::fs;
 
 use crate::scenes::config::{
-    action_config_path, ComboTemplate, EntityTemplate, InputConfig, OverlayConfig,
-    ShootActionConfig, SprintActionConfig, ZoomActionConfig,
+    action_config_path, ComboTemplate, EntityTemplate, InputConfig, JumpActionConfig,
+    NoclipActionConfig, OverlayConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig,
     input_config_path, overlay_config_path,
 };
 use crate::scenes::entities::EntitiesConfig;
@@ -110,6 +110,50 @@ pub fn load_zoom_action_config(scene: &str, action_path: &str) -> Option<ZoomAct
     match toml::from_str::<ZoomActionConfig>(&contents) {
         Ok(config) => {
             info!("Loaded zoom action config from {path}.");
+            Some(config)
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Action disabled.");
+            None
+        }
+    }
+}
+
+pub fn load_jump_action_config(scene: &str, action_path: &str) -> Option<JumpActionConfig> {
+    let path = action_config_path(scene, action_path);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Action disabled.");
+            return None;
+        }
+    };
+
+    match toml::from_str::<JumpActionConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded jump action config from {path}.");
+            Some(config)
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Action disabled.");
+            None
+        }
+    }
+}
+
+pub fn load_noclip_action_config(scene: &str, action_path: &str) -> Option<NoclipActionConfig> {
+    let path = action_config_path(scene, action_path);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Action disabled.");
+            return None;
+        }
+    };
+
+    match toml::from_str::<NoclipActionConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded noclip action config from {path}.");
             Some(config)
         }
         Err(err) => {
