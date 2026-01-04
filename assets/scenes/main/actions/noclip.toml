@@ -1,8 +1,8 @@
 name = "noclip"
 enabled = false
 toggle = true
-speed = 8.0
-fast_speed = 14.0
+speed = 12.0
+fast_speed = 20.0
 speed_toggle = true
 speed_toggle_key = "Shift"
 up_key = "Space"
