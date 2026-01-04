@@ -8,6 +8,8 @@ use bevy::post_process::bloom::{Bloom, BloomCompositeMode, BloomPrefilter};
 use bevy::pbr::{DistanceFog, FogFalloff};
 use bevy::render::render_resource::BlendState;
 use bevy::render::view::Hdr;
+use bevy::state::condition::in_state;
+use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
 use bevy_rapier3d::prelude::{
     Collider, DefaultRapierContext, GravityScale, LockedAxes, RapierConfiguration, RigidBody,
     Velocity,
@@ -31,6 +33,7 @@ use crate::scenes::{
         load_sprint_action_config, load_world_config, load_zoom_action_config,
     },
     world::WorldConfig,
+    AppState,
 };
 
 use super::lights::spawn_lights;
@@ -54,21 +57,22 @@ impl Plugin for ScenePlugin {
         app.insert_resource(ActiveScene {
             name: self.scene.to_string(),
         });
-        app.add_systems(Startup, setup_scene);
-        app.add_systems(Update, apply_camera_input);
-        app.add_systems(Update, apply_fov_action);
-        app.add_systems(Update, apply_jump_action);
-        app.add_systems(Update, apply_noclip_toggle);
-        app.add_systems(Update, apply_player_respawn);
-        app.add_systems(Update, apply_shoot_action);
-        app.add_systems(Update, apply_sprint_toggle);
-        app.add_systems(Update, apply_zoom_action);
-        app.add_systems(Update, despawn_out_of_bounds);
+        app.add_systems(OnEnter(AppState::Main), setup_scene);
+        app.add_systems(OnEnter(AppState::Main), configure_main_cursor);
         app.add_systems(
-            PostStartup,
+            OnEnter(AppState::Main),
             (log_lights, log_camera, spawn_overlays_from_config).after(setup_scene),
         );
-        app.add_systems(Update, toggle_overlays);
+        app.add_systems(Update, apply_camera_input.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, apply_fov_action.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, apply_jump_action.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, apply_noclip_toggle.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, apply_player_respawn.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, apply_shoot_action.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, apply_sprint_toggle.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, apply_zoom_action.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, despawn_out_of_bounds.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, toggle_overlays.run_if(in_state(AppState::Main)));
     }
 }
 
@@ -462,6 +466,14 @@ fn apply_render_settings(camera: &mut EntityCommands, render: &RenderConfig) {
 
     if let Some(fog) = render.fog.as_ref().filter(|fog| fog.enabled) {
         camera.insert(resolve_fog(fog));
+    }
+}
+
+fn configure_main_cursor(mut windows: Query<&mut CursorOptions, With<PrimaryWindow>>) {
+    if let Ok(mut cursor) = windows.single_mut() {
+        cursor.grab_mode = CursorGrabMode::Locked;
+        cursor.visible = false;
+        cursor.hit_test = true;
     }
 }
 

@@ -8,6 +8,8 @@ use crate::scenes::config::{
 #[derive(Debug, Deserialize)]
 pub struct WorldConfig {
     #[serde(default)]
+    pub startup_scene: Option<String>,
+    #[serde(default)]
     pub camera: CameraConfig,
     #[serde(default)]
     pub bounds: BoundingBoxConfig,
@@ -26,6 +28,7 @@ pub struct WorldConfig {
 impl Default for WorldConfig {
     fn default() -> Self {
         Self {
+            startup_scene: None,
             camera: CameraConfig::default(),
             bounds: BoundingBoxConfig::default(),
             gravity: None,
