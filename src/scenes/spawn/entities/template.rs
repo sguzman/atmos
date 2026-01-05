@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::scenes::config::{
     ActiveScene, EntityOverrides, EntityTemplate, EntityTransformConfig, TransformOverrides,
 };
+use crate::scenes::MeshCacheSettings;
 
 use super::merge::{merge_light, merge_physics, merge_shape};
 use super::{spawn_light_component, spawn_shape_instance};
@@ -12,6 +13,7 @@ pub fn spawn_entity_from_template(
     overrides: &EntityOverrides,
     placement_transform: &TransformOverrides,
     name_override: Option<&String>,
+    mesh_cache: &MeshCacheSettings,
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
@@ -43,6 +45,7 @@ pub fn spawn_entity_from_template(
             material,
             physics.as_ref(),
             &transform,
+            mesh_cache,
             commands,
             meshes,
             materials,

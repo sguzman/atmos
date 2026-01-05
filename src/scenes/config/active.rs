@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
-pub const SCENE_ROOT: &str = "assets/scenes";
+pub const SCENE_ROOT: &str = "config/scenes";
 #[allow(dead_code)]
-pub const OVERLAY_ROOT: &str = "assets/overlay";
+pub const OVERLAY_ROOT: &str = "config/overlay";
 
 #[derive(Resource, Debug, Clone)]
 pub struct ActiveScene {

@@ -9,7 +9,7 @@ backward = "d"
 left = "s"
 right = "f"
 
-# Camera rotation is driven by mouse motion (see assets/config.toml).
+# Camera rotation is driven by mouse motion (see config/app.toml).
 
 [system]
 quit = "Escape"

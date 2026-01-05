@@ -1,36 +1,36 @@
 # .taplo.toml
 
 # Optional: limit what files Taplo touches
-include = ["assets/**/*.toml"]
+include = ["config/**/*.toml"]
 exclude = ["target/**", "**/node_modules/**"]
 
 [[rule]]
-include = ["assets/scenes/**/entities/*.3D.toml"]
+include = ["config/scenes/**/entities/*.3D.toml"]
 [rule.schema]
 path = "schemas/3d.entity.schema.json"
 
 [[rule]]
-include = ["assets/scenes/**/entities/*.2D.toml"]
+include = ["config/scenes/**/entities/*.2D.toml"]
 [rule.schema]
 path = "schemas/2d.entity.schema.json"
 
 [[rule]]
-include = ["assets/scenes/**/entities/*.light.toml"]
+include = ["config/scenes/**/entities/*.light.toml"]
 [rule.schema]
 path = "schemas/light.entity.schema.json"
 
 [[rule]]
-include = ["assets/scenes/**/combo/*.toml"]
+include = ["config/scenes/**/combo/*.toml"]
 [rule.schema]
 path = "schemas/combo.entity.schema.json"
 
 [[rule]]
-include = ["assets/scenes/**/world.toml"]
+include = ["config/scenes/**/world.toml"]
 [rule.schema]
 path = "schemas/world.schema.json"
 
 [[rule]]
-include = ["assets/scenes/**/entities.toml"]
+include = ["config/scenes/**/entities.toml"]
 [rule.schema]
 path = "schemas/entities.schema.json"
 

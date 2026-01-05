@@ -1,13 +1,15 @@
 use bevy::light::{NotShadowCaster, NotShadowReceiver};
 use bevy::prelude::*;
 
-use crate::scenes::config::SunConfig;
+use crate::scenes::config::{ShapeConfig, ShapeKind, SunConfig};
 
 pub(super) fn spawn_sun(
     sun: Option<&SunConfig>,
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
+    asset_server: &AssetServer,
+    mesh_cache: &crate::scenes::MeshCacheSettings,
     _active_scene: &crate::scenes::config::ActiveScene,
 ) {
     let Some(sun) = sun else {
@@ -41,9 +43,21 @@ pub(super) fn spawn_sun(
         unlit: true,
         ..default()
     });
+    let sun_shape = ShapeConfig {
+        kind: ShapeKind::Sphere,
+        color: Some(sun.color.clone()),
+        dimensions: None,
+        radius: Some(sun.size),
+    };
+    let sun_mesh = crate::scenes::load_or_generate_mesh_handle(
+        mesh_cache,
+        &sun_shape,
+        meshes,
+        asset_server,
+    );
     commands.spawn((
         Name::new("sun_sphere"),
-        Mesh3d(meshes.add(Sphere::new(sun.size))),
+        Mesh3d(sun_mesh),
         MeshMaterial3d(sun_material),
         NotShadowCaster,
         NotShadowReceiver,

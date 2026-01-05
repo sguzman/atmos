@@ -23,6 +23,7 @@ use crate::scenes::{
         load_zoom_action_config,
     },
     world::WorldConfig,
+    MeshCacheSettings,
 };
 
 use super::render::apply_render_settings;
@@ -33,6 +34,7 @@ use crate::scenes::spawn::world::spawn_world_entities;
 pub(crate) fn setup_scene(
     active_scene: Res<ActiveScene>,
     app_config: Res<AppConfig>,
+    mesh_cache: Res<MeshCacheSettings>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -87,14 +89,18 @@ pub(crate) fn setup_scene(
                     warn!("Projectile template is not a sphere; shoot action disabled.");
                     return;
                 }
-                let radius = shape.radius.unwrap_or(0.2);
                 let color = shape
                     .color
                     .as_deref()
                     .and_then(crate::scenes::config::parse_color)
                     .unwrap_or([255, 165, 0]);
                 let sphere_material = materials.add(Color::srgb_u8(color[0], color[1], color[2]));
-                let sphere_mesh = meshes.add(Sphere::new(radius));
+                let sphere_mesh = crate::scenes::load_or_generate_mesh_handle(
+                    &mesh_cache,
+                    &shape,
+                    &mut meshes,
+                    &asset_server,
+                );
                 commands.insert_resource(SceneShootConfig {
                     action,
                     trigger,
@@ -255,6 +261,7 @@ pub(crate) fn setup_scene(
         &mut materials,
         &asset_server,
         &active_scene,
+        &mesh_cache,
     );
 
     // sun derived from world config
@@ -263,6 +270,8 @@ pub(crate) fn setup_scene(
         &mut commands,
         &mut meshes,
         &mut materials,
+        &asset_server,
+        &mesh_cache,
         &active_scene,
     );
 

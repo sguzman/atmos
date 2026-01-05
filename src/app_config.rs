@@ -8,7 +8,7 @@ use bevy::{
 use bevy_winit::{UpdateMode, WinitSettings};
 use serde::Deserialize;
 
-const CONFIG_PATH: &str = "assets/config.toml";
+const CONFIG_PATH: &str = "config/app.toml";
 
 #[derive(Resource, Debug, Clone, Deserialize)]
 #[serde(default)]

@@ -7,6 +7,7 @@ use crate::scenes::{
     config::ActiveScene,
     entities::EntitiesConfig,
     loaders::{load_combo_template_from_path, load_entity_template_from_path},
+    MeshCacheSettings,
 };
 
 use super::combo::spawn_combo_template;
@@ -19,6 +20,7 @@ pub(super) fn spawn_world_entities(
     materials: &mut Assets<StandardMaterial>,
     asset_server: &AssetServer,
     active_scene: &ActiveScene,
+    mesh_cache: &MeshCacheSettings,
 ) {
     for entity in &entities.entities {
         if entity.template.starts_with("combo/")
@@ -38,6 +40,7 @@ pub(super) fn spawn_world_entities(
                 &entity.transform,
                 &entity.overrides,
                 entity.name_override.as_ref(),
+                mesh_cache,
                 commands,
                 meshes,
                 materials,
@@ -59,6 +62,7 @@ pub(super) fn spawn_world_entities(
                 &entity.overrides,
                 &entity.transform,
                 entity.name_override.as_ref(),
+                mesh_cache,
                 commands,
                 meshes,
                 materials,

@@ -12,6 +12,8 @@ use crate::scenes::config::{
     parse_color, ActiveScene, EntityTransformConfig, MaterialConfig, PhysicsConfig, ShapeConfig,
     ShapeKind,
 };
+use crate::scenes::MeshCacheSettings;
+use crate::scenes::load_or_generate_mesh_handle;
 
 use super::material::resolve_material;
 
@@ -21,6 +23,7 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
     material: Option<&MaterialConfig>,
     physics: Option<&PhysicsConfig>,
     transform: &EntityTransformConfig,
+    mesh_cache: &MeshCacheSettings,
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
@@ -50,13 +53,15 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
                 dimensions.height * 0.5,
                 dimensions.depth * 0.5,
             );
+            let mesh_handle = load_or_generate_mesh_handle(
+                mesh_cache,
+                shape,
+                meshes,
+                asset_server,
+            );
             let mut entity = commands.spawn((
                 Name::new(name.to_string()),
-                Mesh3d(meshes.add(Cuboid::new(
-                    dimensions.width,
-                    dimensions.height,
-                    dimensions.depth,
-                ))),
+                Mesh3d(mesh_handle),
                 MeshMaterial3d(material_handle.clone()),
                 Transform::from_xyz(
                     transform.position.x,
@@ -89,9 +94,15 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
         }
         ShapeKind::Sphere => {
             let radius = shape.radius.unwrap_or(0.5);
+            let mesh_handle = load_or_generate_mesh_handle(
+                mesh_cache,
+                shape,
+                meshes,
+                asset_server,
+            );
             let mut entity = commands.spawn((
                 Name::new(name.to_string()),
-                Mesh3d(meshes.add(Sphere::new(radius))),
+                Mesh3d(mesh_handle),
                 MeshMaterial3d(material_handle.clone()),
                 Transform::from_xyz(
                     transform.position.x,
@@ -125,9 +136,15 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
         ShapeKind::Circle => {
             let radius = shape.radius.unwrap_or(4.0);
             let collider_thickness = 0.2;
+            let mesh_handle = load_or_generate_mesh_handle(
+                mesh_cache,
+                shape,
+                meshes,
+                asset_server,
+            );
             let mut entity = commands.spawn((
                 Name::new(name.to_string()),
-                Mesh3d(meshes.add(Circle::new(radius))),
+                Mesh3d(mesh_handle),
                 MeshMaterial3d(material_handle.clone()),
                 Transform::from_xyz(
                     transform.position.x,

@@ -8,6 +8,7 @@ use crate::scenes::config::{
     ActiveScene, ComboPart, ComboPhysics, ComboStackConfig, ComboTemplate, EntityOverrides,
     EntityTemplate, TransformOverrides, Vec3Config,
 };
+use crate::scenes::MeshCacheSettings;
 use crate::scenes::loaders::load_entity_template_from_path;
 
 use super::entities::{
@@ -20,6 +21,7 @@ pub(super) fn spawn_combo_template(
     placement_transform: &TransformOverrides,
     placement_overrides: &EntityOverrides,
     name_override: Option<&String>,
+    mesh_cache: &MeshCacheSettings,
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
@@ -93,6 +95,7 @@ pub(super) fn spawn_combo_template(
                     &instance_offset,
                     shared_physics,
                     true,
+                    mesh_cache,
                     &mut spawned,
                     commands,
                     meshes,
@@ -120,6 +123,7 @@ pub(super) fn spawn_combo_template(
                 &instance_offset,
                 shared_physics,
                 false,
+                mesh_cache,
                 &mut spawned,
                 commands,
                 meshes,
@@ -166,6 +170,7 @@ fn spawn_combo_part(
     instance_offset: &Vec3Config,
     shared_physics: bool,
     is_root: bool,
+    mesh_cache: &MeshCacheSettings,
     spawned: &mut HashMap<String, Entity>,
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
@@ -231,6 +236,7 @@ fn spawn_combo_part(
             material,
             if physics_allowed { physics.as_ref() } else { None },
             &transform,
+            mesh_cache,
             commands,
             meshes,
             materials,
