@@ -25,6 +25,9 @@ x = 0.0
 y = -15
 z = 0.0
 
+[physics]
+substeps = 1
+
 [skybox]
 color = "lightblue"
 

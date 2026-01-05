@@ -390,9 +390,15 @@ pub(crate) fn setup_scene(
     }
 
     let fps = app_config.fps_limit.unwrap_or(60.0).max(1.0) as f32;
+    let substeps = world_config
+        .physics
+        .as_ref()
+        .and_then(|physics| physics.substeps)
+        .unwrap_or(1)
+        .max(1) as usize;
     commands.insert_resource(TimestepMode::Fixed {
         dt: 1.0 / fps,
-        substeps: 4,
+        substeps,
     });
 
     // lights

@@ -2,7 +2,8 @@ use bevy::prelude::*;
 use serde::Deserialize;
 
 use crate::scenes::config::{
-    BoundingBoxConfig, CameraConfig, LightEntry, RenderConfig, SkyboxConfig, SunConfig, Vec3Config,
+    BoundingBoxConfig, CameraConfig, LightEntry, RenderConfig, SkyboxConfig, SunConfig,
+    Vec3Config, WorldPhysicsConfig,
 };
 
 #[derive(Debug, Deserialize)]
@@ -17,6 +18,8 @@ pub struct WorldConfig {
     pub bounds: BoundingBoxConfig,
     #[serde(default)]
     pub gravity: Option<Vec3Config>,
+    #[serde(default)]
+    pub physics: Option<WorldPhysicsConfig>,
     #[serde(default)]
     pub lights: Vec<LightEntry>,
     #[serde(default)]
@@ -35,6 +38,7 @@ impl Default for WorldConfig {
             camera: CameraConfig::default(),
             bounds: BoundingBoxConfig::default(),
             gravity: None,
+            physics: None,
             lights: Vec::new(),
             skybox: None,
             sun: None,

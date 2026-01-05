@@ -7,6 +7,7 @@
     "camera": { "$ref": "#/$defs/camera" },
     "bounds": { "$ref": "#/$defs/bounds" },
     "gravity": { "$ref": "#/$defs/vec3" },
+    "physics": { "$ref": "#/$defs/physics" },
     "startup_scene": { "type": "string" },
     "scene_type": { "type": "string", "enum": ["2d", "3d"] },
     "lights": {
@@ -196,6 +197,13 @@
         "hdr": { "type": "boolean" },
         "bloom": { "$ref": "#/$defs/bloom" },
         "fog": { "$ref": "#/$defs/fog" }
+      }
+    },
+    "physics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "substeps": { "type": "integer", "minimum": 1 }
       }
     }
   }

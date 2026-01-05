@@ -43,7 +43,7 @@ pub use render::{BloomConfig, FogConfig, FogFalloffConfig, RenderConfig};
 pub use paths::{
     action_config_path, input_config_path, overlay_config_path,
 };
-pub use physics::PhysicsConfig;
+pub use physics::{PhysicsConfig, WorldPhysicsConfig};
 pub use skybox::SkyboxConfig;
 pub use sun::SunConfig;
 pub use transforms::Vec3Config;

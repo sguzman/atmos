@@ -14,6 +14,12 @@ pub struct PhysicsConfig {
     pub friction: f32,
 }
 
+#[derive(Debug, Deserialize, Default, Clone)]
+pub struct WorldPhysicsConfig {
+    #[serde(default)]
+    pub substeps: Option<u32>,
+}
+
 fn default_body_type() -> String {
     "dynamic".to_string()
 }
