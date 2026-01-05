@@ -1,6 +1,7 @@
 use bevy::{log::warn, prelude::*};
 
 use crate::scenes::config::{parse_color, ActiveScene, LightComponent, LightKind, LightEntry};
+use crate::scenes::spawn::SceneEntityTag;
 
 pub(in crate::scenes::spawn) fn spawn_light_component(
     name: &str,
@@ -59,6 +60,7 @@ pub(in crate::scenes::spawn) fn spawn_light_component(
 
     let entity = commands.spawn((
         Name::new(name.to_string()),
+        SceneEntityTag,
         PointLight {
             intensity: entry.intensity,
             range: entry.range.unwrap_or(20.0),

@@ -149,14 +149,15 @@ fn cleanup_menu(
     overlays: Query<(Entity, &OverlayTag)>,
     cameras: Query<Entity, With<MenuCamera>>,
 ) {
-    for (entity, tag) in &overlays {
-        if tag.name == "menu" {
-            commands.entity(entity).despawn();
-        }
+    for (entity, _tag) in &overlays {
+        commands.entity(entity).despawn();
     }
     for entity in &cameras {
         commands.entity(entity).despawn();
     }
+    commands.remove_resource::<SceneInputConfig>();
+    commands.remove_resource::<MenuSceneTransition>();
+    commands.remove_resource::<MenuQuitAction>();
 }
 
 fn handle_menu_input(

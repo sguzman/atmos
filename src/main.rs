@@ -54,7 +54,12 @@ fn run_app(
 
     let mut app = App::new();
 
-    app.insert_resource::<WinitSettings>(app_config.winit_settings());
+    let winit_settings = if cfg!(target_arch = "wasm32") {
+        WinitSettings::game()
+    } else {
+        app_config.winit_settings()
+    };
+    app.insert_resource::<WinitSettings>(winit_settings);
     app.insert_resource(app_config.clone());
     app.insert_resource(scenes::MeshCacheSettings::new(
         allow_runtime_mesh && matches!(app_config.mode, app_config::AppMode::Dev),

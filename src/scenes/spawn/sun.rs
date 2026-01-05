@@ -2,6 +2,7 @@ use bevy::light::{NotShadowCaster, NotShadowReceiver};
 use bevy::prelude::*;
 
 use crate::scenes::config::{ShapeConfig, ShapeKind, SunConfig};
+use crate::scenes::spawn::SceneEntityTag;
 
 pub(super) fn spawn_sun(
     sun: Option<&SunConfig>,
@@ -10,7 +11,6 @@ pub(super) fn spawn_sun(
     materials: &mut Assets<StandardMaterial>,
     asset_server: &AssetServer,
     mesh_cache: &crate::scenes::MeshCacheSettings,
-    _active_scene: &crate::scenes::config::ActiveScene,
 ) {
     let Some(sun) = sun else {
         return;
@@ -24,6 +24,7 @@ pub(super) fn spawn_sun(
 
     // Directional light pointing along dir
     commands.spawn((
+        SceneEntityTag,
         DirectionalLight {
             illuminance: sun.brightness,
             shadows_enabled: sun.shadows,
@@ -57,6 +58,7 @@ pub(super) fn spawn_sun(
     );
     commands.spawn((
         Name::new("sun_sphere"),
+        SceneEntityTag,
         Mesh3d(sun_mesh),
         MeshMaterial3d(sun_material),
         NotShadowCaster,

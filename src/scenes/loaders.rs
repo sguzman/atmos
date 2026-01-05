@@ -19,6 +19,7 @@ pub struct TomlCache {
     handles: HashMap<String, Handle<TomlAsset>>,
     warned_missing: HashSet<String>,
     warned_parse: HashSet<String>,
+    loaded: HashSet<String>,
 }
 
 pub enum ConfigLoad<T> {
@@ -68,7 +69,9 @@ where
             };
             match toml::from_str::<T>(&asset.0) {
                 Ok(config) => {
-                    info!("Loaded {label} config from {path}.");
+                    if cache.loaded.insert(path.to_string()) {
+                        info!("Loaded {label} config from {path}.");
+                    }
                     ConfigLoad::Ready(config)
                 }
                 Err(err) => {

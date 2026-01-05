@@ -28,6 +28,7 @@ use crate::scenes::{
 
 use super::render::apply_render_settings;
 use crate::scenes::spawn::lights::spawn_lights;
+use crate::scenes::spawn::SceneEntityTag;
 use crate::scenes::spawn::sun::spawn_sun;
 use crate::scenes::spawn::world::spawn_world_entities;
 
@@ -368,7 +369,6 @@ pub(crate) fn setup_scene(
         &mut materials,
         &asset_server,
         &mesh_cache,
-        &active_scene,
     );
 
     // skybox clear color
@@ -426,6 +426,7 @@ pub(crate) fn setup_scene(
     let body_id = commands
         .spawn((
             Name::new(format!("{}_body", world_config.camera.name)),
+            SceneEntityTag,
             PlayerBody,
             body_type,
             Collider::cuboid(body_half.x, body_half.y, body_half.z),
@@ -442,6 +443,7 @@ pub(crate) fn setup_scene(
 
     let camera_components = (
         Name::new(world_config.camera.name.clone()),
+        SceneEntityTag,
         Camera3d::default(),
         SceneCamera,
         Transform::from_translation(Vec3::new(0.0, 0.6, 0.0))
@@ -462,6 +464,7 @@ pub(crate) fn setup_scene(
     // UI overlay camera
     if let Some(msaa) = app_config.msaa_component() {
         commands.spawn((
+            SceneEntityTag,
             Camera2d::default(),
             Camera {
                 order: 1,
@@ -477,6 +480,7 @@ pub(crate) fn setup_scene(
         ));
     } else {
         commands.spawn((
+            SceneEntityTag,
             Camera2d::default(),
             Camera {
                 order: 1,

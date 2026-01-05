@@ -4,6 +4,7 @@ use bevy::{
 };
 
 use crate::scenes::config::{LightEntry, LightKind};
+use crate::scenes::spawn::SceneEntityTag;
 
 pub(super) fn spawn_lights(lights: &[LightEntry], commands: &mut Commands) {
     let mut ambient_set = false;
@@ -25,6 +26,7 @@ pub(super) fn spawn_lights(lights: &[LightEntry], commands: &mut Commands) {
             }
             LightKind::Point => {
                 commands.spawn((
+                    SceneEntityTag,
                     PointLight {
                         intensity: light.intensity,
                         range: light.range.unwrap_or(20.0),
@@ -53,6 +55,7 @@ pub(super) fn spawn_lights(lights: &[LightEntry], commands: &mut Commands) {
                         );
                 }
                 commands.spawn((
+                    SceneEntityTag,
                     DirectionalLight {
                         illuminance: light.intensity,
                         shadows_enabled: light.shadows,

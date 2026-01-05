@@ -16,6 +16,7 @@ use crate::scenes::MeshCacheSettings;
 use crate::scenes::load_or_generate_mesh_handle;
 
 use super::material::resolve_material;
+use crate::scenes::spawn::SceneEntityTag;
 
 pub(in crate::scenes::spawn) fn spawn_shape_instance(
     name: &str,
@@ -61,6 +62,7 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
             );
             let mut entity = commands.spawn((
                 Name::new(name.to_string()),
+                SceneEntityTag,
                 Mesh3d(mesh_handle),
                 MeshMaterial3d(material_handle.clone()),
                 Transform::from_xyz(
@@ -102,6 +104,7 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
             );
             let mut entity = commands.spawn((
                 Name::new(name.to_string()),
+                SceneEntityTag,
                 Mesh3d(mesh_handle),
                 MeshMaterial3d(material_handle.clone()),
                 Transform::from_xyz(
@@ -144,6 +147,7 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
             );
             let mut entity = commands.spawn((
                 Name::new(name.to_string()),
+                SceneEntityTag,
                 Mesh3d(mesh_handle),
                 MeshMaterial3d(material_handle.clone()),
                 Transform::from_xyz(
@@ -169,6 +173,7 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
                     let collider_rotation = rotation.inverse();
                     entity.with_children(|parent| {
                         parent.spawn((
+                            SceneEntityTag,
                             Transform::from_rotation(collider_rotation),
                             Collider::cylinder(collider_thickness * 0.5, radius),
                             Restitution::coefficient(physics.restitution),

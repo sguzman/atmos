@@ -16,6 +16,7 @@ use super::logging::{log_after_setup, reset_scene_log_state};
 use super::overlay::{reset_overlay_spawn_state, spawn_overlays_from_config};
 
 mod cursor;
+mod cleanup;
 mod overlays;
 mod render;
 mod setup;
@@ -43,6 +44,7 @@ impl Plugin for ScenePlugin {
         app.add_systems(OnEnter(AppState::Main), reset_scene_log_state);
         app.add_systems(OnEnter(AppState::Main), reset_overlay_spawn_state);
         app.add_systems(OnEnter(AppState::Main), cursor::configure_main_cursor);
+        app.add_systems(OnExit(AppState::Main), cleanup::cleanup_main_scene);
         app.add_systems(Update, setup::setup_scene.run_if(in_state(AppState::Main)));
         app.add_systems(Update, log_after_setup.run_if(in_state(AppState::Main)));
         app.add_systems(Update, spawn_overlays_from_config.run_if(in_state(AppState::Main)));
