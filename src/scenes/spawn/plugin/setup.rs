@@ -23,7 +23,7 @@ use crate::scenes::{
         load_zoom_action_config, ConfigLoad, TomlCache,
     },
     world::WorldConfig,
-    AppState, MeshCacheSettings, TomlAsset,
+    MeshCacheSettings, TomlAsset,
 };
 
 use super::render::apply_render_settings;
@@ -36,11 +36,6 @@ pub(crate) struct SceneSetupState {
     pub done: bool,
 }
 
-#[derive(Resource, Default)]
-pub(crate) struct StartupSceneState {
-    pub applied: bool,
-}
-
 pub(crate) fn reset_scene_setup_state(mut commands: Commands) {
     commands.insert_resource(SceneSetupState::default());
 }
@@ -50,8 +45,6 @@ pub(crate) fn setup_scene(
     app_config: Res<AppConfig>,
     mesh_cache: Res<MeshCacheSettings>,
     mut setup_state: ResMut<SceneSetupState>,
-    mut startup_state: ResMut<StartupSceneState>,
-    mut next_state: ResMut<NextState<AppState>>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -91,18 +84,6 @@ pub(crate) fn setup_scene(
         ConfigLoad::Pending => return,
         ConfigLoad::Ready(config) => config,
     };
-    if !startup_state.applied && active_scene.name == "main" {
-        let startup_scene = world_config
-            .startup_scene
-            .as_deref()
-            .unwrap_or("main");
-        let target_state = AppState::from_scene_name(startup_scene);
-        startup_state.applied = true;
-        if target_state != AppState::Main {
-            next_state.set(target_state);
-            return;
-        }
-    }
     let _scene_type = world_config.scene_type.as_deref();
     let entities_config = match load_entities_config(
         &active_scene.name,

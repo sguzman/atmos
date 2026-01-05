@@ -23,20 +23,10 @@ pub struct MeshCacheSettings {
 
 impl Default for MeshCacheSettings {
     fn default() -> Self {
-        #[cfg(not(target_arch = "wasm32"))]
-        let (cache_root, asset_prefix) = (
-            PathBuf::from("assets/.cache/meshes"),
-            ".cache/meshes".to_string(),
-        );
-        #[cfg(target_arch = "wasm32")]
-        let (cache_root, asset_prefix) = (
-            PathBuf::from("assets/cache/meshes"),
-            "cache/meshes".to_string(),
-        );
         Self {
             allow_runtime: false,
-            cache_root,
-            asset_prefix,
+            cache_root: PathBuf::from("assets/.cache/meshes"),
+            asset_prefix: ".cache/meshes".to_string(),
         }
     }
 }
@@ -55,10 +45,6 @@ impl MeshCacheSettings {
 
     pub fn fs_path_for_key(&self, key: &str) -> PathBuf {
         self.cache_root.join(format!("{key}.meshcache"))
-    }
-
-    pub fn web_fs_path_for_key(&self, key: &str) -> PathBuf {
-        PathBuf::from("assets/cache/meshes").join(format!("{key}.meshcache"))
     }
 }
 
@@ -164,10 +150,6 @@ pub fn load_or_generate_mesh_handle(
     if let Err(err) = save_mesh_cache(&fs_path, &mesh) {
         warn!("Failed to cache mesh '{key}': {err}");
     }
-    let web_path = settings.web_fs_path_for_key(&key);
-    if let Err(err) = save_mesh_cache(&web_path, &mesh) {
-        warn!("Failed to cache mesh '{key}' for web: {err}");
-    }
     return meshes.add(mesh);
     }
 
@@ -193,8 +175,6 @@ pub fn bake_all_meshes(settings: &MeshCacheSettings, shapes: &[ShapeConfig]) -> 
         }
         let mesh = build_mesh_from_shape(shape);
         save_mesh_cache(&path, &mesh)?;
-        let web_path = settings.web_fs_path_for_key(&key);
-        save_mesh_cache(&web_path, &mesh)?;
         info!("Cached mesh {key} -> {}", path.display());
     }
 

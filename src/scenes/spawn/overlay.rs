@@ -33,10 +33,14 @@ pub fn spawn_overlays_from_config(
     if state.done {
         return;
     }
+    let Some(input) = input.as_ref() else {
+        return;
+    };
     let names: Vec<String> = input
-        .as_ref()
-        .map(|cfg| cfg.overlays.iter().map(|o| o.name.clone()).collect())
-        .unwrap_or_else(|| vec!["debug".to_string()]);
+        .overlays
+        .iter()
+        .map(|o| o.name.clone())
+        .collect();
 
     let mut overlays = Vec::new();
     for name in names {

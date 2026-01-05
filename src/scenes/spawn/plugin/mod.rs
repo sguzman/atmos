@@ -38,7 +38,6 @@ impl Plugin for ScenePlugin {
             name: self.scene.to_string(),
         });
         app.init_resource::<setup::SceneSetupState>();
-        app.init_resource::<setup::StartupSceneState>();
         app.init_resource::<super::logging::SceneLogState>();
         app.add_systems(OnEnter(AppState::Main), setup::reset_scene_setup_state);
         app.add_systems(OnEnter(AppState::Main), reset_scene_log_state);
