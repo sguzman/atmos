@@ -1,0 +1,3 @@
+[build]
+wasm_opt = true
+wasm_opt_args = ["-O", "--enable-bulk-memory", "--enable-nontrapping-float-to-int"]
