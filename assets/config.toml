@@ -17,5 +17,5 @@ invert_x = false
 invert_y = false
 
 [debug]
-rapier_debug = false
-inspector = false
+rapier_debug = true
+inspector = true
