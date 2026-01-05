@@ -4,7 +4,7 @@ use std::{fs, path::Path};
 use bevy::{
     log::{Level, LogPlugin},
     prelude::*,
-    window::{PresentMode, WindowPlugin, WindowResolution},
+    window::{MonitorSelection, PresentMode, WindowMode, WindowPlugin, WindowResolution},
 };
 use bevy_winit::{UpdateMode, WinitSettings};
 use serde::Deserialize;
@@ -45,6 +45,7 @@ pub struct WasmConfig {
     pub fps_limit: Option<f64>,
     pub rapier_debug: bool,
     pub inspector: bool,
+    pub window_size_mode: Option<WindowSizeMode>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -55,6 +56,7 @@ impl Default for WasmConfig {
             fps_limit: Some(60.0),
             rapier_debug: false,
             inspector: false,
+            window_size_mode: None,
         }
     }
 }
@@ -79,6 +81,7 @@ pub struct WindowConfig {
     pub width: u32,
     pub height: u32,
     pub present_mode: PresentModeConfig,
+    pub size_mode: WindowSizeMode,
 }
 
 impl Default for WindowConfig {
@@ -88,7 +91,22 @@ impl Default for WindowConfig {
             width: 1280,
             height: 720,
             present_mode: PresentModeConfig::AutoVsync,
+            size_mode: WindowSizeMode::Fixed,
         }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum WindowSizeMode {
+    Fixed,
+    MatchMonitor,
+    MatchParent,
+}
+
+impl Default for WindowSizeMode {
+    fn default() -> Self {
+        WindowSizeMode::Fixed
     }
 }
 
@@ -221,13 +239,27 @@ impl AppConfig {
     }
 
     pub fn to_window_plugin(&self) -> WindowPlugin {
+        let mut window = Window {
+            title: self.window.title.clone(),
+            resolution: WindowResolution::new(self.window.width, self.window.height),
+            present_mode: self.window.present_mode.to_bevy(),
+            ..default()
+        };
+        match self.window.size_mode {
+            WindowSizeMode::Fixed => {}
+            WindowSizeMode::MatchMonitor => {
+                window.mode = WindowMode::BorderlessFullscreen(MonitorSelection::Primary);
+            }
+            WindowSizeMode::MatchParent => {
+                window.fit_canvas_to_parent = true;
+                #[cfg(target_arch = "wasm32")]
+                {
+                    window.canvas = Some("#bevy".to_string());
+                }
+            }
+        }
         WindowPlugin {
-            primary_window: Some(Window {
-                title: self.window.title.clone(),
-                resolution: WindowResolution::new(self.window.width, self.window.height),
-                present_mode: self.window.present_mode.to_bevy(),
-                ..default()
-            }),
+            primary_window: Some(window),
             ..default()
         }
     }
@@ -278,5 +310,8 @@ impl AppConfig {
         }
         self.debug.rapier_debug = wasm.rapier_debug;
         self.debug.inspector = wasm.inspector;
+        if let Some(mode) = wasm.window_size_mode.clone() {
+            self.window.size_mode = mode;
+        }
     }
 }
