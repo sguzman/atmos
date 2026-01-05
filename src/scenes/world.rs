@@ -10,6 +10,8 @@ pub struct WorldConfig {
     #[serde(default)]
     pub startup_scene: Option<String>,
     #[serde(default)]
+    pub scene_type: Option<String>,
+    #[serde(default)]
     pub camera: CameraConfig,
     #[serde(default)]
     pub bounds: BoundingBoxConfig,
@@ -29,6 +31,7 @@ impl Default for WorldConfig {
     fn default() -> Self {
         Self {
             startup_scene: None,
+            scene_type: None,
             camera: CameraConfig::default(),
             bounds: BoundingBoxConfig::default(),
             gravity: None,

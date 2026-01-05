@@ -8,6 +8,7 @@
     "bounds": { "$ref": "#/$defs/bounds" },
     "gravity": { "$ref": "#/$defs/vec3" },
     "startup_scene": { "type": "string" },
+    "scene_type": { "type": "string", "enum": ["2d", "3d"] },
     "lights": {
       "type": "array",
       "items": { "$ref": "#/$defs/lightEntry" }

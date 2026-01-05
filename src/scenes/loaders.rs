@@ -2,8 +2,8 @@ use std::fs;
 
 use crate::scenes::config::{
     action_config_path, ComboTemplate, EntityTemplate, InputConfig, JumpActionConfig,
-    NoclipActionConfig, OverlayConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig,
-    input_config_path, overlay_config_path,
+    NoclipActionConfig, OverlayConfig, QuitActionConfig, SceneTransitionActionConfig,
+    ShootActionConfig, SprintActionConfig, ZoomActionConfig, input_config_path, overlay_config_path,
 };
 use crate::scenes::entities::EntitiesConfig;
 use crate::scenes::world::WorldConfig;
@@ -203,6 +203,53 @@ pub fn load_world_config(scene: &str) -> WorldConfig {
         Err(err) => {
             warn!("Failed to parse {path}: {err}. Falling back to empty world.");
             WorldConfig::default()
+        }
+    }
+}
+
+pub fn load_scene_transition_action_config(
+    scene: &str,
+    action_path: &str,
+) -> Option<SceneTransitionActionConfig> {
+    let path = action_config_path(scene, action_path);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Action disabled.");
+            return None;
+        }
+    };
+
+    match toml::from_str::<SceneTransitionActionConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded scene transition action config from {path}.");
+            Some(config)
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Action disabled.");
+            None
+        }
+    }
+}
+
+pub fn load_quit_action_config(scene: &str, action_path: &str) -> Option<QuitActionConfig> {
+    let path = action_config_path(scene, action_path);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Action disabled.");
+            return None;
+        }
+    };
+
+    match toml::from_str::<QuitActionConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded quit action config from {path}.");
+            Some(config)
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Action disabled.");
+            None
         }
     }
 }

@@ -23,6 +23,8 @@ impl Default for InputConfig {
 #[derive(Debug, Deserialize)]
 pub struct CameraInputConfig {
     #[serde(default)]
+    pub mode: String,
+    #[serde(default)]
     pub movement: MovementConfig,
     #[serde(default)]
     pub rotation: CameraRotationConfig,
@@ -31,6 +33,7 @@ pub struct CameraInputConfig {
 impl Default for CameraInputConfig {
     fn default() -> Self {
         Self {
+            mode: "3d".to_string(),
             movement: MovementConfig::default(),
             rotation: CameraRotationConfig::default(),
         }

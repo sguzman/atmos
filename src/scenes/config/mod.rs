@@ -18,7 +18,8 @@ mod transforms;
 
 pub use active::{ActiveScene, OVERLAY_ROOT, SCENE_ROOT};
 pub use actions::{
-    JumpActionConfig, NoclipActionConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig,
+    JumpActionConfig, NoclipActionConfig, QuitActionConfig, SceneTransitionActionConfig,
+    ShootActionConfig, SprintActionConfig, ZoomActionConfig,
 };
 pub use bounds::BoundingBoxConfig;
 pub use camera::CameraConfig;

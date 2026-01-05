@@ -7,13 +7,26 @@ use bevy::{
 use bevy::state::state::NextState;
 use bevy::state::condition::in_state;
 
-use super::input::{resolve_camera_input_config, resolve_overlay_toggles, SceneInputConfig};
-use super::loaders::load_input_config;
+use super::input::{resolve_camera_input_config, resolve_key_or_warn, resolve_overlay_toggles, SceneInputConfig};
+use super::loaders::{
+    load_input_config, load_quit_action_config, load_scene_transition_action_config,
+};
 use super::spawn::{spawn_overlays_from_config, OverlayTag};
 use super::AppState;
 
 #[derive(Component)]
 struct MenuCamera;
+
+#[derive(Resource)]
+struct MenuSceneTransition {
+    trigger: KeyCode,
+    target_scene: String,
+}
+
+#[derive(Resource)]
+struct MenuQuitAction {
+    trigger: KeyCode,
+}
 
 pub struct MenuPlugin;
 
@@ -39,7 +52,50 @@ fn setup_menu(mut commands: Commands) {
         overlays: resolve_overlay_toggles(&input_config.overlays),
     });
 
-    commands.spawn((Camera2d::default(), MenuCamera));
+    let mut transition = None;
+    let mut quit = None;
+    for action_binding in &input_config.actions {
+        if action_binding.action.ends_with("scene-transition.toml") {
+            if let Some(trigger) =
+                resolve_key_or_warn(&action_binding.key, "menu scene transition")
+            {
+                if let Some(action) = load_scene_transition_action_config(
+                    "menu",
+                    &action_binding.action,
+                ) {
+                    transition = Some(MenuSceneTransition {
+                        trigger,
+                        target_scene: action.target_scene,
+                    });
+                }
+            }
+        }
+        if action_binding.action.ends_with("quit.toml") {
+            if let Some(trigger) = resolve_key_or_warn(&action_binding.key, "menu quit") {
+                if load_quit_action_config("menu", &action_binding.action).is_some() {
+                    quit = Some(MenuQuitAction { trigger });
+                }
+            }
+        }
+    }
+
+    if let Some(transition) = transition {
+        commands.insert_resource(transition);
+    }
+    if let Some(quit) = quit {
+        commands.insert_resource(quit);
+    }
+
+    let use_2d = input_config
+        .camera
+        .mode
+        .trim()
+        .eq_ignore_ascii_case("2d");
+    if use_2d {
+        commands.spawn((Camera2d::default(), MenuCamera));
+    } else {
+        commands.spawn((Camera3d::default(), MenuCamera));
+    }
 }
 
 fn cleanup_menu(
@@ -59,14 +115,20 @@ fn cleanup_menu(
 
 fn handle_menu_input(
     keys: Res<ButtonInput<KeyCode>>,
+    transition: Option<Res<MenuSceneTransition>>,
+    quit: Option<Res<MenuQuitAction>>,
     mut next_state: ResMut<NextState<AppState>>,
     mut app_exit: MessageWriter<AppExit>,
 ) {
-    if keys.just_pressed(KeyCode::Enter) || keys.just_pressed(KeyCode::NumpadEnter) {
-        next_state.set(AppState::Main);
+    if let Some(transition) = transition.as_ref() {
+        if keys.just_pressed(transition.trigger) {
+            next_state.set(AppState::from_scene_name(&transition.target_scene));
+        }
     }
-    if keys.just_pressed(KeyCode::Escape) || keys.just_pressed(KeyCode::KeyQ) {
-        app_exit.write(AppExit::Success);
+    if let Some(quit) = quit.as_ref() {
+        if keys.just_pressed(quit.trigger) {
+            app_exit.write(AppExit::Success);
+        }
     }
 }
 

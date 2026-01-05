@@ -101,6 +101,7 @@ fn setup_scene(
     let mut initial_noclip = None;
 
     let world_config: WorldConfig = load_world_config(&active_scene.name);
+    let _scene_type = world_config.scene_type.as_deref();
     let entities_config = load_entities_config(&active_scene.name);
 
     commands.insert_resource(SceneBounds::from(world_config.bounds.clone()));

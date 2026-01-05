@@ -124,3 +124,33 @@ impl Default for NoclipActionConfig {
         }
     }
 }
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct SceneTransitionActionConfig {
+    pub name: String,
+    pub target_scene: String,
+}
+
+impl Default for SceneTransitionActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "scene_transition".to_string(),
+            target_scene: "main".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct QuitActionConfig {
+    pub name: String,
+}
+
+impl Default for QuitActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "quit".to_string(),
+        }
+    }
+}

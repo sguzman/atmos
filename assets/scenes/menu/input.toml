@@ -1,5 +1,7 @@
 # Menu input configuration
 
+[camera]
+mode = "2d"
 [camera.movement]
 control = "mouse"
 speed = 0.0
@@ -18,3 +20,13 @@ pitch_down = ""
 [[overlays]]
 name = "menu"
 toggle = ""
+
+[[actions]]
+name = "menu_play"
+action = "actions/scene-transition.toml"
+key = "Enter"
+
+[[actions]]
+name = "menu_quit"
+action = "actions/quit.toml"
+key = "Escape"
