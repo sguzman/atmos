@@ -5,6 +5,8 @@ use app_config::load_app_config;
 #[cfg(target_arch = "wasm32")]
 use app_config::load_wasm_config;
 use bevy::asset::{AssetApp, AssetMetaCheck, AssetPlugin};
+#[cfg(target_arch = "wasm32")]
+use bevy::audio::AudioPlugin;
 use bevy::prelude::*;
 use bevy::state::app::AppExtStates;
 use bevy_rapier3d::prelude::*;
@@ -59,16 +61,17 @@ fn run_app(
     ));
     app.init_resource::<scenes::TomlCache>();
 
-    app.add_plugins(
-        DefaultPlugins
-            .set(log_plugin)
-            .set(window_plugin)
-            .set(AssetPlugin {
-                meta_check: AssetMetaCheck::Never,
-                ..default()
-            }),
-    )
-    .add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
+    let default_plugins = DefaultPlugins
+        .set(log_plugin)
+        .set(window_plugin)
+        .set(AssetPlugin {
+            meta_check: AssetMetaCheck::Never,
+            ..default()
+        });
+    #[cfg(target_arch = "wasm32")]
+    let default_plugins = default_plugins.disable::<AudioPlugin>();
+    app.add_plugins(default_plugins);
+    app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
 
     if app_config.debug.rapier_debug {
         app.add_plugins(RapierDebugRenderPlugin::default());

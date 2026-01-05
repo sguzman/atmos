@@ -18,13 +18,25 @@ use crate::scenes::world::WorldConfig;
 pub struct MeshCacheSettings {
     pub allow_runtime: bool,
     pub cache_root: PathBuf,
+    pub asset_prefix: String,
 }
 
 impl Default for MeshCacheSettings {
     fn default() -> Self {
+        #[cfg(not(target_arch = "wasm32"))]
+        let (cache_root, asset_prefix) = (
+            PathBuf::from("assets/.cache/meshes"),
+            ".cache/meshes".to_string(),
+        );
+        #[cfg(target_arch = "wasm32")]
+        let (cache_root, asset_prefix) = (
+            PathBuf::from("assets/cache/meshes"),
+            "cache/meshes".to_string(),
+        );
         Self {
             allow_runtime: false,
-            cache_root: PathBuf::from("assets/.cache/meshes"),
+            cache_root,
+            asset_prefix,
         }
     }
 }
@@ -38,11 +50,15 @@ impl MeshCacheSettings {
     }
 
     pub fn asset_path_for_key(&self, key: &str) -> String {
-        format!(".cache/meshes/{key}.meshcache")
+        format!("{}/{key}.meshcache", self.asset_prefix)
     }
 
     pub fn fs_path_for_key(&self, key: &str) -> PathBuf {
         self.cache_root.join(format!("{key}.meshcache"))
+    }
+
+    pub fn web_fs_path_for_key(&self, key: &str) -> PathBuf {
+        PathBuf::from("assets/cache/meshes").join(format!("{key}.meshcache"))
     }
 }
 
@@ -144,11 +160,15 @@ pub fn load_or_generate_mesh_handle(
                 "Mesh cache missing for '{key}'. Run `bake` or enable --allow-runtime-mesh in dev."
             );
         }
-        let mesh = build_mesh_from_shape(shape);
-        if let Err(err) = save_mesh_cache(&fs_path, &mesh) {
-            warn!("Failed to cache mesh '{key}': {err}");
-        }
-        return meshes.add(mesh);
+    let mesh = build_mesh_from_shape(shape);
+    if let Err(err) = save_mesh_cache(&fs_path, &mesh) {
+        warn!("Failed to cache mesh '{key}': {err}");
+    }
+    let web_path = settings.web_fs_path_for_key(&key);
+    if let Err(err) = save_mesh_cache(&web_path, &mesh) {
+        warn!("Failed to cache mesh '{key}' for web: {err}");
+    }
+    return meshes.add(mesh);
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -173,6 +193,8 @@ pub fn bake_all_meshes(settings: &MeshCacheSettings, shapes: &[ShapeConfig]) -> 
         }
         let mesh = build_mesh_from_shape(shape);
         save_mesh_cache(&path, &mesh)?;
+        let web_path = settings.web_fs_path_for_key(&key);
+        save_mesh_cache(&web_path, &mesh)?;
         info!("Cached mesh {key} -> {}", path.display());
     }
 
