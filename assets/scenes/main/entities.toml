@@ -67,6 +67,36 @@ name_override = "stack_rects5"
 position = { x = -8.0, y = 2.0, z = 10.0 }
 
 [[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects6"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 12.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects7"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 14.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects8"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 16.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects9"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 18.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects10"
+[entities.transform]
+position = { x = -8.0, y = 2.0, z = 20.0 }
+
+[[entities]]
 template = "entities/billboard.2D.toml"
 name_override = "pink_billboard"
 [entities.transform]
