@@ -35,7 +35,7 @@ pub fn apply_noclip_toggle(
             } else if let Some(key) = config.speed_toggle_key {
                 state.fast = keys.pressed(key);
             }
-            *body = RigidBody::KinematicVelocityBased;
+            *body = RigidBody::KinematicPositionBased;
             gravity.0 = 0.0;
             velocity.linvel = Vec3::ZERO;
             velocity.angvel = Vec3::ZERO;
