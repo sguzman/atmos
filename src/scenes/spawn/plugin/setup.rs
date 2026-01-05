@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use bevy::render::render_resource::BlendState;
 use bevy_rapier3d::prelude::{
     Collider, DefaultRapierContext, GravityScale, LockedAxes, RapierConfiguration, RigidBody,
-    Velocity,
+    TimestepMode, Velocity,
 };
 
 use crate::app_config::AppConfig;
@@ -383,11 +383,17 @@ pub(crate) fn setup_scene(
         }
     }
 
-    if let Some(gravity) = world_config.gravity.as_ref() {
-        if let Ok(mut config) = rapier_config.single_mut() {
+    if let Ok(mut config) = rapier_config.single_mut() {
+        if let Some(gravity) = world_config.gravity.as_ref() {
             config.gravity = Vec3::new(gravity.x, gravity.y, gravity.z);
         }
     }
+
+    let fps = app_config.fps_limit.unwrap_or(60.0).max(1.0) as f32;
+    commands.insert_resource(TimestepMode::Fixed {
+        dt: 1.0 / fps,
+        substeps: 4,
+    });
 
     // lights
     spawn_lights(&world_config.lights, &mut commands);
