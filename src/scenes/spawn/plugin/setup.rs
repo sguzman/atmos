@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use bevy::render::render_resource::BlendState;
 use bevy_rapier3d::prelude::{
     Collider, DefaultRapierContext, GravityScale, LockedAxes, RapierConfiguration, RigidBody,
-    TimestepMode, Velocity,
+    RapierContextSimulation, TimestepMode, Velocity,
 };
 
 use crate::app_config::AppConfig;
@@ -53,6 +53,7 @@ pub(crate) fn setup_scene(
     toml_assets: Res<Assets<TomlAsset>>,
     mut toml_cache: ResMut<TomlCache>,
     mut rapier_config: Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
+    mut rapier_context: Query<&mut RapierContextSimulation, With<DefaultRapierContext>>,
 ) {
     if setup_state.done {
         return;
@@ -388,16 +389,24 @@ pub(crate) fn setup_scene(
             config.gravity = Vec3::new(gravity.x, gravity.y, gravity.z);
         }
     }
+    if let Ok(mut context) = rapier_context.single_mut() {
+        if let Some(physics) = world_config.physics.as_ref() {
+            if let Some(iterations) = physics.solver_iterations {
+                context.integration_parameters.num_solver_iterations =
+                    iterations.max(1) as usize;
+            }
+        }
+    }
 
-    let fps = app_config.fps_limit.unwrap_or(60.0).max(1.0) as f32;
     let substeps = world_config
         .physics
         .as_ref()
         .and_then(|physics| physics.substeps)
         .unwrap_or(1)
         .max(1) as usize;
-    commands.insert_resource(TimestepMode::Fixed {
-        dt: 1.0 / fps,
+    commands.insert_resource(TimestepMode::Variable {
+        max_dt: 1.0 / 60.0,
+        time_scale: 1.0,
         substeps,
     });
 

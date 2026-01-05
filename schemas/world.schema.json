@@ -203,7 +203,8 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "substeps": { "type": "integer", "minimum": 1 }
+        "substeps": { "type": "integer", "minimum": 1 },
+        "solver_iterations": { "type": "integer", "minimum": 1 }
       }
     }
   }

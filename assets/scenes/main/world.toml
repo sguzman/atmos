@@ -27,6 +27,7 @@ z = 0.0
 
 [physics]
 substeps = 1
+solver_iterations = 8
 
 [skybox]
 color = "lightblue"

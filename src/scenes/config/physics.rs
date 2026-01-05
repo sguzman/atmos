@@ -18,6 +18,8 @@ pub struct PhysicsConfig {
 pub struct WorldPhysicsConfig {
     #[serde(default)]
     pub substeps: Option<u32>,
+    #[serde(default)]
+    pub solver_iterations: Option<u32>,
 }
 
 fn default_body_type() -> String {
