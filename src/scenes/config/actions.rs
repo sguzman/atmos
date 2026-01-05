@@ -147,6 +147,52 @@ pub struct QuitActionConfig {
     pub name: String,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct GrabOutlineConfig {
+    pub color: String,
+    pub thickness: f32,
+    pub opacity: f32,
+}
+
+impl Default for GrabOutlineConfig {
+    fn default() -> Self {
+        Self {
+            color: "cyan".to_string(),
+            thickness: 0.04,
+            opacity: 1.0,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct GrabActionConfig {
+    pub name: String,
+    pub range: f32,
+    pub hold_distance: f32,
+    pub hold_offset: Vec3Config,
+    pub throw_speed: f32,
+    pub outline: GrabOutlineConfig,
+}
+
+impl Default for GrabActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "grab".to_string(),
+            range: 6.0,
+            hold_distance: 2.0,
+            hold_offset: Vec3Config {
+                x: 0.0,
+                y: -0.1,
+                z: 0.0,
+            },
+            throw_speed: 12.0,
+            outline: GrabOutlineConfig::default(),
+        }
+    }
+}
+
 impl Default for QuitActionConfig {
     fn default() -> Self {
         Self {

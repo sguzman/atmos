@@ -1,12 +1,12 @@
 use bevy::{
     input::keyboard::KeyCode,
     input::mouse::MouseButton,
-    prelude::{Component, Handle, Mesh, Resource, StandardMaterial, Vec3},
+    prelude::{Color, Component, Entity, Handle, Mesh, Resource, StandardMaterial, Vec3},
 };
 
 use crate::scenes::config::{
-    JumpActionConfig, NoclipActionConfig, PhysicsConfig, ShapeConfig, ShootActionConfig,
-    SprintActionConfig, ZoomActionConfig,
+    GrabActionConfig, JumpActionConfig, NoclipActionConfig, PhysicsConfig, ShapeConfig,
+    ShootActionConfig, SprintActionConfig, ZoomActionConfig,
 };
 
 #[derive(Resource, Debug, Clone)]
@@ -90,6 +90,13 @@ pub struct SceneNoclipConfig {
     pub down_key: Option<KeyCode>,
 }
 
+#[derive(Resource, Clone)]
+pub struct SceneGrabConfig {
+    pub action: GrabActionConfig,
+    pub trigger: KeyCode,
+    pub outline_color: Color,
+}
+
 #[derive(Resource, Default)]
 pub struct ZoomState {
     pub active: bool,
@@ -117,6 +124,16 @@ pub struct NoclipState {
     pub active: bool,
     pub velocity: Vec3,
     pub fast: bool,
+}
+
+#[derive(Resource, Default)]
+pub struct GrabState {
+    pub held: Option<Entity>,
+}
+
+#[derive(Resource, Default)]
+pub struct GrabHover {
+    pub entity: Option<Entity>,
 }
 
 #[derive(Resource, Clone)]

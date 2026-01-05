@@ -48,6 +48,11 @@ action = "actions/noclip.toml"
 key = "n"
 
 [[actions]]
+name = "grab"
+action = "actions/grab.toml"
+key = "g"
+
+[[actions]]
 name = "fov_1"
 action = "actions/fov.toml"
 key = "1"

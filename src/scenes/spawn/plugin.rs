@@ -20,17 +20,19 @@ use crate::scenes::{
     bounds::{despawn_out_of_bounds, SceneBounds},
     config::{ActiveScene, BloomConfig, FogConfig, FogFalloffConfig, InputConfig, RenderConfig},
     input::{
-        apply_camera_input, apply_fov_action, apply_jump_action, apply_noclip_toggle,
-        apply_player_respawn, apply_shoot_action, apply_sprint_toggle, apply_zoom_action,
-        resolve_camera_input_config, resolve_overlay_toggles, CameraLookState, FovBinding,
-        NoclipState, PlayerBody, PlayerSpawn, SceneCamera, SceneFovConfig, SceneInputConfig,
+        apply_camera_input, apply_fov_action, apply_grab_action, apply_jump_action,
+        apply_noclip_toggle, apply_player_respawn, apply_shoot_action, apply_sprint_toggle,
+        apply_zoom_action, resolve_camera_input_config, resolve_overlay_toggles, update_grab_hold,
+        update_grab_hover, CameraLookState, FovBinding, GrabHover, GrabState, NoclipState,
+        PlayerBody, PlayerSpawn, SceneCamera, SceneFovConfig, SceneGrabConfig, SceneInputConfig,
         SceneJumpConfig, SceneNoclipConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig,
         SprintState, ZoomState,
     },
     loaders::{
         load_entity_template_from_path, load_entities_config, load_input_config,
-        load_jump_action_config, load_noclip_action_config, load_shoot_action_config,
-        load_sprint_action_config, load_world_config, load_zoom_action_config,
+        load_grab_action_config, load_jump_action_config, load_noclip_action_config,
+        load_shoot_action_config, load_sprint_action_config, load_world_config,
+        load_zoom_action_config,
     },
     world::WorldConfig,
     AppState,
@@ -65,6 +67,19 @@ impl Plugin for ScenePlugin {
         );
         app.add_systems(Update, apply_camera_input.run_if(in_state(AppState::Main)));
         app.add_systems(Update, apply_fov_action.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, update_grab_hover.run_if(in_state(AppState::Main)));
+        app.add_systems(
+            Update,
+            apply_grab_action
+                .after(update_grab_hover)
+                .run_if(in_state(AppState::Main)),
+        );
+        app.add_systems(
+            Update,
+            update_grab_hold
+                .after(apply_grab_action)
+                .run_if(in_state(AppState::Main)),
+        );
         app.add_systems(Update, apply_jump_action.run_if(in_state(AppState::Main)));
         app.add_systems(Update, apply_noclip_toggle.run_if(in_state(AppState::Main)));
         app.add_systems(Update, apply_player_respawn.run_if(in_state(AppState::Main)));
@@ -234,6 +249,30 @@ fn setup_scene(
                     down_key,
                 });
                 commands.insert_resource(state);
+            }
+        }
+    }
+
+    if let Some(action_binding) = input_config
+        .actions
+        .iter()
+        .find(|action| action.action.ends_with("grab.toml"))
+    {
+        if let Some(trigger) =
+            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "grab")
+        {
+            if let Some(action) = load_grab_action_config(&active_scene.name, &action_binding.action)
+            {
+                let rgb = crate::scenes::config::parse_color(&action.outline.color)
+                    .unwrap_or([0, 255, 255]);
+                let outline_color = Color::srgb_u8(rgb[0], rgb[1], rgb[2]);
+                commands.insert_resource(SceneGrabConfig {
+                    action,
+                    trigger,
+                    outline_color,
+                });
+                commands.insert_resource(GrabState::default());
+                commands.insert_resource(GrabHover::default());
             }
         }
     }

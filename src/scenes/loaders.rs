@@ -1,9 +1,10 @@
 use std::fs;
 
 use crate::scenes::config::{
-    action_config_path, ComboTemplate, EntityTemplate, InputConfig, JumpActionConfig,
-    NoclipActionConfig, OverlayConfig, QuitActionConfig, SceneTransitionActionConfig,
-    ShootActionConfig, SprintActionConfig, ZoomActionConfig, input_config_path, overlay_config_path,
+    action_config_path, ComboTemplate, EntityTemplate, GrabActionConfig, InputConfig,
+    JumpActionConfig, NoclipActionConfig, OverlayConfig, QuitActionConfig,
+    SceneTransitionActionConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig,
+    input_config_path, overlay_config_path,
 };
 use crate::scenes::entities::EntitiesConfig;
 use crate::scenes::world::WorldConfig;
@@ -154,6 +155,28 @@ pub fn load_noclip_action_config(scene: &str, action_path: &str) -> Option<Nocli
     match toml::from_str::<NoclipActionConfig>(&contents) {
         Ok(config) => {
             info!("Loaded noclip action config from {path}.");
+            Some(config)
+        }
+        Err(err) => {
+            warn!("Failed to parse {path}: {err}. Action disabled.");
+            None
+        }
+    }
+}
+
+pub fn load_grab_action_config(scene: &str, action_path: &str) -> Option<GrabActionConfig> {
+    let path = action_config_path(scene, action_path);
+    let contents = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {path}: {err}. Action disabled.");
+            return None;
+        }
+    };
+
+    match toml::from_str::<GrabActionConfig>(&contents) {
+        Ok(config) => {
+            info!("Loaded grab action config from {path}.");
             Some(config)
         }
         Err(err) => {

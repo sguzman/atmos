@@ -2,8 +2,11 @@ use bevy::{
     input::keyboard::KeyCode,
     input::mouse::MouseButton,
     prelude::{
-        ButtonInput, Commands, Entity, GlobalTransform, Local, Projection, Query, Res, ResMut, Time, Transform, Vec3, With,
+        default, Alpha, AlphaMode, Assets, ButtonInput, ChildOf, Commands, Component, Entity,
+        GlobalTransform, InheritedVisibility, Local, Projection, Query, Res, ResMut,
+        StandardMaterial, Time, Transform, Vec3, ViewVisibility, Visibility, With, Without,
     },
+    render::render_resource::Face,
 };
 use bevy_rapier3d::prelude::{
     AdditionalMassProperties, Ccd, Collider, Friction, GravityScale, QueryFilter, ReadRapierContext,
@@ -12,11 +15,10 @@ use bevy_rapier3d::prelude::{
 
 use crate::scenes::bounds::DespawnOutsideBounds;
 use crate::scenes::bounds::SceneBounds;
-
 use super::types::{
-    NoclipState, PlayerBody, PlayerSpawn, SceneCamera, SceneFovConfig, SceneJumpConfig,
-    SceneNoclipConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState,
-    ZoomState,
+    GrabHover, GrabState, NoclipState, PlayerBody, PlayerSpawn, SceneCamera, SceneFovConfig,
+    SceneGrabConfig, SceneJumpConfig, SceneNoclipConfig, SceneShootConfig, SceneSprintConfig,
+    SceneZoomConfig, SprintState, ZoomState,
 };
 
 #[derive(Default)]
@@ -28,6 +30,15 @@ pub(crate) struct ShootState {
 #[derive(Default)]
 pub(crate) struct JumpState {
     cooldown_remaining: f32,
+}
+
+#[derive(Component)]
+pub(crate) struct GrabOutline;
+
+#[derive(Component)]
+pub(crate) struct GrabbedBody {
+    original_body: RigidBody,
+    original_gravity: f32,
 }
 
 pub fn apply_sprint_toggle(
@@ -228,6 +239,214 @@ pub fn apply_jump_action(
     if grounded {
         velocity.linvel.y = config.action.velocity.max(0.0);
         state.cooldown_remaining = config.action.cooldown.max(0.0);
+    }
+}
+
+pub fn update_grab_hover(
+    config: Option<Res<SceneGrabConfig>>,
+    rapier_context: ReadRapierContext,
+    cameras: Query<&GlobalTransform, With<SceneCamera>>,
+    player: Query<Entity, With<PlayerBody>>,
+    parents: Query<&ChildOf>,
+    bodies: Query<&RigidBody>,
+    meshes: Query<&bevy::prelude::Mesh3d>,
+    children: Query<&bevy::prelude::Children>,
+    outlines: Query<Entity, With<GrabOutline>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut commands: Commands,
+    hover: Option<ResMut<GrabHover>>,
+) {
+    let Some(config) = config else {
+        return;
+    };
+    let Some(mut hover) = hover else {
+        return;
+    };
+    let Ok(camera) = cameras.single() else {
+        return;
+    };
+    let Ok(context) = rapier_context.single() else {
+        return;
+    };
+
+    let player_body = player.single().ok();
+    let filter = QueryFilter {
+        exclude_rigid_body: player_body,
+        ..Default::default()
+    };
+    let origin = camera.translation();
+    let dir = camera.forward().as_vec3();
+    let max_toi = config.action.range.max(0.0);
+    let hit = context.cast_ray(origin, dir, max_toi, true, filter);
+
+    let mut target = None;
+    if let Some((entity, _)) = hit {
+        let candidate = if meshes.get(entity).is_ok() {
+            Some(entity)
+        } else if let Ok(parent) = parents.get(entity) {
+            let parent_entity = parent.parent();
+            if meshes.get(parent_entity).is_ok() {
+                Some(parent_entity)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        if let Some(entity) = candidate {
+            if let Ok(body) = bodies.get(entity) {
+                if !matches!(body, RigidBody::Fixed) {
+                    target = Some(entity);
+                }
+            }
+        }
+    }
+
+    if target == hover.entity {
+        return;
+    }
+
+    if let Some(prev) = hover.entity {
+        if let Ok(children) = children.get(prev) {
+            for child in children.iter() {
+                if outlines.get(*child).is_ok() {
+                    commands.entity(*child).despawn();
+                }
+            }
+        }
+    }
+
+    if let Some(target) = target {
+        if let Ok(mesh) = meshes.get(target) {
+            let mut color = config.outline_color;
+            let opacity = config.action.outline.opacity.clamp(0.0, 1.0);
+            color.set_alpha(opacity);
+
+            let outline_material = materials.add(StandardMaterial {
+                base_color: color,
+                emissive: color.to_linear(),
+                unlit: true,
+                alpha_mode: AlphaMode::Blend,
+                cull_mode: Some(Face::Front),
+                ..default()
+            });
+
+            let thickness = config.action.outline.thickness.max(0.0);
+            let scale = 1.0 + thickness;
+            commands.entity(target).with_children(|parent| {
+                parent.spawn((
+                    bevy::prelude::Mesh3d(mesh.0.clone()),
+                    bevy::prelude::MeshMaterial3d(outline_material),
+                    Transform::from_scale(Vec3::splat(scale)),
+                    Visibility::default(),
+                    InheritedVisibility::default(),
+                    ViewVisibility::default(),
+                    GrabOutline,
+                ));
+            });
+        }
+    }
+
+    hover.entity = target;
+}
+
+pub fn update_grab_hold(
+    config: Option<Res<SceneGrabConfig>>,
+    state: Option<Res<GrabState>>,
+    cameras: Query<&GlobalTransform, With<SceneCamera>>,
+    mut bodies: Query<&mut Transform, With<GrabbedBody>>,
+) {
+    let Some(config) = config else {
+        return;
+    };
+    let Some(state) = state else {
+        return;
+    };
+    let Some(held) = state.held else {
+        return;
+    };
+    let Ok(camera) = cameras.single() else {
+        return;
+    };
+    let Ok(mut transform) = bodies.get_mut(held) else {
+        return;
+    };
+
+    let offset = Vec3::new(
+        config.action.hold_offset.x,
+        config.action.hold_offset.y,
+        config.action.hold_offset.z,
+    );
+    let camera_transform = camera.compute_transform();
+    let target = camera.translation()
+        + camera.forward() * config.action.hold_distance
+        + camera_transform.rotation * offset;
+    transform.translation = target;
+}
+
+pub fn apply_grab_action(
+    keys: Res<ButtonInput<KeyCode>>,
+    config: Option<Res<SceneGrabConfig>>,
+    state: Option<ResMut<GrabState>>,
+    hover: Option<Res<GrabHover>>,
+    cameras: Query<&GlobalTransform, With<SceneCamera>>,
+    grabbed: Query<&GrabbedBody>,
+    mut bodies: Query<(Entity, &mut RigidBody, &mut GravityScale, &mut Velocity), Without<PlayerBody>>,
+    mut commands: Commands,
+) {
+    let Some(config) = config else {
+        return;
+    };
+    let Some(mut state) = state else {
+        return;
+    };
+    let Some(hover) = hover else {
+        return;
+    };
+    if !keys.just_pressed(config.trigger) {
+        return;
+    }
+
+    let Ok(camera) = cameras.single() else {
+        return;
+    };
+
+    if let Some(held) = state.held {
+        if let Ok((entity, mut body, mut gravity, mut velocity)) = bodies.get_mut(held) {
+            if let Ok(grabbed) = grabbed.get(entity) {
+                *body = grabbed.original_body;
+                gravity.0 = grabbed.original_gravity;
+                commands.entity(entity).remove::<GrabbedBody>();
+            } else {
+                *body = RigidBody::Dynamic;
+                gravity.0 = 1.0;
+            }
+
+            velocity.linvel = camera.forward() * config.action.throw_speed.max(0.0);
+            velocity.angvel = Vec3::ZERO;
+        }
+        state.held = None;
+        return;
+    }
+
+    let Some(target) = hover.entity else {
+        return;
+    };
+
+    if let Ok((entity, mut body, mut gravity, mut velocity)) = bodies.get_mut(target) {
+        if matches!(*body, RigidBody::Fixed) {
+            return;
+        }
+        commands.entity(entity).insert(GrabbedBody {
+            original_body: *body,
+            original_gravity: gravity.0,
+        });
+        *body = RigidBody::KinematicPositionBased;
+        gravity.0 = 0.0;
+        velocity.linvel = Vec3::ZERO;
+        velocity.angvel = Vec3::ZERO;
+        state.held = Some(entity);
     }
 }
 
