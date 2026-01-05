@@ -5,7 +5,7 @@ startup_scene = "menu"
 name = "main_camera"
 [camera.transform]
 position = { x = -2.5, y = 4.5, z = 9.0 }
-look_at = { x = -6.0, y = 3.0, z = 0.0 }
+look_at = { x = -70.0, y = 200.0, z = 0.0 }
 up = { x = 0.0, y = 1.0, z = 0.0 }
 
 [bounds]
@@ -59,7 +59,7 @@ threshold = 0.0
 threshold_softness = 0.0
 
 [render.fog]
-enabled = false
+enabled = true
 color = "white"
 alpha = 1.0
 directional_light_color = "white"
