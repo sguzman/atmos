@@ -1,15 +1,6 @@
-use bevy::{
-    log::{info, warn},
-    prelude::*,
-};
-use bevy::camera::{CameraOutputMode, ClearColorConfig, Exposure};
-use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
-use bevy::post_process::bloom::{Bloom, BloomCompositeMode, BloomPrefilter};
-use bevy::pbr::{DistanceFog, FogFalloff};
+use bevy::camera::{CameraOutputMode, ClearColorConfig};
+use bevy::prelude::*;
 use bevy::render::render_resource::BlendState;
-use bevy::render::view::Hdr;
-use bevy::state::condition::in_state;
-use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
 use bevy_rapier3d::prelude::{
     Collider, DefaultRapierContext, GravityScale, LockedAxes, RapierConfiguration, RigidBody,
     Velocity,
@@ -17,81 +8,29 @@ use bevy_rapier3d::prelude::{
 
 use crate::app_config::AppConfig;
 use crate::scenes::{
-    bounds::{despawn_out_of_bounds, SceneBounds},
-    config::{ActiveScene, BloomConfig, FogConfig, FogFalloffConfig, InputConfig, RenderConfig},
+    bounds::SceneBounds,
+    config::{ActiveScene, InputConfig},
     input::{
-        apply_camera_input, apply_fov_action, apply_grab_action, apply_jump_action,
-        apply_noclip_toggle, apply_player_respawn, apply_shoot_action, apply_sprint_toggle,
-        apply_zoom_action, resolve_camera_input_config, resolve_overlay_toggles, update_grab_hold,
-        update_grab_hover, CameraLookState, FovBinding, GrabHover, GrabState, NoclipState,
-        PlayerBody, PlayerSpawn, SceneCamera, SceneFovConfig, SceneGrabConfig, SceneInputConfig,
-        SceneJumpConfig, SceneNoclipConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig,
-        SprintState, ZoomState,
+        resolve_camera_input_config, resolve_overlay_toggles, CameraLookState, FovBinding,
+        GrabHover, GrabState, NoclipState, PlayerBody, PlayerSpawn, SceneCamera, SceneFovConfig,
+        SceneGrabConfig, SceneInputConfig, SceneJumpConfig, SceneNoclipConfig, SceneShootConfig,
+        SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
     },
     loaders::{
-        load_entity_template_from_path, load_entities_config, load_input_config,
-        load_grab_action_config, load_jump_action_config, load_noclip_action_config,
+        load_entity_template_from_path, load_entities_config, load_grab_action_config,
+        load_input_config, load_jump_action_config, load_noclip_action_config,
         load_shoot_action_config, load_sprint_action_config, load_world_config,
         load_zoom_action_config,
     },
     world::WorldConfig,
-    AppState,
 };
 
-use super::lights::spawn_lights;
-use super::logging::{log_camera, log_lights};
-use super::overlay::{spawn_overlays_from_config, OverlayTag};
-use super::sun::spawn_sun;
-use super::world::spawn_world_entities;
+use super::render::apply_render_settings;
+use crate::scenes::spawn::lights::spawn_lights;
+use crate::scenes::spawn::sun::spawn_sun;
+use crate::scenes::spawn::world::spawn_world_entities;
 
-pub struct ScenePlugin {
-    scene: &'static str,
-}
-
-impl ScenePlugin {
-    pub const fn new(scene: &'static str) -> Self {
-        Self { scene }
-    }
-}
-
-impl Plugin for ScenePlugin {
-    fn build(&self, app: &mut App) {
-        app.insert_resource(ActiveScene {
-            name: self.scene.to_string(),
-        });
-        app.add_systems(OnEnter(AppState::Main), setup_scene);
-        app.add_systems(OnEnter(AppState::Main), configure_main_cursor);
-        app.add_systems(
-            OnEnter(AppState::Main),
-            (log_lights, log_camera, spawn_overlays_from_config).after(setup_scene),
-        );
-        app.add_systems(Update, apply_camera_input.run_if(in_state(AppState::Main)));
-        app.add_systems(Update, apply_fov_action.run_if(in_state(AppState::Main)));
-        app.add_systems(Update, update_grab_hover.run_if(in_state(AppState::Main)));
-        app.add_systems(
-            Update,
-            apply_grab_action
-                .after(update_grab_hover)
-                .run_if(in_state(AppState::Main)),
-        );
-        app.add_systems(
-            Update,
-            update_grab_hold
-                .after(apply_grab_action)
-                .run_if(in_state(AppState::Main)),
-        );
-        app.add_systems(Update, apply_jump_action.run_if(in_state(AppState::Main)));
-        app.add_systems(Update, apply_noclip_toggle.run_if(in_state(AppState::Main)));
-        app.add_systems(Update, apply_player_respawn.run_if(in_state(AppState::Main)));
-        app.add_systems(Update, apply_shoot_action.run_if(in_state(AppState::Main)));
-        app.add_systems(Update, apply_sprint_toggle.run_if(in_state(AppState::Main)));
-        app.add_systems(Update, apply_zoom_action.run_if(in_state(AppState::Main)));
-        app.add_systems(Update, despawn_out_of_bounds.run_if(in_state(AppState::Main)));
-        app.add_systems(Update, toggle_overlays.run_if(in_state(AppState::Main)));
-    }
-}
-
-fn setup_scene(
+pub(crate) fn setup_scene(
     active_scene: Res<ActiveScene>,
     app_config: Res<AppConfig>,
     mut commands: Commands,
@@ -149,7 +88,10 @@ fn setup_scene(
                     return;
                 }
                 let radius = shape.radius.unwrap_or(0.2);
-                let color = shape.color.as_deref().and_then(crate::scenes::config::parse_color)
+                let color = shape
+                    .color
+                    .as_deref()
+                    .and_then(crate::scenes::config::parse_color)
                     .unwrap_or([255, 165, 0]);
                 let sphere_material = materials.add(Color::srgb_u8(color[0], color[1], color[2]));
                 let sphere_mesh = meshes.add(Sphere::new(radius));
@@ -329,7 +271,10 @@ fn setup_scene(
         if let Some(rgb) = crate::scenes::config::parse_color(&skybox.color) {
             commands.insert_resource(ClearColor(Color::srgb_u8(rgb[0], rgb[1], rgb[2])));
         } else {
-            warn!("Failed to parse skybox color '{}'; leaving default clear color", skybox.color);
+            warn!(
+                "Failed to parse skybox color '{}'; leaving default clear color",
+                skybox.color
+            );
         }
     }
 
@@ -439,200 +384,5 @@ fn setup_scene(
                 ..default()
             },
         ));
-    }
-}
-
-fn toggle_overlays(
-    keys: Res<ButtonInput<KeyCode>>,
-    config: Option<Res<SceneInputConfig>>,
-    mut overlays: Query<(&OverlayTag, &mut Visibility)>,
-) {
-    let Some(config) = config else { return };
-    for overlay in &config.overlays {
-        let Some(key) = overlay.toggle else { continue };
-        if keys.just_pressed(key) {
-            for (_tag, mut vis) in overlays
-                .iter_mut()
-                .filter(|(tag, _)| tag.name == overlay.name)
-            {
-                vis.toggle_visible_hidden();
-            }
-        }
-    }
-}
-
-fn apply_render_settings(camera: &mut EntityCommands, render: &RenderConfig) {
-    let bloom_enabled = render.bloom.as_ref().is_some_and(|bloom| bloom.enabled);
-    let wants_hdr = render.hdr.unwrap_or(false) || bloom_enabled;
-    if wants_hdr {
-        camera.insert(Hdr);
-        if render.tonemapping.is_none() {
-            camera.insert(Tonemapping::default());
-        }
-        if render.exposure_ev100.is_none() {
-            let exposure = if bloom_enabled {
-                Exposure::INDOOR
-            } else {
-                Exposure::default()
-            };
-            camera.insert(exposure);
-        }
-    }
-
-    if let Some(tonemapping) = render
-        .tonemapping
-        .as_deref()
-        .and_then(parse_tonemapping)
-    {
-        camera.insert(tonemapping);
-    }
-
-    if let Some(ev100) = render.exposure_ev100 {
-        camera.insert(Exposure { ev100 });
-    }
-
-    if let Some(enabled) = render.deband_dither {
-        let dither = if enabled {
-            DebandDither::Enabled
-        } else {
-            DebandDither::Disabled
-        };
-        camera.insert(dither);
-    }
-
-    if let Some(bloom) = render.bloom.as_ref().filter(|bloom| bloom.enabled) {
-        camera.insert(resolve_bloom(bloom));
-    }
-
-    if let Some(fog) = render.fog.as_ref().filter(|fog| fog.enabled) {
-        camera.insert(resolve_fog(fog));
-    }
-}
-
-fn configure_main_cursor(mut windows: Query<&mut CursorOptions, With<PrimaryWindow>>) {
-    if let Ok(mut cursor) = windows.single_mut() {
-        cursor.grab_mode = CursorGrabMode::Locked;
-        cursor.visible = false;
-        cursor.hit_test = true;
-    }
-}
-
-fn parse_tonemapping(value: &str) -> Option<Tonemapping> {
-    let normalized = value.trim().to_ascii_lowercase().replace('-', "_");
-    match normalized.as_str() {
-        "none" => Some(Tonemapping::None),
-        "reinhard" => Some(Tonemapping::Reinhard),
-        "reinhard_luminance" => Some(Tonemapping::ReinhardLuminance),
-        "aces_fitted" => Some(Tonemapping::AcesFitted),
-        "agx" => Some(Tonemapping::AgX),
-        "somewhat_boring_display_transform" => {
-            Some(Tonemapping::SomewhatBoringDisplayTransform)
-        }
-        "tony_mc_mapface" => Some(Tonemapping::TonyMcMapface),
-        "blender_filmic" => Some(Tonemapping::BlenderFilmic),
-        _ => None,
-    }
-}
-
-fn resolve_bloom(config: &BloomConfig) -> Bloom {
-    let mut bloom = match config
-        .preset
-        .as_deref()
-        .map(|preset| preset.trim().to_ascii_lowercase().replace('-', "_"))
-        .as_deref()
-    {
-        Some("natural") => Bloom::NATURAL,
-        Some("old_school") => Bloom::OLD_SCHOOL,
-        Some("screen_blur") => Bloom::SCREEN_BLUR,
-        _ => Bloom::default(),
-    };
-
-    if let Some(value) = config.intensity {
-        bloom.intensity = value;
-    }
-    if let Some(value) = config.low_frequency_boost {
-        bloom.low_frequency_boost = value;
-    }
-    if let Some(value) = config.low_frequency_boost_curvature {
-        bloom.low_frequency_boost_curvature = value;
-    }
-    if let Some(value) = config.high_pass_frequency {
-        bloom.high_pass_frequency = value;
-    }
-    if let Some(prefilter) = config.prefilter.as_ref() {
-        bloom.prefilter = BloomPrefilter {
-            threshold: prefilter.threshold,
-            threshold_softness: prefilter.threshold_softness,
-        };
-    }
-    if let Some(mode) = config
-        .composite_mode
-        .as_deref()
-        .map(|mode| mode.trim().to_ascii_lowercase().replace('-', "_"))
-    {
-        bloom.composite_mode = match mode.as_str() {
-            "additive" => BloomCompositeMode::Additive,
-            _ => BloomCompositeMode::EnergyConserving,
-        };
-    }
-    if let Some(value) = config.max_mip_dimension {
-        bloom.max_mip_dimension = value;
-    }
-    if let Some(scale) = config.scale.as_ref() {
-        bloom.scale = Vec2::new(scale.x, scale.y);
-    }
-
-    bloom
-}
-
-fn resolve_fog(config: &FogConfig) -> DistanceFog {
-    let color = config
-        .color
-        .as_deref()
-        .and_then(crate::scenes::config::parse_color)
-        .unwrap_or([255, 255, 255]);
-    let alpha = config.alpha.unwrap_or(1.0).clamp(0.0, 1.0);
-    let fog_color = Color::srgba_u8(color[0], color[1], color[2], (alpha * 255.0) as u8);
-
-    let directional_light_color = if let Some(color) = config
-        .directional_light_color
-        .as_deref()
-        .and_then(crate::scenes::config::parse_color)
-    {
-        let alpha = config
-            .directional_light_alpha
-            .unwrap_or(1.0)
-            .clamp(0.0, 1.0);
-        Color::srgba_u8(color[0], color[1], color[2], (alpha * 255.0) as u8)
-    } else {
-        Color::NONE
-    };
-
-    let falloff = match config.falloff.as_ref() {
-        Some(FogFalloffConfig::Linear { start, end }) => FogFalloff::Linear {
-            start: *start,
-            end: *end,
-        },
-        Some(FogFalloffConfig::Exponential { density }) => {
-            FogFalloff::Exponential { density: *density }
-        }
-        Some(FogFalloffConfig::ExponentialSquared { density }) => {
-            FogFalloff::ExponentialSquared { density: *density }
-        }
-        Some(FogFalloffConfig::Atmospheric {
-            extinction,
-            inscattering,
-        }) => FogFalloff::Atmospheric {
-            extinction: Vec3::new(extinction.x, extinction.y, extinction.z),
-            inscattering: Vec3::new(inscattering.x, inscattering.y, inscattering.z),
-        },
-        None => FogFalloff::Linear { start: 0.0, end: 100.0 },
-    };
-
-    DistanceFog {
-        color: fog_color,
-        directional_light_color,
-        directional_light_exponent: config.directional_light_exponent.unwrap_or(8.0),
-        falloff,
     }
 }
