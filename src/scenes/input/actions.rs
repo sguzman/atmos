@@ -39,6 +39,7 @@ pub(crate) struct GrabOutline;
 pub(crate) struct GrabbedBody {
     original_body: RigidBody,
     original_gravity: f32,
+    original_sensor: bool,
 }
 
 pub fn apply_sprint_toggle(
@@ -398,6 +399,7 @@ pub fn apply_grab_action(
             &mut RigidBody,
             Option<&mut GravityScale>,
             Option<&mut Velocity>,
+            Option<&Sensor>,
         ),
         Without<PlayerBody>,
     >,
@@ -421,7 +423,7 @@ pub fn apply_grab_action(
     };
 
     if let Some(held) = state.held {
-        if let Ok((entity, mut body, mut gravity, velocity)) = bodies.get_mut(held) {
+        if let Ok((entity, mut body, mut gravity, velocity, _sensor)) = bodies.get_mut(held) {
             if let Ok(grabbed) = grabbed.get(entity) {
                 *body = grabbed.original_body;
                 let gravity_value = grabbed.original_gravity;
@@ -432,6 +434,9 @@ pub fn apply_grab_action(
                     }
                 }
                 commands.entity(entity).remove::<GrabbedBody>();
+                if config.action.disable_collision && !grabbed.original_sensor {
+                    commands.entity(entity).remove::<Sensor>();
+                }
             } else {
                 *body = RigidBody::Dynamic;
                 match gravity.as_mut() {
@@ -461,14 +466,16 @@ pub fn apply_grab_action(
         return;
     };
 
-    if let Ok((entity, mut body, mut gravity, velocity)) = bodies.get_mut(target) {
+    if let Ok((entity, mut body, mut gravity, velocity, sensor)) = bodies.get_mut(target) {
         if matches!(*body, RigidBody::Fixed) {
             return;
         }
         let original_gravity = gravity.as_ref().map(|g| g.0).unwrap_or(1.0);
+        let original_sensor = sensor.is_some();
         commands.entity(entity).insert(GrabbedBody {
             original_body: *body,
             original_gravity,
+            original_sensor,
         });
         *body = RigidBody::KinematicPositionBased;
         match gravity.as_mut() {
@@ -476,6 +483,9 @@ pub fn apply_grab_action(
             None => {
                 commands.entity(entity).insert(GravityScale(0.0));
             }
+        }
+        if config.action.disable_collision && sensor.is_none() {
+            commands.entity(entity).insert(Sensor);
         }
         if let Some(mut velocity) = velocity {
             velocity.linvel = Vec3::ZERO;
