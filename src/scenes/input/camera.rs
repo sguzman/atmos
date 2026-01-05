@@ -136,8 +136,6 @@ pub fn apply_camera_input(
                     speed = cfg.fast_speed.max(speed);
                 }
             }
-            let acceleration = noclip_cfg.map(|cfg| cfg.acceleration).unwrap_or(10.0);
-            let damping = noclip_cfg.map(|cfg| cfg.damping).unwrap_or(5.0);
             let mut vertical_axis = 0.0;
             if let Some(cfg) = noclip_config.as_ref() {
                 if let Some(key) = cfg.up_key {
@@ -160,14 +158,7 @@ pub fn apply_camera_input(
             }
 
             let target = direction * speed;
-
-            let accel_factor = (acceleration * dt).min(1.0);
-            let damping_factor = (damping * dt).min(1.0);
-            if direction.length_squared() > 0.0 {
-                state.velocity = state.velocity.lerp(target, accel_factor);
-            } else {
-                state.velocity = state.velocity.lerp(Vec3::ZERO, damping_factor);
-            }
+            state.velocity = target;
 
             if let Some(mut velocity) = body_velocity {
                 velocity.linvel = state.velocity;
