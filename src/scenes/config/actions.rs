@@ -173,7 +173,7 @@ pub struct GrabActionConfig {
     pub hold_distance: f32,
     pub hold_offset: Vec3Config,
     pub throw_speed: f32,
-    pub disable_collision: bool,
+    pub collision: bool,
     pub outline: GrabOutlineConfig,
 }
 
@@ -189,7 +189,7 @@ impl Default for GrabActionConfig {
                 z: 0.0,
             },
             throw_speed: 12.0,
-            disable_collision: true,
+            collision: false,
             outline: GrabOutlineConfig::default(),
         }
     }

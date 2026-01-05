@@ -434,7 +434,7 @@ pub fn apply_grab_action(
                     }
                 }
                 commands.entity(entity).remove::<GrabbedBody>();
-                if config.action.disable_collision && !grabbed.original_sensor {
+                if !config.action.collision && !grabbed.original_sensor {
                     commands.entity(entity).remove::<Sensor>();
                 }
             } else {
@@ -484,7 +484,7 @@ pub fn apply_grab_action(
                 commands.entity(entity).insert(GravityScale(0.0));
             }
         }
-        if config.action.disable_collision && sensor.is_none() {
+        if !config.action.collision && sensor.is_none() {
             commands.entity(entity).insert(Sensor);
         }
         if let Some(mut velocity) = velocity {
