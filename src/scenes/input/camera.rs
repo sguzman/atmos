@@ -7,6 +7,8 @@ use bevy::{
         Vec3, With, Without,
     },
 };
+#[cfg(target_arch = "wasm32")]
+use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
 use bevy_rapier3d::prelude::Velocity;
 
 use crate::app_config::AppConfig;
@@ -33,6 +35,8 @@ pub fn apply_camera_input(
     config: Option<Res<SceneInputConfig>>,
     mut cameras: Query<&mut Transform, (With<SceneCamera>, Without<PlayerBody>)>,
     mut bodies: Query<(&mut Transform, Option<&mut Velocity>), With<PlayerBody>>,
+    #[cfg(target_arch = "wasm32")]
+    mut cursor: Query<&mut CursorOptions, With<PrimaryWindow>>,
     mut app_exit: MessageWriter<AppExit>,
 ) {
     let Some(config) = config else {
@@ -40,7 +44,20 @@ pub fn apply_camera_input(
     };
 
     if keys.just_pressed(KeyCode::Escape) {
-        app_exit.write(AppExit::Success);
+        #[cfg(target_arch = "wasm32")]
+        {
+            if let Ok(mut cursor) = cursor.single_mut() {
+                if cursor.grab_mode == CursorGrabMode::Locked {
+                    cursor.grab_mode = CursorGrabMode::None;
+                    cursor.visible = true;
+                }
+            }
+            return;
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            app_exit.write(AppExit::Success);
+        }
         return;
     }
 
