@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::scenes::config::{
     action_config_path, ComboTemplate, EntityTemplate, GrabActionConfig, InputConfig,
-    JumpActionConfig, NoclipActionConfig, OverlayConfig, QuitActionConfig,
+    JumpActionConfig, NoclipActionConfig, OverlayConfig, QuitActionConfig, ReloadActionConfig,
     SceneTransitionActionConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig,
     input_config_path, overlay_config_path,
 };
@@ -229,6 +229,24 @@ pub fn load_grab_action_config(
         &path,
         None,
         "grab action",
+    )
+}
+
+pub fn load_reload_action_config(
+    scene: &str,
+    action_path: &str,
+    cache: &mut TomlCache,
+    asset_server: &AssetServer,
+    toml_assets: &Assets<TomlAsset>,
+) -> ConfigLoad<Option<ReloadActionConfig>> {
+    let path = action_config_path(scene, action_path);
+    load_toml_config(
+        cache,
+        asset_server,
+        toml_assets,
+        &path,
+        None,
+        "reload action",
     )
 }
 

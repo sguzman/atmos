@@ -13,13 +13,14 @@ use crate::scenes::{
     input::{
         resolve_camera_input_config, resolve_overlay_toggles, CameraLookState, FovBinding,
         GrabHover, GrabState, NoclipState, PlayerBody, PlayerSpawn, SceneCamera, SceneFovConfig,
-        SceneGrabConfig, SceneInputConfig, SceneJumpConfig, SceneNoclipConfig, SceneShootConfig,
-        SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
+        SceneGrabConfig, SceneInputConfig, SceneJumpConfig, SceneNoclipConfig, SceneReloadConfig,
+        SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
     },
     loaders::{
         load_entity_template_from_path, load_entities_config, load_grab_action_config,
         load_input_config, load_jump_action_config, load_noclip_action_config,
-        load_shoot_action_config, load_sprint_action_config, load_world_config,
+        load_reload_action_config, load_shoot_action_config, load_sprint_action_config,
+        load_world_config,
         load_zoom_action_config, ConfigLoad, TomlCache,
     },
     world::WorldConfig,
@@ -314,6 +315,30 @@ pub(crate) fn setup_scene(
                 });
                 commands.insert_resource(GrabState::default());
                 commands.insert_resource(GrabHover::default());
+            }
+        }
+    }
+
+    if let Some(action_binding) = input_config
+        .actions
+        .iter()
+        .find(|action| action.action.ends_with("reload.toml"))
+    {
+        if let Some(trigger) =
+            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "reload")
+        {
+            let action = match load_reload_action_config(
+                &active_scene.name,
+                &action_binding.action,
+                &mut toml_cache,
+                &asset_server,
+                &toml_assets,
+            ) {
+                ConfigLoad::Pending => return,
+                ConfigLoad::Ready(action) => action,
+            };
+            if action.is_some() {
+                commands.insert_resource(SceneReloadConfig { trigger });
             }
         }
     }

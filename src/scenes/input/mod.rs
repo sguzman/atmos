@@ -16,6 +16,7 @@ pub use resolve::{
 pub use types::{
     CameraLookState, FovBinding, GrabHover, GrabState, NoclipState, PlayerBody, PlayerSpawn,
     SceneCamera, SceneFovConfig, SceneGrabConfig, SceneInputConfig, SceneJumpConfig,
-    SceneNoclipConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState,
+    SceneNoclipConfig, SceneReloadConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig,
+    SprintState,
     ZoomState,
 };

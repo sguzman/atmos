@@ -97,6 +97,11 @@ pub struct SceneGrabConfig {
     pub outline_color: Color,
 }
 
+#[derive(Resource, Clone)]
+pub struct SceneReloadConfig {
+    pub trigger: KeyCode,
+}
+
 #[derive(Resource, Default)]
 pub struct ZoomState {
     pub active: bool,

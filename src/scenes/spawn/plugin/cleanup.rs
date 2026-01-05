@@ -13,10 +13,18 @@ pub(crate) fn cleanup_main_scene(
     scene_entities: Query<Entity, With<SceneEntityTag>>,
     overlays: Query<Entity, With<OverlayTag>>,
 ) {
-    for entity in &scene_entities {
+    cleanup_main_scene_inner(&mut commands, &scene_entities, &overlays);
+}
+
+pub(crate) fn cleanup_main_scene_inner(
+    commands: &mut Commands,
+    scene_entities: &Query<Entity, With<SceneEntityTag>>,
+    overlays: &Query<Entity, With<OverlayTag>>,
+) {
+    for entity in scene_entities {
         commands.entity(entity).despawn();
     }
-    for entity in &overlays {
+    for entity in overlays {
         commands.entity(entity).despawn();
     }
 

@@ -4,7 +4,7 @@ use bevy::{
 };
 
 #[derive(Resource, Default)]
-pub(super) struct SceneLogState {
+pub(crate) struct SceneLogState {
     pub logged: bool,
 }
 

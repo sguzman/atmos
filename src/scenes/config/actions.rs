@@ -202,3 +202,17 @@ impl Default for QuitActionConfig {
         }
     }
 }
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct ReloadActionConfig {
+    pub name: String,
+}
+
+impl Default for ReloadActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "reload".to_string(),
+        }
+    }
+}

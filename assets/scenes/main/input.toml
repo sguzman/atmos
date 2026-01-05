@@ -53,6 +53,11 @@ action = "actions/grab.toml"
 key = "g"
 
 [[actions]]
+name = "reload"
+action = "actions/reload.toml"
+key = "r"
+
+[[actions]]
 name = "fov_1"
 action = "actions/fov.toml"
 key = "1"
