@@ -82,10 +82,12 @@ fn run_app(
             .add_plugins(WorldInspectorPlugin::new());
     }
 
+    let initial_state = initial_state_from_world();
+
     app.init_asset::<scenes::TomlAsset>()
         .init_asset_loader::<scenes::TomlAssetLoader>()
         .init_asset_loader::<scenes::MeshCacheLoader>()
-        .insert_state(scenes::AppState::default())
+        .insert_state(initial_state)
         .add_plugins(scenes::MenuPlugin)
         .add_plugins(scenes::ScenePlugin::new("main"))
         .run();
@@ -115,4 +117,27 @@ enum Commands {}
 
 fn bake_mesh_cache(scene: Option<&str>, settings: &scenes::MeshCacheSettings) -> Result<(), String> {
     scenes::bake_meshes(scene, settings).map_err(|err| err.to_string())
+}
+
+fn initial_state_from_world() -> scenes::AppState {
+    let contents = load_world_startup_toml();
+    if let Some(contents) = contents {
+        if let Ok(cfg) = toml::from_str::<scenes::WorldConfig>(&contents) {
+            if let Some(scene) = cfg.startup_scene.as_deref() {
+                return scenes::AppState::from_scene_name(scene);
+            }
+        }
+    }
+    scenes::AppState::default()
+}
+
+fn load_world_startup_toml() -> Option<String> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        return Some(include_str!("../assets/scenes/main/world.toml").to_string());
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        return std::fs::read_to_string("assets/scenes/main/world.toml").ok();
+    }
 }

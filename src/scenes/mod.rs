@@ -17,4 +17,5 @@ pub use loaders::TomlCache;
 pub use mesh_cache::{
     bake_meshes, load_or_generate_mesh_handle, MeshCacheLoader, MeshCacheSettings,
 };
+pub use world::WorldConfig;
 pub use toml_asset::{TomlAsset, TomlAssetLoader};
