@@ -312,7 +312,7 @@ pub(crate) fn setup_scene(
     });
     commands.insert_resource(CameraLookState { pitch });
 
-    let body_half = Vec3::splat(0.25);
+    let body_half = Vec3::splat(0.5);
     let (body_type, gravity_scale) = if initial_noclip.unwrap_or(false) {
         (RigidBody::KinematicPositionBased, 0.0)
     } else {

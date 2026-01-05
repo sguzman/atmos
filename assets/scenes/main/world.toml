@@ -41,7 +41,7 @@ hdr = false
 tonemapping = "reinhard_luminance"
 
 [render.bloom]
-enabled = false
+enabled = true
 preset = "natural"
 intensity = 0.15
 low_frequency_boost = 0.7
@@ -55,7 +55,7 @@ threshold = 0.0
 threshold_softness = 0.0
 
 [render.fog]
-enabled = false
+enabled = true
 color = "white"
 alpha = 1.0
 directional_light_color = "white"
