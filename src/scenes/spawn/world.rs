@@ -75,6 +75,10 @@ pub(super) fn spawn_world_entities(
         return ConfigLoad::Pending;
     }
 
+    if combos_need_assets(&resolved, active_scene, toml_assets, asset_server, toml_cache) {
+        return ConfigLoad::Pending;
+    }
+
     for (entity, template) in resolved {
         match template {
             ResolvedTemplate::Combo(combo) => {
@@ -119,4 +123,31 @@ pub(super) fn spawn_world_entities(
 enum ResolvedTemplate {
     Combo(ComboTemplate),
     Entity(EntityTemplate),
+}
+
+fn combos_need_assets(
+    resolved: &[( &crate::scenes::entities::EntityPlacement, ResolvedTemplate )],
+    active_scene: &ActiveScene,
+    toml_assets: &Assets<TomlAsset>,
+    asset_server: &AssetServer,
+    toml_cache: &mut TomlCache,
+) -> bool {
+    for (_entity, template) in resolved {
+        let ResolvedTemplate::Combo(combo) = template else {
+            continue;
+        };
+        for part in &combo.parts {
+            match load_entity_template_from_path(
+                &active_scene.name,
+                &part.template,
+                toml_cache,
+                asset_server,
+                toml_assets,
+            ) {
+                ConfigLoad::Pending => return true,
+                ConfigLoad::Ready(_) => {}
+            }
+        }
+    }
+    false
 }
