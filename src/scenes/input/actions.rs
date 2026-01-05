@@ -392,7 +392,15 @@ pub fn apply_grab_action(
     hover: Option<Res<GrabHover>>,
     cameras: Query<&GlobalTransform, With<SceneCamera>>,
     grabbed: Query<&GrabbedBody>,
-    mut bodies: Query<(Entity, &mut RigidBody, &mut GravityScale, &mut Velocity), Without<PlayerBody>>,
+    mut bodies: Query<
+        (
+            Entity,
+            &mut RigidBody,
+            Option<&mut GravityScale>,
+            Option<&mut Velocity>,
+        ),
+        Without<PlayerBody>,
+    >,
     mut commands: Commands,
 ) {
     let Some(config) = config else {
@@ -413,18 +421,37 @@ pub fn apply_grab_action(
     };
 
     if let Some(held) = state.held {
-        if let Ok((entity, mut body, mut gravity, mut velocity)) = bodies.get_mut(held) {
+        if let Ok((entity, mut body, mut gravity, velocity)) = bodies.get_mut(held) {
             if let Ok(grabbed) = grabbed.get(entity) {
                 *body = grabbed.original_body;
-                gravity.0 = grabbed.original_gravity;
+                let gravity_value = grabbed.original_gravity;
+                match gravity.as_mut() {
+                    Some(gravity) => gravity.0 = gravity_value,
+                    None => {
+                        commands.entity(entity).insert(GravityScale(gravity_value));
+                    }
+                }
                 commands.entity(entity).remove::<GrabbedBody>();
             } else {
                 *body = RigidBody::Dynamic;
-                gravity.0 = 1.0;
+                match gravity.as_mut() {
+                    Some(gravity) => gravity.0 = 1.0,
+                    None => {
+                        commands.entity(entity).insert(GravityScale(1.0));
+                    }
+                }
             }
 
-            velocity.linvel = camera.forward() * config.action.throw_speed.max(0.0);
-            velocity.angvel = Vec3::ZERO;
+            let throw_velocity = camera.forward().as_vec3() * config.action.throw_speed.max(0.0);
+            if let Some(mut velocity) = velocity {
+                velocity.linvel = throw_velocity;
+                velocity.angvel = Vec3::ZERO;
+            } else {
+                commands.entity(entity).insert(Velocity {
+                    linvel: throw_velocity,
+                    angvel: Vec3::ZERO,
+                });
+            }
         }
         state.held = None;
         return;
@@ -434,18 +461,28 @@ pub fn apply_grab_action(
         return;
     };
 
-    if let Ok((entity, mut body, mut gravity, mut velocity)) = bodies.get_mut(target) {
+    if let Ok((entity, mut body, mut gravity, velocity)) = bodies.get_mut(target) {
         if matches!(*body, RigidBody::Fixed) {
             return;
         }
+        let original_gravity = gravity.as_ref().map(|g| g.0).unwrap_or(1.0);
         commands.entity(entity).insert(GrabbedBody {
             original_body: *body,
-            original_gravity: gravity.0,
+            original_gravity,
         });
         *body = RigidBody::KinematicPositionBased;
-        gravity.0 = 0.0;
-        velocity.linvel = Vec3::ZERO;
-        velocity.angvel = Vec3::ZERO;
+        match gravity.as_mut() {
+            Some(gravity) => gravity.0 = 0.0,
+            None => {
+                commands.entity(entity).insert(GravityScale(0.0));
+            }
+        }
+        if let Some(mut velocity) = velocity {
+            velocity.linvel = Vec3::ZERO;
+            velocity.angvel = Vec3::ZERO;
+        } else {
+            commands.entity(entity).insert(Velocity::default());
+        }
         state.held = Some(entity);
     }
 }
