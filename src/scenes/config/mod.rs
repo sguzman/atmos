@@ -16,7 +16,7 @@ mod sun;
 mod skybox;
 mod transforms;
 
-pub use active::{ActiveScene, OVERLAY_ROOT, SCENE_ROOT};
+pub use active::{ActiveScene, OVERLAY_ROOT, SCENE_FS_ROOT, SCENE_ROOT};
 pub use actions::{
     GrabActionConfig, JumpActionConfig, NoclipActionConfig, QuitActionConfig,
     SceneTransitionActionConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig,

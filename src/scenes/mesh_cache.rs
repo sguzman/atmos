@@ -11,7 +11,7 @@ use bevy_mesh::{Indices, MeshVertexAttribute, VertexAttributeValues};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::scenes::config::{EntityTemplate, ShapeConfig, ShapeKind, SCENE_ROOT};
+use crate::scenes::config::{EntityTemplate, ShapeConfig, ShapeKind, SCENE_FS_ROOT};
 use crate::scenes::world::WorldConfig;
 
 #[derive(Resource, Debug, Clone)]
@@ -183,7 +183,7 @@ pub fn bake_meshes(scene: Option<&str>, settings: &MeshCacheSettings) -> Result<
     let scenes = resolve_scenes(scene)?;
     let mut shapes = Vec::new();
     for scene_name in scenes {
-        let entities_root = Path::new(SCENE_ROOT)
+        let entities_root = Path::new(SCENE_FS_ROOT)
             .join(&scene_name)
             .join("entities");
         if !entities_root.exists() {
@@ -231,7 +231,7 @@ fn collect_shapes(root: &Path, shapes: &mut Vec<ShapeConfig>) -> Result<(), Mesh
 }
 
 fn collect_world_shapes(scene: &str, shapes: &mut Vec<ShapeConfig>) -> Result<(), MeshCacheError> {
-    let world_path = Path::new(SCENE_ROOT).join(scene).join("world.toml");
+    let world_path = Path::new(SCENE_FS_ROOT).join(scene).join("world.toml");
     if !world_path.exists() {
         return Ok(());
     }
@@ -258,7 +258,7 @@ fn resolve_scenes(scene: Option<&str>) -> Result<Vec<String>, MeshCacheError> {
         return Ok(vec![scene.to_string()]);
     }
     let mut scenes = Vec::new();
-    let root = Path::new(SCENE_ROOT);
+    let root = Path::new(SCENE_FS_ROOT);
     if !root.exists() {
         return Ok(scenes);
     }
