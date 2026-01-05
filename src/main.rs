@@ -44,15 +44,22 @@ fn main() {
             .set(log_plugin)
             .set(window_plugin),
     )
-    .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
-    .add_plugins(RapierDebugRenderPlugin::default())
-    .add_plugins(EguiPlugin::default())
-    .add_plugins(WorldInspectorPlugin::new())
-    .init_asset_loader::<scenes::MeshCacheLoader>()
-    .insert_state(initial_state)
-    .add_plugins(scenes::MenuPlugin)
-    .add_plugins(scenes::ScenePlugin::new("main"))
-    .run();
+    .add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
+
+    if app_config.debug.rapier_debug {
+        app.add_plugins(RapierDebugRenderPlugin::default());
+    }
+
+    if app_config.debug.inspector {
+        app.add_plugins(EguiPlugin::default())
+            .add_plugins(WorldInspectorPlugin::new());
+    }
+
+    app.init_asset_loader::<scenes::MeshCacheLoader>()
+        .insert_state(initial_state)
+        .add_plugins(scenes::MenuPlugin)
+        .add_plugins(scenes::ScenePlugin::new("main"))
+        .run();
 }
 
 #[derive(Parser)]

@@ -8,7 +8,7 @@ use bevy::{
 use bevy_winit::{UpdateMode, WinitSettings};
 use serde::Deserialize;
 
-const CONFIG_PATH: &str = "config/app.toml";
+const CONFIG_PATH: &str = "assets/config.toml";
 
 #[derive(Resource, Debug, Clone, Deserialize)]
 #[serde(default)]
@@ -19,6 +19,7 @@ pub struct AppConfig {
     pub window: WindowConfig,
     pub msaa_samples: Option<u32>,
     pub mouse: MouseConfig,
+    pub debug: DebugConfig,
 }
 
 impl Default for AppConfig {
@@ -30,6 +31,7 @@ impl Default for AppConfig {
             window: WindowConfig::default(),
             msaa_samples: Some(4),
             mouse: MouseConfig::default(),
+            debug: DebugConfig::default(),
         }
     }
 }
@@ -81,6 +83,22 @@ impl Default for MouseConfig {
             sensitivity: 0.0025,
             invert_x: false,
             invert_y: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
+pub struct DebugConfig {
+    pub rapier_debug: bool,
+    pub inspector: bool,
+}
+
+impl Default for DebugConfig {
+    fn default() -> Self {
+        Self {
+            rapier_debug: false,
+            inspector: false,
         }
     }
 }
