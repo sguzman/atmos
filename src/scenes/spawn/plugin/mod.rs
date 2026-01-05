@@ -12,13 +12,15 @@ use crate::scenes::{
     AppState,
 };
 
-use super::logging::{log_camera, log_lights};
-use super::overlay::spawn_overlays_from_config;
+use super::logging::{log_after_setup, reset_scene_log_state};
+use super::overlay::{reset_overlay_spawn_state, spawn_overlays_from_config};
 
 mod cursor;
 mod overlays;
 mod render;
 mod setup;
+
+pub(crate) use setup::SceneSetupState;
 
 pub struct ScenePlugin {
     scene: &'static str,
@@ -35,12 +37,16 @@ impl Plugin for ScenePlugin {
         app.insert_resource(ActiveScene {
             name: self.scene.to_string(),
         });
-        app.add_systems(OnEnter(AppState::Main), setup::setup_scene);
+        app.init_resource::<setup::SceneSetupState>();
+        app.init_resource::<setup::StartupSceneState>();
+        app.init_resource::<super::logging::SceneLogState>();
+        app.add_systems(OnEnter(AppState::Main), setup::reset_scene_setup_state);
+        app.add_systems(OnEnter(AppState::Main), reset_scene_log_state);
+        app.add_systems(OnEnter(AppState::Main), reset_overlay_spawn_state);
         app.add_systems(OnEnter(AppState::Main), cursor::configure_main_cursor);
-        app.add_systems(
-            OnEnter(AppState::Main),
-            (log_lights, log_camera, spawn_overlays_from_config).after(setup::setup_scene),
-        );
+        app.add_systems(Update, setup::setup_scene.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, log_after_setup.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, spawn_overlays_from_config.run_if(in_state(AppState::Main)));
         app.add_systems(Update, apply_camera_input.run_if(in_state(AppState::Main)));
         app.add_systems(Update, apply_fov_action.run_if(in_state(AppState::Main)));
         app.add_systems(Update, update_grab_hover.run_if(in_state(AppState::Main)));

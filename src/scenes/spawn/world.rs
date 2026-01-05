@@ -4,10 +4,10 @@ use bevy::{
 };
 
 use crate::scenes::{
-    config::ActiveScene,
+    config::{ActiveScene, ComboTemplate, EntityTemplate},
     entities::EntitiesConfig,
-    loaders::{load_combo_template_from_path, load_entity_template_from_path},
-    MeshCacheSettings,
+    loaders::{load_combo_template_from_path, load_entity_template_from_path, ConfigLoad, TomlCache},
+    MeshCacheSettings, TomlAsset,
 };
 
 use super::combo::spawn_combo_template;
@@ -21,54 +21,102 @@ pub(super) fn spawn_world_entities(
     asset_server: &AssetServer,
     active_scene: &ActiveScene,
     mesh_cache: &MeshCacheSettings,
-) {
+    toml_assets: &Assets<TomlAsset>,
+    toml_cache: &mut TomlCache,
+) -> ConfigLoad<()> {
+    let mut pending = false;
+    let mut resolved = Vec::new();
+
     for entity in &entities.entities {
-        if entity.template.starts_with("combo/")
-            || entity.template.ends_with(".combo.toml")
-        {
-            let Some(combo) =
-                load_combo_template_from_path(&active_scene.name, &entity.template)
-            else {
-                warn!(
-                    "Failed to load combo template '{}' in scene '{}'; skipping.",
-                    entity.template, active_scene.name
-                );
-                continue;
-            };
-            spawn_combo_template(
-                &combo,
-                &entity.transform,
-                &entity.overrides,
-                entity.name_override.as_ref(),
-                mesh_cache,
-                commands,
-                meshes,
-                materials,
+        let is_combo = entity.template.starts_with("combo/")
+            || entity.template.ends_with(".combo.toml");
+        if is_combo {
+            match load_combo_template_from_path(
+                &active_scene.name,
+                &entity.template,
+                toml_cache,
                 asset_server,
-                active_scene,
-            );
+                toml_assets,
+            ) {
+                ConfigLoad::Pending => pending = true,
+                ConfigLoad::Ready(Some(combo)) => {
+                    resolved.push((entity, ResolvedTemplate::Combo(combo)));
+                }
+                ConfigLoad::Ready(None) => {
+                    warn!(
+                        "Failed to load combo template '{}' in scene '{}'; skipping.",
+                        entity.template, active_scene.name
+                    );
+                }
+            }
         } else {
-            let Some(template) =
-                load_entity_template_from_path(&active_scene.name, &entity.template)
-            else {
-                warn!(
-                    "Failed to load template '{}' in scene '{}'; skipping.",
-                    entity.template, active_scene.name
-                );
-                continue;
-            };
-            spawn_entity_from_template(
-                &template,
-                &entity.overrides,
-                &entity.transform,
-                entity.name_override.as_ref(),
-                mesh_cache,
-                commands,
-                meshes,
-                materials,
+            match load_entity_template_from_path(
+                &active_scene.name,
+                &entity.template,
+                toml_cache,
                 asset_server,
-                active_scene,
-            );
+                toml_assets,
+            ) {
+                ConfigLoad::Pending => pending = true,
+                ConfigLoad::Ready(Some(template)) => {
+                    resolved.push((entity, ResolvedTemplate::Entity(template)));
+                }
+                ConfigLoad::Ready(None) => {
+                    warn!(
+                        "Failed to load template '{}' in scene '{}'; skipping.",
+                        entity.template, active_scene.name
+                    );
+                }
+            }
         }
     }
+
+    if pending {
+        return ConfigLoad::Pending;
+    }
+
+    for (entity, template) in resolved {
+        match template {
+            ResolvedTemplate::Combo(combo) => {
+                let ready = spawn_combo_template(
+                    &combo,
+                    &entity.transform,
+                    &entity.overrides,
+                    entity.name_override.as_ref(),
+                    mesh_cache,
+                    commands,
+                    meshes,
+                    materials,
+                    asset_server,
+                    active_scene,
+                    toml_assets,
+                    toml_cache,
+                );
+                if matches!(ready, ConfigLoad::Pending) {
+                    return ConfigLoad::Pending;
+                }
+            }
+            ResolvedTemplate::Entity(template) => {
+                spawn_entity_from_template(
+                    &template,
+                    &entity.overrides,
+                    &entity.transform,
+                    entity.name_override.as_ref(),
+                    mesh_cache,
+                    commands,
+                    meshes,
+                    materials,
+                    asset_server,
+                    active_scene,
+                );
+            }
+        }
+    }
+
+    ConfigLoad::Ready(())
+}
+
+enum ResolvedTemplate {
+    Combo(ComboTemplate),
+    Entity(EntityTemplate),
 }

@@ -9,9 +9,11 @@ use bevy::state::condition::in_state;
 
 use super::input::{resolve_camera_input_config, resolve_key_or_warn, resolve_overlay_toggles, SceneInputConfig};
 use super::loaders::{
-    load_input_config, load_quit_action_config, load_scene_transition_action_config,
+    load_input_config, load_quit_action_config, load_scene_transition_action_config, ConfigLoad,
+    TomlCache,
 };
-use super::spawn::{spawn_overlays_from_config, OverlayTag};
+use super::spawn::{spawn_overlays_from_config, reset_overlay_spawn_state, OverlayTag};
+use super::TomlAsset;
 use super::AppState;
 
 #[derive(Component)]
@@ -32,19 +34,44 @@ pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(AppState::Menu), setup_menu);
+        app.init_resource::<MenuSetupState>();
+        app.add_systems(OnEnter(AppState::Menu), reset_menu_setup_state);
+        app.add_systems(OnEnter(AppState::Menu), reset_overlay_spawn_state);
+        app.add_systems(OnEnter(AppState::Menu), configure_menu_cursor);
+        app.add_systems(Update, setup_menu.run_if(in_state(AppState::Menu)));
         app.add_systems(
-            OnEnter(AppState::Menu),
-            spawn_overlays_from_config.after(setup_menu),
+            Update,
+            spawn_overlays_from_config.run_if(in_state(AppState::Menu)),
         );
         app.add_systems(OnExit(AppState::Menu), cleanup_menu);
         app.add_systems(Update, handle_menu_input.run_if(in_state(AppState::Menu)));
-        app.add_systems(OnEnter(AppState::Menu), configure_menu_cursor);
     }
 }
 
-fn setup_menu(mut commands: Commands) {
-    let input_config = load_input_config("menu");
+#[derive(Resource, Default)]
+struct MenuSetupState {
+    done: bool,
+}
+
+fn reset_menu_setup_state(mut commands: Commands) {
+    commands.insert_resource(MenuSetupState::default());
+}
+
+fn setup_menu(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    toml_assets: Res<Assets<TomlAsset>>,
+    mut toml_cache: ResMut<TomlCache>,
+    mut setup_state: ResMut<MenuSetupState>,
+) {
+    if setup_state.done {
+        return;
+    }
+    let input_config = match load_input_config("menu", &mut toml_cache, &asset_server, &toml_assets)
+    {
+        ConfigLoad::Pending => return,
+        ConfigLoad::Ready(config) => config,
+    };
     let camera_input =
         resolve_camera_input_config(&input_config.camera.movement, &input_config.camera.rotation);
     commands.insert_resource(SceneInputConfig {
@@ -59,10 +86,17 @@ fn setup_menu(mut commands: Commands) {
             if let Some(trigger) =
                 resolve_key_or_warn(&action_binding.key, "menu scene transition")
             {
-                if let Some(action) = load_scene_transition_action_config(
+                let action = match load_scene_transition_action_config(
                     "menu",
                     &action_binding.action,
+                    &mut toml_cache,
+                    &asset_server,
+                    &toml_assets,
                 ) {
+                    ConfigLoad::Pending => return,
+                    ConfigLoad::Ready(action) => action,
+                };
+                if let Some(action) = action {
                     transition = Some(MenuSceneTransition {
                         trigger,
                         target_scene: action.target_scene,
@@ -72,7 +106,17 @@ fn setup_menu(mut commands: Commands) {
         }
         if action_binding.action.ends_with("quit.toml") {
             if let Some(trigger) = resolve_key_or_warn(&action_binding.key, "menu quit") {
-                if load_quit_action_config("menu", &action_binding.action).is_some() {
+                let action = match load_quit_action_config(
+                    "menu",
+                    &action_binding.action,
+                    &mut toml_cache,
+                    &asset_server,
+                    &toml_assets,
+                ) {
+                    ConfigLoad::Pending => return,
+                    ConfigLoad::Ready(action) => action,
+                };
+                if action.is_some() {
                     quit = Some(MenuQuitAction { trigger });
                 }
             }
@@ -96,6 +140,8 @@ fn setup_menu(mut commands: Commands) {
     } else {
         commands.spawn((Camera3d::default(), MenuCamera));
     }
+
+    setup_state.done = true;
 }
 
 fn cleanup_menu(

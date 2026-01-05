@@ -9,7 +9,8 @@ use crate::scenes::config::{
     EntityTemplate, TransformOverrides, Vec3Config,
 };
 use crate::scenes::MeshCacheSettings;
-use crate::scenes::loaders::load_entity_template_from_path;
+use crate::scenes::loaders::{load_entity_template_from_path, ConfigLoad, TomlCache};
+use crate::scenes::TomlAsset;
 
 use super::entities::{
     apply_transform_additive, apply_translation, merge_light, merge_physics, merge_shape,
@@ -27,7 +28,9 @@ pub(super) fn spawn_combo_template(
     materials: &mut Assets<StandardMaterial>,
     asset_server: &AssetServer,
     active_scene: &ActiveScene,
-) {
+    toml_assets: &Assets<TomlAsset>,
+    toml_cache: &mut TomlCache,
+) -> ConfigLoad<()> {
     let combo_name = name_override
         .cloned()
         .unwrap_or_else(|| combo.name.clone());
@@ -45,9 +48,17 @@ pub(super) fn spawn_combo_template(
 
     let mut loaded_parts = Vec::new();
     for part in &combo.parts {
-        let Some(template) =
-            load_entity_template_from_path(&active_scene.name, &part.template)
-        else {
+        let template = match load_entity_template_from_path(
+            &active_scene.name,
+            &part.template,
+            toml_cache,
+            asset_server,
+            toml_assets,
+        ) {
+            ConfigLoad::Pending => return ConfigLoad::Pending,
+            ConfigLoad::Ready(template) => template,
+        };
+        let Some(template) = template else {
             warn!(
                 "Failed to load combo part template '{}' in scene '{}'; skipping.",
                 part.template, active_scene.name
@@ -136,6 +147,8 @@ pub(super) fn spawn_combo_template(
             }
         }
     }
+
+    ConfigLoad::Ready(())
 }
 
 struct LoadedPart<'a> {

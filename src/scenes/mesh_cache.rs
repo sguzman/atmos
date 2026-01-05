@@ -131,23 +131,33 @@ pub fn load_or_generate_mesh_handle(
 ) -> Handle<Mesh> {
     let key = mesh_key_for_shape(shape);
     let asset_path = settings.asset_path_for_key(&key);
-    let fs_path = settings.fs_path_for_key(&key);
+    let handle = asset_server.load(asset_path);
 
-    if fs_path.exists() {
-        return asset_server.load(asset_path);
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let fs_path = settings.fs_path_for_key(&key);
+        if fs_path.exists() {
+            return handle;
+        }
+        if !settings.allow_runtime {
+            panic!(
+                "Mesh cache missing for '{key}'. Run `bake` or enable --allow-runtime-mesh in dev."
+            );
+        }
+        let mesh = build_mesh_from_shape(shape);
+        if let Err(err) = save_mesh_cache(&fs_path, &mesh) {
+            warn!("Failed to cache mesh '{key}': {err}");
+        }
+        return meshes.add(mesh);
     }
 
-    if !settings.allow_runtime {
-        panic!(
-            "Mesh cache missing for '{key}'. Run `bake` or enable --allow-runtime-mesh in dev."
-        );
+    #[cfg(target_arch = "wasm32")]
+    {
+        if settings.allow_runtime {
+            warn!("Runtime mesh generation requested for '{key}', but wasm builds cannot write cache.");
+        }
+        return handle;
     }
-
-    let mesh = build_mesh_from_shape(shape);
-    if let Err(err) = save_mesh_cache(&fs_path, &mesh) {
-        warn!("Failed to cache mesh '{key}': {err}");
-    }
-    meshes.add(mesh)
 }
 
 pub fn bake_all_meshes(settings: &MeshCacheSettings, shapes: &[ShapeConfig]) -> Result<(), MeshCacheError> {

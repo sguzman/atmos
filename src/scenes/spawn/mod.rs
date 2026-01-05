@@ -8,4 +8,4 @@ mod world;
 mod overlay;
 
 pub use plugin::ScenePlugin;
-pub use overlay::{spawn_overlays_from_config, OverlayTag};
+pub use overlay::{reset_overlay_spawn_state, spawn_overlays_from_config, OverlayTag};

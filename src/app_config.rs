@@ -1,3 +1,4 @@
+#[cfg(not(target_arch = "wasm32"))]
 use std::{fs, path::Path};
 
 use bevy::{
@@ -32,6 +33,28 @@ impl Default for AppConfig {
             msaa_samples: Some(4),
             mouse: MouseConfig::default(),
             debug: DebugConfig::default(),
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
+pub struct WasmConfig {
+    pub allow_runtime_mesh: bool,
+    pub fps_limit: Option<f64>,
+    pub rapier_debug: bool,
+    pub inspector: bool,
+}
+
+#[cfg(target_arch = "wasm32")]
+impl Default for WasmConfig {
+    fn default() -> Self {
+        Self {
+            allow_runtime_mesh: false,
+            fps_limit: Some(60.0),
+            rapier_debug: false,
+            inspector: false,
         }
     }
 }
@@ -131,6 +154,7 @@ impl PresentModeConfig {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn load_app_config() -> AppConfig {
     let default_config = AppConfig::default();
     if !Path::new(CONFIG_PATH).exists() {
@@ -149,10 +173,39 @@ pub fn load_app_config() -> AppConfig {
         }
     };
 
-    match toml::from_str::<AppConfig>(&contents) {
+    parse_app_config(&contents, CONFIG_PATH, default_config)
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn load_app_config() -> AppConfig {
+    let default_config = AppConfig::default();
+    let contents = include_str!("../assets/config.toml");
+    parse_app_config(contents, CONFIG_PATH, default_config)
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn load_wasm_config() -> WasmConfig {
+    let default_config = WasmConfig::default();
+    let contents = include_str!("../assets/wasm.toml");
+    parse_wasm_config(contents, "assets/wasm.toml", default_config)
+}
+
+fn parse_app_config(contents: &str, label: &str, default_config: AppConfig) -> AppConfig {
+    match toml::from_str::<AppConfig>(contents) {
         Ok(cfg) => cfg,
         Err(err) => {
-            warn!("Failed to parse {}: {err}; using defaults.", CONFIG_PATH);
+            warn!("Failed to parse {}: {err}; using defaults.", label);
+            default_config
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn parse_wasm_config(contents: &str, label: &str, default_config: WasmConfig) -> WasmConfig {
+    match toml::from_str::<WasmConfig>(contents) {
+        Ok(cfg) => cfg,
+        Err(err) => {
+            warn!("Failed to parse {}: {err}; using defaults.", label);
             default_config
         }
     }
@@ -216,5 +269,14 @@ impl AppConfig {
         } else {
             WinitSettings::game()
         }
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn apply_wasm_config(&mut self, wasm: &WasmConfig) {
+        if let Some(limit) = wasm.fps_limit {
+            self.fps_limit = Some(limit);
+        }
+        self.debug.rapier_debug = wasm.rapier_debug;
+        self.debug.inspector = wasm.inspector;
     }
 }

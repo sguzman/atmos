@@ -5,25 +5,54 @@ use bevy::{
 
 use crate::scenes::config::{parse_color, OverlayAnchor, OverlayElement, TextOverlay};
 use crate::scenes::input::SceneInputConfig;
-use crate::scenes::loaders::load_overlay_config;
+use crate::scenes::loaders::{load_overlay_config, ConfigLoad, TomlCache};
+use crate::scenes::TomlAsset;
 
 #[derive(Component)]
 pub struct OverlayTag {
     pub name: String,
 }
 
+#[derive(Resource, Default)]
+pub struct OverlaySpawnState {
+    pub done: bool,
+}
+
+pub fn reset_overlay_spawn_state(mut commands: Commands) {
+    commands.insert_resource(OverlaySpawnState::default());
+}
+
 pub fn spawn_overlays_from_config(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    toml_assets: Res<Assets<TomlAsset>>,
+    mut toml_cache: ResMut<TomlCache>,
     input: Option<Res<SceneInputConfig>>,
+    mut state: ResMut<OverlaySpawnState>,
 ) {
+    if state.done {
+        return;
+    }
     let names: Vec<String> = input
         .as_ref()
         .map(|cfg| cfg.overlays.iter().map(|o| o.name.clone()).collect())
         .unwrap_or_else(|| vec!["debug".to_string()]);
 
+    let mut overlays = Vec::new();
     for name in names {
-        let overlay = load_overlay_config(&name);
+        let overlay = match load_overlay_config(
+            &name,
+            &mut toml_cache,
+            &asset_server,
+            &toml_assets,
+        ) {
+            ConfigLoad::Pending => return,
+            ConfigLoad::Ready(config) => config,
+        };
+        overlays.push((name, overlay));
+    }
+
+    for (name, overlay) in overlays {
         for element in overlay.elements {
             match element {
                 OverlayElement::Text(text) => {
@@ -33,6 +62,7 @@ pub fn spawn_overlays_from_config(
             }
         }
     }
+    state.done = true;
 }
 
 fn spawn_text_overlay(

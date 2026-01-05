@@ -20,10 +20,10 @@ use crate::scenes::{
         load_entity_template_from_path, load_entities_config, load_grab_action_config,
         load_input_config, load_jump_action_config, load_noclip_action_config,
         load_shoot_action_config, load_sprint_action_config, load_world_config,
-        load_zoom_action_config,
+        load_zoom_action_config, ConfigLoad, TomlCache,
     },
     world::WorldConfig,
-    MeshCacheSettings,
+    AppState, MeshCacheSettings, TomlAsset,
 };
 
 use super::render::apply_render_settings;
@@ -31,22 +31,48 @@ use crate::scenes::spawn::lights::spawn_lights;
 use crate::scenes::spawn::sun::spawn_sun;
 use crate::scenes::spawn::world::spawn_world_entities;
 
+#[derive(Resource, Default)]
+pub(crate) struct SceneSetupState {
+    pub done: bool,
+}
+
+#[derive(Resource, Default)]
+pub(crate) struct StartupSceneState {
+    pub applied: bool,
+}
+
+pub(crate) fn reset_scene_setup_state(mut commands: Commands) {
+    commands.insert_resource(SceneSetupState::default());
+}
+
 pub(crate) fn setup_scene(
     active_scene: Res<ActiveScene>,
     app_config: Res<AppConfig>,
     mesh_cache: Res<MeshCacheSettings>,
+    mut setup_state: ResMut<SceneSetupState>,
+    mut startup_state: ResMut<StartupSceneState>,
+    mut next_state: ResMut<NextState<AppState>>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
+    toml_assets: Res<Assets<TomlAsset>>,
+    mut toml_cache: ResMut<TomlCache>,
     mut rapier_config: Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
 ) {
-    info!(
-        "Bootstrapping scene '{}' with inspector overlay enabled.",
-        active_scene.name
-    );
+    if setup_state.done {
+        return;
+    }
 
-    let input_config: InputConfig = load_input_config(&active_scene.name);
+    let input_config: InputConfig = match load_input_config(
+        &active_scene.name,
+        &mut toml_cache,
+        &asset_server,
+        &toml_assets,
+    ) {
+        ConfigLoad::Pending => return,
+        ConfigLoad::Ready(config) => config,
+    };
     let camera_input =
         resolve_camera_input_config(&input_config.camera.movement, &input_config.camera.rotation);
     commands.insert_resource(SceneInputConfig {
@@ -56,9 +82,37 @@ pub(crate) fn setup_scene(
 
     let mut initial_noclip = None;
 
-    let world_config: WorldConfig = load_world_config(&active_scene.name);
+    let world_config: WorldConfig = match load_world_config(
+        &active_scene.name,
+        &mut toml_cache,
+        &asset_server,
+        &toml_assets,
+    ) {
+        ConfigLoad::Pending => return,
+        ConfigLoad::Ready(config) => config,
+    };
+    if !startup_state.applied && active_scene.name == "main" {
+        let startup_scene = world_config
+            .startup_scene
+            .as_deref()
+            .unwrap_or("main");
+        let target_state = AppState::from_scene_name(startup_scene);
+        startup_state.applied = true;
+        if target_state != AppState::Main {
+            next_state.set(target_state);
+            return;
+        }
+    }
     let _scene_type = world_config.scene_type.as_deref();
-    let entities_config = load_entities_config(&active_scene.name);
+    let entities_config = match load_entities_config(
+        &active_scene.name,
+        &mut toml_cache,
+        &asset_server,
+        &toml_assets,
+    ) {
+        ConfigLoad::Pending => return,
+        ConfigLoad::Ready(config) => config,
+    };
 
     commands.insert_resource(SceneBounds::from(world_config.bounds.clone()));
 
@@ -70,13 +124,28 @@ pub(crate) fn setup_scene(
         if let Some(trigger) =
             crate::scenes::input::resolve_mouse_button_or_warn(&action_binding.mouse, "shoot")
         {
-            if let Some(action) =
-                load_shoot_action_config(&active_scene.name, &action_binding.action)
-            {
-                let Some(projectile) = load_entity_template_from_path(
+            let action = match load_shoot_action_config(
+                &active_scene.name,
+                &action_binding.action,
+                &mut toml_cache,
+                &asset_server,
+                &toml_assets,
+            ) {
+                ConfigLoad::Pending => return,
+                ConfigLoad::Ready(action) => action,
+            };
+            if let Some(action) = action {
+                let projectile = match load_entity_template_from_path(
                     &active_scene.name,
                     "entities/sphere.3D.toml",
-                ) else {
+                    &mut toml_cache,
+                    &asset_server,
+                    &toml_assets,
+                ) {
+                    ConfigLoad::Pending => return,
+                    ConfigLoad::Ready(template) => template,
+                };
+                let Some(projectile) = projectile else {
                     warn!("Projectile template missing; shoot action disabled.");
                     return;
                 };
@@ -122,9 +191,17 @@ pub(crate) fn setup_scene(
         if let Some(trigger) =
             crate::scenes::input::resolve_key_or_warn(&action_binding.key, "sprint")
         {
-            if let Some(action) =
-                load_sprint_action_config(&active_scene.name, &action_binding.action)
-            {
+            let action = match load_sprint_action_config(
+                &active_scene.name,
+                &action_binding.action,
+                &mut toml_cache,
+                &asset_server,
+                &toml_assets,
+            ) {
+                ConfigLoad::Pending => return,
+                ConfigLoad::Ready(action) => action,
+            };
+            if let Some(action) = action {
                 commands.insert_resource(SceneSprintConfig { action, trigger });
                 commands.insert_resource(SprintState::default());
             }
@@ -139,9 +216,17 @@ pub(crate) fn setup_scene(
         if let Some(trigger) =
             crate::scenes::input::resolve_key_or_warn(&action_binding.key, "zoom")
         {
-            if let Some(action) =
-                load_zoom_action_config(&active_scene.name, &action_binding.action)
-            {
+            let action = match load_zoom_action_config(
+                &active_scene.name,
+                &action_binding.action,
+                &mut toml_cache,
+                &asset_server,
+                &toml_assets,
+            ) {
+                ConfigLoad::Pending => return,
+                ConfigLoad::Ready(action) => action,
+            };
+            if let Some(action) = action {
                 commands.insert_resource(SceneZoomConfig { action, trigger });
                 commands.insert_resource(ZoomState::default());
             }
@@ -156,9 +241,17 @@ pub(crate) fn setup_scene(
         if let Some(trigger) =
             crate::scenes::input::resolve_key_or_warn(&action_binding.key, "jump")
         {
-            if let Some(action) =
-                load_jump_action_config(&active_scene.name, &action_binding.action)
-            {
+            let action = match load_jump_action_config(
+                &active_scene.name,
+                &action_binding.action,
+                &mut toml_cache,
+                &asset_server,
+                &toml_assets,
+            ) {
+                ConfigLoad::Pending => return,
+                ConfigLoad::Ready(action) => action,
+            };
+            if let Some(action) = action {
                 commands.insert_resource(SceneJumpConfig { action, trigger });
             }
         }
@@ -172,9 +265,17 @@ pub(crate) fn setup_scene(
         if let Some(trigger) =
             crate::scenes::input::resolve_key_or_warn(&action_binding.key, "noclip")
         {
-            if let Some(action) =
-                load_noclip_action_config(&active_scene.name, &action_binding.action)
-            {
+            let action = match load_noclip_action_config(
+                &active_scene.name,
+                &action_binding.action,
+                &mut toml_cache,
+                &asset_server,
+                &toml_assets,
+            ) {
+                ConfigLoad::Pending => return,
+                ConfigLoad::Ready(action) => action,
+            };
+            if let Some(action) = action {
                 let state = NoclipState {
                     active: action.enabled,
                     velocity: Vec3::ZERO,
@@ -209,8 +310,17 @@ pub(crate) fn setup_scene(
         if let Some(trigger) =
             crate::scenes::input::resolve_key_or_warn(&action_binding.key, "grab")
         {
-            if let Some(action) = load_grab_action_config(&active_scene.name, &action_binding.action)
-            {
+            let action = match load_grab_action_config(
+                &active_scene.name,
+                &action_binding.action,
+                &mut toml_cache,
+                &asset_server,
+                &toml_assets,
+            ) {
+                ConfigLoad::Pending => return,
+                ConfigLoad::Ready(action) => action,
+            };
+            if let Some(action) = action {
                 let rgb = crate::scenes::config::parse_color(&action.outline.color)
                     .unwrap_or([0, 255, 255]);
                 let outline_color = Color::srgb_u8(rgb[0], rgb[1], rgb[2]);
@@ -254,7 +364,7 @@ pub(crate) fn setup_scene(
         });
     }
 
-    spawn_world_entities(
+    let world_entities_ready = spawn_world_entities(
         &entities_config,
         &mut commands,
         &mut meshes,
@@ -262,7 +372,12 @@ pub(crate) fn setup_scene(
         &asset_server,
         &active_scene,
         &mesh_cache,
+        &toml_assets,
+        &mut toml_cache,
     );
+    if matches!(world_entities_ready, ConfigLoad::Pending) {
+        return;
+    }
 
     // sun derived from world config
     spawn_sun(
@@ -394,4 +509,7 @@ pub(crate) fn setup_scene(
             },
         ));
     }
+
+    info!("Bootstrapping scene '{}' complete.", active_scene.name);
+    setup_state.done = true;
 }

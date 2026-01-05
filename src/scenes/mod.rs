@@ -8,11 +8,13 @@ mod world;
 mod menu;
 mod state;
 mod mesh_cache;
+mod toml_asset;
 
 pub use spawn::ScenePlugin;
 pub use menu::MenuPlugin;
 pub use state::AppState;
-pub use loaders::load_world_config;
+pub use loaders::TomlCache;
 pub use mesh_cache::{
     bake_meshes, load_or_generate_mesh_handle, MeshCacheLoader, MeshCacheSettings,
 };
+pub use toml_asset::{TomlAsset, TomlAssetLoader};
