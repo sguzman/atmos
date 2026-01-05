@@ -29,4 +29,4 @@ key = "Enter"
 [[actions]]
 name = "menu_quit"
 action = "actions/quit.toml"
-key = "Escape"
+key = "q"
