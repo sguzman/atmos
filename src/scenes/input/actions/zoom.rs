@@ -8,10 +8,13 @@ use super::super::types::{SceneCamera, SceneZoomConfig, ZoomState};
 pub fn apply_zoom_action(
     keys: Res<ButtonInput<KeyCode>>,
     config: Option<Res<SceneZoomConfig>>,
-    mut state: ResMut<ZoomState>,
+    state: Option<ResMut<ZoomState>>,
     mut cameras: Query<&mut Projection, With<SceneCamera>>,
 ) {
     let Some(config) = config else {
+        return;
+    };
+    let Some(mut state) = state else {
         return;
     };
 
