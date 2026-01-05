@@ -1,0 +1,16 @@
+name = "pillar_with_light"
+
+[physics]
+shared = true
+root = "pillar_body"
+
+[[parts]]
+template = "entities/rectangle.3D.toml"
+name_override = "pillar_body"
+
+[[parts]]
+template = "entities/top_light.light.toml"
+name_override = "pillar_light"
+[parts.attach]
+target = "pillar_body"
+offset = { x = 0.0, y = 2.2, z = 0.0 }

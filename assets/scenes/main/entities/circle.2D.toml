@@ -1,0 +1,13 @@
+name = "base_circle"
+
+[shape]
+kind = "circle"
+color = "green"
+radius = 4.0
+
+[physics]
+enabled = true
+body_type = "fixed"
+mass = 1.0
+restitution = 0.8
+friction = 0.6

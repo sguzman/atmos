@@ -1,0 +1,11 @@
+name = "noclip"
+enabled = false
+toggle = true
+speed = 12.0
+fast_speed = 20.0
+speed_toggle = true
+speed_toggle_key = "Shift"
+up_key = "Space"
+down_key = "lctrl"
+acceleration = 20.0
+damping = 8.0

@@ -1,0 +1,4 @@
+name = "jump"
+velocity = 6.5
+cooldown = 0.15
+ground_check_distance = 1.2

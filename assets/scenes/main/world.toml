@@ -1,0 +1,87 @@
+# Scene composition for the main world. References entity templates in `entities/`.
+startup_scene = "menu"
+
+[camera]
+name = "main_camera"
+[camera.transform]
+position = { x = -2.5, y = 4.5, z = 9.0 }
+look_at = { x = 0.0, y = 0.0, z = 0.0 }
+up = { x = 0.0, y = 1.0, z = 0.0 }
+
+[bounds]
+shape = "rectangle"
+[bounds.x]
+min = -300.0
+max = 300.0
+[bounds.y]
+min = -100.0
+max = 200.0
+[bounds.z]
+min = -300.0
+max = 300.0
+
+[gravity]
+x = 0.0
+y = -15
+z = 0.0
+
+[skybox]
+color = "lightblue"
+
+[sun]
+time = 12.0
+color = "white"
+brightness = 5000.0
+shadows = true
+distance = 500.0
+size = 30.0
+
+[render]
+hdr = false
+tonemapping = "reinhard_luminance"
+
+[render.bloom]
+enabled = true
+preset = "natural"
+intensity = 0.15
+low_frequency_boost = 0.7
+low_frequency_boost_curvature = 0.95
+high_pass_frequency = 1.0
+composite_mode = "energy_conserving"
+max_mip_dimension = 512
+scale = { x = 1.0, y = 1.0 }
+[render.bloom.prefilter]
+threshold = 0.0
+threshold_softness = 0.0
+
+[render.fog]
+enabled = false
+color = "white"
+alpha = 1.0
+directional_light_color = "white"
+directional_light_alpha = 1.0
+directional_light_exponent = 8.0
+[render.fog.falloff]
+kind = "linear"
+start = 0.0
+end = 100.0
+
+[[lights]]
+kind = "point"
+color = "white"
+intensity = 1000000.0
+shadows = true
+range = 50.0
+[lights.position]
+x = 4.0
+y = 8.0
+z = 4.0
+[lights.look_at]
+x = 0.0
+y = 0.5
+z = 0.0
+
+[[lights]]
+kind = "ambient"
+color = "white"
+brightness = 100.0
