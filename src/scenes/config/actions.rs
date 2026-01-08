@@ -270,6 +270,24 @@ impl Default for ReloadActionConfig {
     }
 }
 
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct PauseActionConfig {
+    pub name: String,
+    pub overlay: String,
+    pub pause_scene: bool,
+}
+
+impl Default for PauseActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "pause".to_string(),
+            overlay: "pause".to_string(),
+            pause_scene: true,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct ActionsConfig {
     #[serde(default)]
@@ -296,6 +314,7 @@ pub enum ActionConfig {
         #[allow(dead_code)]
         params: ReloadActionConfig,
     },
+    Pause { id: String, params: PauseActionConfig },
     Fov { id: String, params: FovActionConfig },
     SceneTransition { id: String, params: SceneTransitionActionConfig },
     Quit {
@@ -316,6 +335,7 @@ impl ActionConfig {
             | ActionConfig::Noclip { id, .. }
             | ActionConfig::Grab { id, .. }
             | ActionConfig::Reload { id, .. }
+            | ActionConfig::Pause { id, .. }
             | ActionConfig::Fov { id, .. }
             | ActionConfig::SceneTransition { id, .. }
             | ActionConfig::Quit { id, .. } => id,

@@ -7,8 +7,8 @@ use bevy::{
 };
 
 use crate::scenes::config::{
-    GrabActionConfig, GrenadeActionConfig, JumpActionConfig, NoclipActionConfig, PhysicsConfig,
-    ShapeConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig,
+    GrabActionConfig, GrenadeActionConfig, JumpActionConfig, NoclipActionConfig, PauseActionConfig,
+    PhysicsConfig, ShapeConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig,
 };
 
 #[derive(Resource, Debug, Clone)]
@@ -113,6 +113,20 @@ pub struct SceneGrabConfig {
 #[derive(Resource, Clone)]
 pub struct SceneReloadConfig {
     pub id: String,
+}
+
+#[derive(Resource, Clone)]
+pub struct ScenePauseConfig {
+    pub id: String,
+    pub action: PauseActionConfig,
+}
+
+#[derive(Resource, Clone)]
+pub struct PauseState {
+    pub active: bool,
+    pub pause_scene: bool,
+    pub overlay: String,
+    pub stored_time_scale: f32,
 }
 
 #[derive(Resource, Default)]

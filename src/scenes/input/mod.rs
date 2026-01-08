@@ -15,10 +15,10 @@ pub use resolve::{
     resolve_overlay_toggles,
 };
 pub use types::{
-    ActionStates, CameraLookState, FovBinding, GrabHover, GrabState, NoclipState, PlayerBody,
-    PlayerSpawn, ResolvedActionTrigger, ResolvedVolumeTrigger, SceneActionTriggers, SceneCamera,
-    SceneFovConfig, SceneGrabConfig, SceneGrenadeConfig, SceneInputConfig, SceneJumpConfig,
-    SceneNoclipConfig, SceneReloadConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig,
-    SprintState, TriggerMode, TriggerSource, VolumeShape, VolumeShapeKind, VolumeTriggerMode,
-    ZoomState,
+    ActionStates, CameraLookState, FovBinding, GrabHover, GrabState, NoclipState, PauseState,
+    PlayerBody, PlayerSpawn, ResolvedActionTrigger, ResolvedVolumeTrigger, SceneActionTriggers,
+    SceneCamera, SceneFovConfig, SceneGrabConfig, SceneGrenadeConfig, SceneInputConfig,
+    SceneJumpConfig, SceneNoclipConfig, ScenePauseConfig, SceneReloadConfig, SceneShootConfig,
+    SceneSprintConfig, SceneZoomConfig, SprintState, TriggerMode, TriggerSource, VolumeShape,
+    VolumeShapeKind, VolumeTriggerMode, ZoomState,
 };

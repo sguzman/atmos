@@ -137,6 +137,15 @@
         "name": { "type": "string" }
       }
     },
+    "pauseParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "overlay": { "type": "string" },
+        "pause_scene": { "type": "boolean" }
+      }
+    },
     "fovParams": {
       "type": "object",
       "additionalProperties": false,
@@ -240,6 +249,16 @@
             "id": { "type": "string" },
             "type": { "const": "reload" },
             "params": { "$ref": "#/$defs/reloadParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "pause" },
+            "params": { "$ref": "#/$defs/pauseParams" }
           }
         },
         {
