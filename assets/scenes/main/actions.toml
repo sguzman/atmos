@@ -212,7 +212,7 @@ mode = "hold"
 id = "pause_escape"
 action = "pause"
 type = "key"
-key = "Escape"
+key = "p"
 mode = "press"
 
 [[triggers]]
