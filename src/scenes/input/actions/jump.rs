@@ -1,10 +1,7 @@
-use bevy::{
-    input::keyboard::KeyCode,
-    prelude::{ButtonInput, Entity, Local, Query, Res, Time, Transform, Vec3, With},
-};
+use bevy::prelude::{Entity, Local, Query, Res, Time, Transform, Vec3, With};
 use bevy_rapier3d::prelude::{QueryFilter, ReadRapierContext, Velocity};
 
-use super::super::types::{NoclipState, PlayerBody, SceneJumpConfig};
+use super::super::types::{ActionStates, NoclipState, PlayerBody, SceneJumpConfig};
 
 #[derive(Default)]
 pub(crate) struct JumpState {
@@ -13,14 +10,17 @@ pub(crate) struct JumpState {
 
 pub fn apply_jump_action(
     time: Res<Time>,
-    keys: Res<ButtonInput<KeyCode>>,
     config: Option<Res<SceneJumpConfig>>,
+    states: Option<Res<ActionStates>>,
     noclip: Option<Res<NoclipState>>,
     mut state: Local<JumpState>,
     rapier_context: ReadRapierContext,
     mut bodies: Query<(Entity, &Transform, &mut Velocity), With<PlayerBody>>,
 ) {
     let Some(config) = config else {
+        return;
+    };
+    let Some(states) = states else {
         return;
     };
 
@@ -36,7 +36,7 @@ pub fn apply_jump_action(
         return;
     };
 
-    if !keys.just_pressed(config.trigger) {
+    if !states.get(&config.id).just_pressed {
         return;
     }
 

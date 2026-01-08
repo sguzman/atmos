@@ -1,17 +1,14 @@
-use bevy::{
-    input::keyboard::KeyCode,
-    prelude::{ButtonInput, Commands, Entity, Query, Res, With},
-};
+use bevy::prelude::{Commands, Entity, Query, Res, With};
 
-use crate::scenes::input::SceneReloadConfig;
+use crate::scenes::input::{ActionStates, SceneReloadConfig};
 use crate::scenes::spawn::{OverlayTag, SceneEntityTag};
 
 use super::cleanup::cleanup_main_scene_inner;
 use super::SceneSetupState;
 
 pub(crate) fn apply_scene_reload(
-    keys: Res<ButtonInput<KeyCode>>,
     config: Option<Res<SceneReloadConfig>>,
+    states: Option<Res<ActionStates>>,
     mut commands: Commands,
     scene_entities: Query<Entity, With<SceneEntityTag>>,
     overlays: Query<Entity, With<OverlayTag>>,
@@ -19,7 +16,10 @@ pub(crate) fn apply_scene_reload(
     let Some(config) = config else {
         return;
     };
-    if !keys.just_pressed(config.trigger) {
+    let Some(states) = states else {
+        return;
+    };
+    if !states.get(&config.id).just_pressed {
         return;
     }
 

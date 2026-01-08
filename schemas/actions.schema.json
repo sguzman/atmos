@@ -1,0 +1,330 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atmos actions",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer" },
+    "actions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/action" }
+    },
+    "triggers": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/trigger" }
+    }
+  },
+  "$defs": {
+    "vec3": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      }
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "depth": { "type": "number" }
+      }
+    },
+    "shootParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "rate": { "type": "number" },
+        "start_delay": { "type": "number" },
+        "velocity": { "type": "number" },
+        "spawn_offset": { "type": "number" },
+        "ccd": { "type": "boolean" },
+        "spin": { "$ref": "#/$defs/vec3" }
+      }
+    },
+    "grenadeParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "velocity": { "type": "number" },
+        "spawn_offset": { "type": "number" },
+        "fuse_seconds": { "type": "number" },
+        "explosion_radius": { "type": "number" },
+        "explosion_force": { "type": "number" },
+        "color": { "type": "string" },
+        "radius": { "type": "number" },
+        "ccd": { "type": "boolean" },
+        "spin": { "$ref": "#/$defs/vec3" }
+      }
+    },
+    "sprintParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "multiplier": { "type": "number" },
+        "toggle": { "type": "boolean" }
+      }
+    },
+    "zoomParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "fov_degrees": { "type": "number" },
+        "sensitivity_multiplier": { "type": "number" },
+        "toggle": { "type": "boolean" }
+      }
+    },
+    "jumpParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "velocity": { "type": "number" },
+        "cooldown": { "type": "number" },
+        "ground_check_distance": { "type": "number" }
+      }
+    },
+    "noclipParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "enabled": { "type": "boolean" },
+        "toggle": { "type": "boolean" },
+        "speed": { "type": "number" },
+        "fast_speed": { "type": "number" },
+        "speed_toggle": { "type": "boolean" },
+        "speed_toggle_key": { "type": "string" },
+        "up_key": { "type": "string" },
+        "down_key": { "type": "string" },
+        "acceleration": { "type": "number" },
+        "damping": { "type": "number" }
+      }
+    },
+    "grabOutline": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "color": { "type": "string" },
+        "thickness": { "type": "number" },
+        "opacity": { "type": "number" }
+      }
+    },
+    "grabParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "range": { "type": "number" },
+        "hold_distance": { "type": "number" },
+        "hold_offset": { "$ref": "#/$defs/vec3" },
+        "throw_speed": { "type": "number" },
+        "collision": { "type": "boolean" },
+        "outline": { "$ref": "#/$defs/grabOutline" }
+      }
+    },
+    "reloadParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" }
+      }
+    },
+    "fovParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "fov_degrees": { "type": "number" }
+      }
+    },
+    "sceneTransitionParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "target_scene": { "type": "string" }
+      }
+    },
+    "quitParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" }
+      }
+    },
+    "action": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "shoot" },
+            "params": { "$ref": "#/$defs/shootParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "grenade" },
+            "params": { "$ref": "#/$defs/grenadeParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "sprint" },
+            "params": { "$ref": "#/$defs/sprintParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "zoom" },
+            "params": { "$ref": "#/$defs/zoomParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "jump" },
+            "params": { "$ref": "#/$defs/jumpParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "noclip" },
+            "params": { "$ref": "#/$defs/noclipParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "grab" },
+            "params": { "$ref": "#/$defs/grabParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "reload" },
+            "params": { "$ref": "#/$defs/reloadParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "fov" },
+            "params": { "$ref": "#/$defs/fovParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "scene_transition" },
+            "params": { "$ref": "#/$defs/sceneTransitionParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "quit" },
+            "params": { "$ref": "#/$defs/quitParams" }
+          }
+        }
+      ]
+    },
+    "volumeShape": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["box", "sphere"] },
+        "radius": { "type": "number" },
+        "size": { "$ref": "#/$defs/dimensions" }
+      }
+    },
+    "trigger": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "action", "type", "key"],
+          "properties": {
+            "id": { "type": "string" },
+            "action": { "type": "string" },
+            "type": { "const": "key" },
+            "key": { "type": "string" },
+            "mode": { "type": "string", "enum": ["press", "hold"] }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "action", "type", "mouse"],
+          "properties": {
+            "id": { "type": "string" },
+            "action": { "type": "string" },
+            "type": { "const": "mouse" },
+            "mouse": { "type": "string" },
+            "mode": { "type": "string", "enum": ["press", "hold"] }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "action", "type", "shape", "transform"],
+          "properties": {
+            "id": { "type": "string" },
+            "action": { "type": "string" },
+            "type": { "const": "volume" },
+            "mode": { "type": "string", "enum": ["enter", "exit", "inside"] },
+            "shape": { "$ref": "#/$defs/volumeShape" },
+            "transform": { "$ref": "#/$defs/vec3" },
+            "once": { "type": "boolean" }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,291 @@
+version = 1
+
+[[actions]]
+id = "shoot_balls"
+type = "shoot"
+
+[actions.params]
+name = "shoot_balls"
+rate = 20.0
+start_delay = 0.0
+velocity = 50.0
+spawn_offset = 1.2
+ccd = false
+spin = { x = 0.0, y = 0.0, z = 0.0 }
+
+[[actions]]
+id = "grenade"
+type = "grenade"
+
+[actions.params]
+name = "grenade"
+velocity = 12.0
+spawn_offset = 1.1
+fuse_seconds = 1.5
+explosion_radius = 4.0
+explosion_force = 18.0
+color = "green"
+radius = 0.2
+ccd = true
+spin = { x = 0.0, y = 0.0, z = 0.0 }
+
+[[actions]]
+id = "sprint"
+type = "sprint"
+
+[actions.params]
+name = "sprint"
+multiplier = 5.0
+toggle = true
+
+[[actions]]
+id = "zoom"
+type = "zoom"
+
+[actions.params]
+name = "zoom"
+fov_degrees = 5.0
+sensitivity_multiplier = 0.4
+toggle = false
+
+[[actions]]
+id = "jump"
+type = "jump"
+
+[actions.params]
+name = "jump"
+velocity = 6.5
+cooldown = 0.15
+ground_check_distance = 1.2
+
+[[actions]]
+id = "noclip"
+type = "noclip"
+
+[actions.params]
+name = "noclip"
+enabled = false
+toggle = true
+speed = 20.0
+fast_speed = 35.0
+speed_toggle = true
+speed_toggle_key = "Shift"
+up_key = "Space"
+down_key = "lctrl"
+acceleration = 20.0
+damping = 8.0
+
+[[actions]]
+id = "grab"
+type = "grab"
+
+[actions.params]
+name = "grab"
+range = 6.0
+hold_distance = 2.0
+hold_offset = { x = 0.0, y = -0.1, z = 0.0 }
+throw_speed = 12.0
+collision = false
+
+[actions.params.outline]
+color = "cyan"
+thickness = 0.04
+opacity = 1.0
+
+[[actions]]
+id = "reload"
+type = "reload"
+
+[actions.params]
+name = "reload"
+
+[[actions]]
+id = "fov_1"
+type = "fov"
+
+[actions.params]
+name = "set_fov"
+fov_degrees = 20.0
+
+[[actions]]
+id = "fov_2"
+type = "fov"
+
+[actions.params]
+name = "set_fov"
+fov_degrees = 40.0
+
+[[actions]]
+id = "fov_3"
+type = "fov"
+
+[actions.params]
+name = "set_fov"
+fov_degrees = 60.0
+
+[[actions]]
+id = "fov_4"
+type = "fov"
+
+[actions.params]
+name = "set_fov"
+fov_degrees = 80.0
+
+[[actions]]
+id = "fov_5"
+type = "fov"
+
+[actions.params]
+name = "set_fov"
+fov_degrees = 100.0
+
+[[actions]]
+id = "fov_6"
+type = "fov"
+
+[actions.params]
+name = "set_fov"
+fov_degrees = 120.0
+
+[[actions]]
+id = "fov_7"
+type = "fov"
+
+[actions.params]
+name = "set_fov"
+fov_degrees = 140.0
+
+[[actions]]
+id = "fov_8"
+type = "fov"
+
+[actions.params]
+name = "set_fov"
+fov_degrees = 160.0
+
+[[actions]]
+id = "fov_9"
+type = "fov"
+
+[actions.params]
+name = "set_fov"
+fov_degrees = 180.0
+
+[[triggers]]
+id = "shoot_left"
+action = "shoot_balls"
+type = "mouse"
+mouse = "left"
+mode = "hold"
+
+[[triggers]]
+id = "grenade_w"
+action = "grenade"
+type = "key"
+key = "w"
+mode = "press"
+
+[[triggers]]
+id = "sprint_shift"
+action = "sprint"
+type = "key"
+key = "Shift"
+mode = "press"
+
+[[triggers]]
+id = "zoom_z"
+action = "zoom"
+type = "key"
+key = "z"
+mode = "hold"
+
+[[triggers]]
+id = "jump_space"
+action = "jump"
+type = "key"
+key = "Space"
+mode = "press"
+
+[[triggers]]
+id = "noclip_n"
+action = "noclip"
+type = "key"
+key = "n"
+mode = "press"
+
+[[triggers]]
+id = "grab_g"
+action = "grab"
+type = "key"
+key = "g"
+mode = "press"
+
+[[triggers]]
+id = "reload_r"
+action = "reload"
+type = "key"
+key = "r"
+mode = "press"
+
+[[triggers]]
+id = "fov_1_key"
+action = "fov_1"
+type = "key"
+key = "1"
+mode = "press"
+
+[[triggers]]
+id = "fov_2_key"
+action = "fov_2"
+type = "key"
+key = "2"
+mode = "press"
+
+[[triggers]]
+id = "fov_3_key"
+action = "fov_3"
+type = "key"
+key = "3"
+mode = "press"
+
+[[triggers]]
+id = "fov_4_key"
+action = "fov_4"
+type = "key"
+key = "4"
+mode = "press"
+
+[[triggers]]
+id = "fov_5_key"
+action = "fov_5"
+type = "key"
+key = "5"
+mode = "press"
+
+[[triggers]]
+id = "fov_6_key"
+action = "fov_6"
+type = "key"
+key = "6"
+mode = "press"
+
+[[triggers]]
+id = "fov_7_key"
+action = "fov_7"
+type = "key"
+key = "7"
+mode = "press"
+
+[[triggers]]
+id = "fov_8_key"
+action = "fov_8"
+type = "key"
+key = "8"
+mode = "press"
+
+[[triggers]]
+id = "fov_9_key"
+action = "fov_9"
+type = "key"
+key = "9"
+mode = "press"

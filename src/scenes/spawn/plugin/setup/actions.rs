@@ -1,23 +1,26 @@
 use bevy::prelude::*;
 
+use std::collections::HashMap;
+
 use crate::scenes::{
-    config::{ActiveScene, InputConfig, ShapeKind},
+    config::{
+        ActionConfig, ActionTriggerConfig, ActionsConfig, ActiveScene, ShapeKind, TriggerMode,
+        VolumeShapeKind, VolumeTriggerMode,
+    },
     input::{
-        FovBinding, GrabHover, GrabState, NoclipState, SceneFovConfig, SceneGrabConfig,
+        ActionStates, FovBinding, GrabHover, GrabState, NoclipState, ResolvedActionTrigger,
+        ResolvedVolumeTrigger, SceneActionTriggers, SceneFovConfig, SceneGrabConfig,
         SceneGrenadeConfig, SceneJumpConfig, SceneNoclipConfig, SceneReloadConfig, SceneShootConfig,
-        SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
+        SceneSprintConfig, SceneZoomConfig, SprintState, TriggerSource, ZoomState,
+        TriggerMode as InputTriggerMode, VolumeShape, VolumeShapeKind as InputVolumeShapeKind,
+        VolumeTriggerMode as InputVolumeTriggerMode,
     },
-    loaders::{
-        load_entity_template_from_path, load_grab_action_config, load_grenade_action_config,
-        load_jump_action_config, load_noclip_action_config, load_reload_action_config,
-        load_shoot_action_config, load_sprint_action_config, load_zoom_action_config, ConfigLoad,
-        TomlCache,
-    },
+    loaders::{load_entity_template_from_path, ConfigLoad, TomlCache},
     MeshCacheSettings, TomlAsset,
 };
 
 pub(crate) fn setup_actions(
-    input_config: &InputConfig,
+    actions_config: &ActionsConfig,
     active_scene: &ActiveScene,
     mesh_cache: &MeshCacheSettings,
     commands: &mut Commands,
@@ -27,25 +30,16 @@ pub(crate) fn setup_actions(
     toml_assets: &Assets<TomlAsset>,
     toml_cache: &mut TomlCache,
 ) -> Option<bool> {
-    if let Some(action_binding) = input_config
-        .actions
-        .iter()
-        .find(|action| action.action.ends_with("shoot-balls.toml"))
-    {
-        if let Some(trigger) =
-            crate::scenes::input::resolve_mouse_button_or_warn(&action_binding.mouse, "shoot")
-        {
-            let action = match load_shoot_action_config(
-                &active_scene.name,
-                &action_binding.action,
-                toml_cache,
-                asset_server,
-                toml_assets,
-            ) {
-                ConfigLoad::Pending => return None,
-                ConfigLoad::Ready(action) => action,
-            };
-            if let Some(action) = action {
+    let mut actions_by_id = HashMap::new();
+    for action in actions_config.actions.iter() {
+        actions_by_id.insert(action.id().to_string(), action.clone());
+    }
+
+    let mut initial_noclip = None;
+    let mut fov_bindings = Vec::new();
+    for action in actions_config.actions.iter() {
+        match action {
+            ActionConfig::Shoot { id, params } => {
                 let projectile = match load_entity_template_from_path(
                     &active_scene.name,
                     "entities/sphere.3D.toml",
@@ -58,16 +52,16 @@ pub(crate) fn setup_actions(
                 };
                 let Some(projectile) = projectile else {
                     warn!("Projectile template missing; shoot action disabled.");
-                    return None;
+                    continue;
                 };
 
                 let Some(shape) = projectile.shape.clone() else {
                     warn!("Projectile template has no shape; shoot action disabled.");
-                    return None;
+                    continue;
                 };
                 if shape.kind != ShapeKind::Sphere {
                     warn!("Projectile template is not a sphere; shoot action disabled.");
-                    return None;
+                    continue;
                 }
                 let color = shape
                     .color
@@ -82,8 +76,8 @@ pub(crate) fn setup_actions(
                     asset_server,
                 );
                 commands.insert_resource(SceneShootConfig {
-                    action,
-                    trigger,
+                    id: id.clone(),
+                    action: params.clone(),
                     name: projectile.name.clone(),
                     shape,
                     physics: projectile.physics.clone(),
@@ -91,28 +85,7 @@ pub(crate) fn setup_actions(
                     material: sphere_material,
                 });
             }
-        }
-    }
-
-    if let Some(action_binding) = input_config
-        .actions
-        .iter()
-        .find(|action| action.action.ends_with("grenade.toml"))
-    {
-        if let Some(trigger) =
-            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "grenade")
-        {
-            let action = match load_grenade_action_config(
-                &active_scene.name,
-                &action_binding.action,
-                toml_cache,
-                asset_server,
-                toml_assets,
-            ) {
-                ConfigLoad::Pending => return None,
-                ConfigLoad::Ready(action) => action,
-            };
-            if let Some(action) = action {
+            ActionConfig::Grenade { id, params } => {
                 let projectile = match load_entity_template_from_path(
                     &active_scene.name,
                     "entities/sphere.3D.toml",
@@ -125,22 +98,22 @@ pub(crate) fn setup_actions(
                 };
                 let Some(projectile) = projectile else {
                     warn!("Grenade template missing; grenade action disabled.");
-                    return None;
+                    continue;
                 };
 
                 let Some(mut shape) = projectile.shape.clone() else {
                     warn!("Grenade template has no shape; grenade action disabled.");
-                    return None;
+                    continue;
                 };
                 if shape.kind != ShapeKind::Sphere {
                     warn!("Grenade template is not a sphere; grenade action disabled.");
-                    return None;
+                    continue;
                 }
-                if action.radius > 0.0 {
-                    shape.radius = Some(action.radius);
+                if params.radius > 0.0 {
+                    shape.radius = Some(params.radius);
                 }
-                if !action.color.trim().is_empty() {
-                    shape.color = Some(action.color.clone());
+                if !params.color.trim().is_empty() {
+                    shape.color = Some(params.color.clone());
                 }
                 let color = shape
                     .color
@@ -155,8 +128,8 @@ pub(crate) fn setup_actions(
                     asset_server,
                 );
                 commands.insert_resource(SceneGrenadeConfig {
-                    action,
-                    trigger,
+                    id: id.clone(),
+                    action: params.clone(),
                     name: projectile.name.clone(),
                     shape,
                     physics: projectile.physics.clone(),
@@ -164,206 +137,72 @@ pub(crate) fn setup_actions(
                     material: sphere_material,
                 });
             }
-        }
-    }
-
-    if let Some(action_binding) = input_config
-        .actions
-        .iter()
-        .find(|action| action.action.ends_with("sprint.toml"))
-    {
-        if let Some(trigger) =
-            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "sprint")
-        {
-            let action = match load_sprint_action_config(
-                &active_scene.name,
-                &action_binding.action,
-                toml_cache,
-                asset_server,
-                toml_assets,
-            ) {
-                ConfigLoad::Pending => return None,
-                ConfigLoad::Ready(action) => action,
-            };
-            if let Some(action) = action {
-                commands.insert_resource(SceneSprintConfig { action, trigger });
+            ActionConfig::Sprint { id, params } => {
+                commands.insert_resource(SceneSprintConfig {
+                    id: id.clone(),
+                    action: params.clone(),
+                });
                 commands.insert_resource(SprintState::default());
             }
-        }
-    }
-
-    if let Some(action_binding) = input_config
-        .actions
-        .iter()
-        .find(|action| action.action.ends_with("zoom.toml"))
-    {
-        if let Some(trigger) =
-            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "zoom")
-        {
-            let action = match load_zoom_action_config(
-                &active_scene.name,
-                &action_binding.action,
-                toml_cache,
-                asset_server,
-                toml_assets,
-            ) {
-                ConfigLoad::Pending => return None,
-                ConfigLoad::Ready(action) => action,
-            };
-            if let Some(action) = action {
-                commands.insert_resource(SceneZoomConfig { action, trigger });
+            ActionConfig::Zoom { id, params } => {
+                commands.insert_resource(SceneZoomConfig {
+                    id: id.clone(),
+                    action: params.clone(),
+                });
                 commands.insert_resource(ZoomState::default());
             }
-        }
-    }
-
-    if let Some(action_binding) = input_config
-        .actions
-        .iter()
-        .find(|action| action.action.ends_with("jump.toml"))
-    {
-        if let Some(trigger) =
-            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "jump")
-        {
-            let action = match load_jump_action_config(
-                &active_scene.name,
-                &action_binding.action,
-                toml_cache,
-                asset_server,
-                toml_assets,
-            ) {
-                ConfigLoad::Pending => return None,
-                ConfigLoad::Ready(action) => action,
-            };
-            if let Some(action) = action {
-                commands.insert_resource(SceneJumpConfig { action, trigger });
+            ActionConfig::Jump { id, params } => {
+                commands.insert_resource(SceneJumpConfig {
+                    id: id.clone(),
+                    action: params.clone(),
+                });
             }
-        }
-    }
-
-    let mut initial_noclip = None;
-    if let Some(action_binding) = input_config
-        .actions
-        .iter()
-        .find(|action| action.action.ends_with("noclip.toml"))
-    {
-        if let Some(trigger) =
-            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "noclip")
-        {
-            let action = match load_noclip_action_config(
-                &active_scene.name,
-                &action_binding.action,
-                toml_cache,
-                asset_server,
-                toml_assets,
-            ) {
-                ConfigLoad::Pending => return None,
-                ConfigLoad::Ready(action) => action,
-            };
-            if let Some(action) = action {
+            ActionConfig::Noclip { id, params } => {
                 let state = NoclipState {
-                    active: action.enabled,
+                    active: params.enabled,
                     velocity: Vec3::ZERO,
                     fast: false,
                 };
                 let speed_toggle_key = crate::scenes::input::resolve_key_or_warn(
-                    &action.speed_toggle_key,
+                    &params.speed_toggle_key,
                     "noclip speed toggle",
                 );
                 let up_key =
-                    crate::scenes::input::resolve_key_or_warn(&action.up_key, "noclip up");
+                    crate::scenes::input::resolve_key_or_warn(&params.up_key, "noclip up");
                 let down_key =
-                    crate::scenes::input::resolve_key_or_warn(&action.down_key, "noclip down");
-                initial_noclip = Some(action.enabled);
+                    crate::scenes::input::resolve_key_or_warn(&params.down_key, "noclip down");
+                initial_noclip = Some(params.enabled);
                 commands.insert_resource(SceneNoclipConfig {
-                    action,
-                    trigger,
+                    id: id.clone(),
+                    action: params.clone(),
                     speed_toggle_key,
                     up_key,
                     down_key,
                 });
                 commands.insert_resource(state);
             }
-        }
-    }
-
-    if let Some(action_binding) = input_config
-        .actions
-        .iter()
-        .find(|action| action.action.ends_with("grab.toml"))
-    {
-        if let Some(trigger) =
-            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "grab")
-        {
-            let action = match load_grab_action_config(
-                &active_scene.name,
-                &action_binding.action,
-                toml_cache,
-                asset_server,
-                toml_assets,
-            ) {
-                ConfigLoad::Pending => return None,
-                ConfigLoad::Ready(action) => action,
-            };
-            if let Some(action) = action {
-                let rgb = crate::scenes::config::parse_color(&action.outline.color)
+            ActionConfig::Grab { id, params } => {
+                let rgb = crate::scenes::config::parse_color(&params.outline.color)
                     .unwrap_or([0, 255, 255]);
                 let outline_color = Color::srgb_u8(rgb[0], rgb[1], rgb[2]);
                 commands.insert_resource(SceneGrabConfig {
-                    action,
-                    trigger,
+                    id: id.clone(),
+                    action: params.clone(),
                     outline_color,
                 });
                 commands.insert_resource(GrabState::default());
                 commands.insert_resource(GrabHover::default());
             }
-        }
-    }
-
-    if let Some(action_binding) = input_config
-        .actions
-        .iter()
-        .find(|action| action.action.ends_with("reload.toml"))
-    {
-        if let Some(trigger) =
-            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "reload")
-        {
-            let action = match load_reload_action_config(
-                &active_scene.name,
-                &action_binding.action,
-                toml_cache,
-                asset_server,
-                toml_assets,
-            ) {
-                ConfigLoad::Pending => return None,
-                ConfigLoad::Ready(action) => action,
-            };
-            if action.is_some() {
-                commands.insert_resource(SceneReloadConfig { trigger });
+            ActionConfig::Reload { id, .. } => {
+                commands.insert_resource(SceneReloadConfig { id: id.clone() });
             }
-        }
-    }
-
-    let mut fov_bindings = Vec::new();
-    for action_binding in input_config
-        .actions
-        .iter()
-        .filter(|action| action.action.ends_with("fov.toml"))
-    {
-        if let Some(trigger) =
-            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "fov")
-        {
-            if let Some(fov_value) = action_binding.value {
+            ActionConfig::Fov { id, params } => {
                 fov_bindings.push(FovBinding {
-                    trigger,
-                    fov_degrees: fov_value,
+                    action_id: id.clone(),
+                    fov_degrees: params.fov_degrees,
                 });
-            } else {
-                warn!(
-                    "Fov action '{}' is missing a value; binding skipped.",
-                    action_binding.name
-                );
             }
+            _ => {}
         }
     }
 
@@ -373,5 +212,96 @@ pub(crate) fn setup_actions(
         });
     }
 
+    let mut resolved_triggers = Vec::new();
+    let mut resolved_volumes = Vec::new();
+    for trigger in actions_config.triggers.iter() {
+        let action_id = match trigger {
+            ActionTriggerConfig::Key { action, .. }
+            | ActionTriggerConfig::Mouse { action, .. }
+            | ActionTriggerConfig::Volume { action, .. } => action,
+        };
+        if !actions_by_id.contains_key(action_id) {
+            warn!("Action trigger references unknown action id '{action_id}'.");
+            continue;
+        }
+        match trigger {
+            ActionTriggerConfig::Key { key, mode, action, .. } => {
+                if let Some(trigger) =
+                    crate::scenes::input::resolve_key_or_warn(key, "action key")
+                {
+                    resolved_triggers.push(ResolvedActionTrigger {
+                        action: action.clone(),
+                        source: TriggerSource::Key(trigger),
+                        mode: map_trigger_mode(*mode),
+                    });
+                }
+            }
+            ActionTriggerConfig::Mouse { mouse, mode, action, .. } => {
+                if let Some(trigger) =
+                    crate::scenes::input::resolve_mouse_button_or_warn(mouse, "action mouse")
+                {
+                    resolved_triggers.push(ResolvedActionTrigger {
+                        action: action.clone(),
+                        source: TriggerSource::Mouse(trigger),
+                        mode: map_trigger_mode(*mode),
+                    });
+                }
+            }
+            ActionTriggerConfig::Volume {
+                action,
+                mode,
+                shape,
+                transform,
+                once,
+                ..
+            } => {
+                let (kind, radius, size) = match shape.kind {
+                    VolumeShapeKind::Sphere => (
+                        InputVolumeShapeKind::Sphere,
+                        shape.radius.unwrap_or(1.0).max(0.0),
+                        Vec3::ZERO,
+                    ),
+                    VolumeShapeKind::Box => {
+                        let size_cfg = shape.size.clone().unwrap_or_default();
+                        (
+                            InputVolumeShapeKind::Box,
+                            0.0,
+                            Vec3::new(size_cfg.width, size_cfg.height, size_cfg.depth),
+                        )
+                    }
+                };
+                resolved_volumes.push(ResolvedVolumeTrigger {
+                    action: action.clone(),
+                    mode: map_volume_mode(*mode),
+                    shape: VolumeShape { kind, radius, size },
+                    position: Vec3::new(transform.x, transform.y, transform.z),
+                    once: *once,
+                    fired: false,
+                    inside: false,
+                });
+            }
+        }
+    }
+    commands.insert_resource(SceneActionTriggers {
+        input: resolved_triggers,
+        volumes: resolved_volumes,
+    });
+    commands.insert_resource(ActionStates::default());
+
     Some(initial_noclip.unwrap_or(false))
+}
+
+fn map_trigger_mode(mode: TriggerMode) -> InputTriggerMode {
+    match mode {
+        TriggerMode::Press => InputTriggerMode::Press,
+        TriggerMode::Hold => InputTriggerMode::Hold,
+    }
+}
+
+fn map_volume_mode(mode: VolumeTriggerMode) -> InputVolumeTriggerMode {
+    match mode {
+        VolumeTriggerMode::Enter => InputVolumeTriggerMode::Enter,
+        VolumeTriggerMode::Exit => InputVolumeTriggerMode::Exit,
+        VolumeTriggerMode::Inside => InputVolumeTriggerMode::Inside,
+    }
 }

@@ -1,10 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::scenes::config::{
-    action_config_path, ComboTemplate, EntityTemplate, GrabActionConfig, GrenadeActionConfig,
-    InputConfig, JumpActionConfig, NoclipActionConfig, OverlayConfig, QuitActionConfig,
-    ReloadActionConfig, SceneTransitionActionConfig, ShootActionConfig, SprintActionConfig,
-    ZoomActionConfig, input_config_path, overlay_config_path,
+    action_config_path, actions_config_path, ActionsConfig, ComboTemplate, EntityTemplate,
+    InputConfig, OverlayConfig, input_config_path, overlay_config_path,
 };
 use crate::scenes::entities::EntitiesConfig;
 use crate::scenes::world::WorldConfig;
@@ -124,150 +122,6 @@ pub fn load_combo_template_from_path(
     )
 }
 
-pub fn load_shoot_action_config(
-    scene: &str,
-    action_path: &str,
-    cache: &mut TomlCache,
-    asset_server: &AssetServer,
-    toml_assets: &Assets<TomlAsset>,
-) -> ConfigLoad<Option<ShootActionConfig>> {
-    let path = action_config_path(scene, action_path);
-    load_toml_config(
-        cache,
-        asset_server,
-        toml_assets,
-        &path,
-        None,
-        "shoot action",
-    )
-}
-
-pub fn load_grenade_action_config(
-    scene: &str,
-    action_path: &str,
-    cache: &mut TomlCache,
-    asset_server: &AssetServer,
-    toml_assets: &Assets<TomlAsset>,
-) -> ConfigLoad<Option<GrenadeActionConfig>> {
-    let path = action_config_path(scene, action_path);
-    load_toml_config(
-        cache,
-        asset_server,
-        toml_assets,
-        &path,
-        None,
-        "grenade action",
-    )
-}
-
-pub fn load_sprint_action_config(
-    scene: &str,
-    action_path: &str,
-    cache: &mut TomlCache,
-    asset_server: &AssetServer,
-    toml_assets: &Assets<TomlAsset>,
-) -> ConfigLoad<Option<SprintActionConfig>> {
-    let path = action_config_path(scene, action_path);
-    load_toml_config(
-        cache,
-        asset_server,
-        toml_assets,
-        &path,
-        None,
-        "sprint action",
-    )
-}
-
-pub fn load_zoom_action_config(
-    scene: &str,
-    action_path: &str,
-    cache: &mut TomlCache,
-    asset_server: &AssetServer,
-    toml_assets: &Assets<TomlAsset>,
-) -> ConfigLoad<Option<ZoomActionConfig>> {
-    let path = action_config_path(scene, action_path);
-    load_toml_config(
-        cache,
-        asset_server,
-        toml_assets,
-        &path,
-        None,
-        "zoom action",
-    )
-}
-
-pub fn load_jump_action_config(
-    scene: &str,
-    action_path: &str,
-    cache: &mut TomlCache,
-    asset_server: &AssetServer,
-    toml_assets: &Assets<TomlAsset>,
-) -> ConfigLoad<Option<JumpActionConfig>> {
-    let path = action_config_path(scene, action_path);
-    load_toml_config(
-        cache,
-        asset_server,
-        toml_assets,
-        &path,
-        None,
-        "jump action",
-    )
-}
-
-pub fn load_noclip_action_config(
-    scene: &str,
-    action_path: &str,
-    cache: &mut TomlCache,
-    asset_server: &AssetServer,
-    toml_assets: &Assets<TomlAsset>,
-) -> ConfigLoad<Option<NoclipActionConfig>> {
-    let path = action_config_path(scene, action_path);
-    load_toml_config(
-        cache,
-        asset_server,
-        toml_assets,
-        &path,
-        None,
-        "noclip action",
-    )
-}
-
-pub fn load_grab_action_config(
-    scene: &str,
-    action_path: &str,
-    cache: &mut TomlCache,
-    asset_server: &AssetServer,
-    toml_assets: &Assets<TomlAsset>,
-) -> ConfigLoad<Option<GrabActionConfig>> {
-    let path = action_config_path(scene, action_path);
-    load_toml_config(
-        cache,
-        asset_server,
-        toml_assets,
-        &path,
-        None,
-        "grab action",
-    )
-}
-
-pub fn load_reload_action_config(
-    scene: &str,
-    action_path: &str,
-    cache: &mut TomlCache,
-    asset_server: &AssetServer,
-    toml_assets: &Assets<TomlAsset>,
-) -> ConfigLoad<Option<ReloadActionConfig>> {
-    let path = action_config_path(scene, action_path);
-    load_toml_config(
-        cache,
-        asset_server,
-        toml_assets,
-        &path,
-        None,
-        "reload action",
-    )
-}
-
 pub fn load_input_config(
     scene: &str,
     cache: &mut TomlCache,
@@ -285,6 +139,23 @@ pub fn load_input_config(
     )
 }
 
+pub fn load_actions_config(
+    scene: &str,
+    cache: &mut TomlCache,
+    asset_server: &AssetServer,
+    toml_assets: &Assets<TomlAsset>,
+) -> ConfigLoad<ActionsConfig> {
+    let path = actions_config_path(scene);
+    load_toml_config(
+        cache,
+        asset_server,
+        toml_assets,
+        &path,
+        ActionsConfig::default(),
+        "actions",
+    )
+}
+
 pub fn load_world_config(
     scene: &str,
     cache: &mut TomlCache,
@@ -299,42 +170,6 @@ pub fn load_world_config(
         &path,
         WorldConfig::default(),
         "world",
-    )
-}
-
-pub fn load_scene_transition_action_config(
-    scene: &str,
-    action_path: &str,
-    cache: &mut TomlCache,
-    asset_server: &AssetServer,
-    toml_assets: &Assets<TomlAsset>,
-) -> ConfigLoad<Option<SceneTransitionActionConfig>> {
-    let path = action_config_path(scene, action_path);
-    load_toml_config(
-        cache,
-        asset_server,
-        toml_assets,
-        &path,
-        None,
-        "scene transition action",
-    )
-}
-
-pub fn load_quit_action_config(
-    scene: &str,
-    action_path: &str,
-    cache: &mut TomlCache,
-    asset_server: &AssetServer,
-    toml_assets: &Assets<TomlAsset>,
-) -> ConfigLoad<Option<QuitActionConfig>> {
-    let path = action_config_path(scene, action_path);
-    load_toml_config(
-        cache,
-        asset_server,
-        toml_assets,
-        &path,
-        None,
-        "quit action",
     )
 }
 

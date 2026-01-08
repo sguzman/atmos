@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use super::transforms::Vec3Config;
+use super::transforms::{DimensionsConfig, PositionConfig, Vec3Config};
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(default)]
@@ -66,6 +66,22 @@ impl Default for GrenadeActionConfig {
                 y: 0.0,
                 z: 0.0,
             },
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct FovActionConfig {
+    pub name: String,
+    pub fov_degrees: f32,
+}
+
+impl Default for FovActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "fov".to_string(),
+            fov_degrees: 60.0,
         }
     }
 }
@@ -252,4 +268,132 @@ impl Default for ReloadActionConfig {
             name: "reload".to_string(),
         }
     }
+}
+
+#[derive(Debug, Deserialize, Clone, Default)]
+pub struct ActionsConfig {
+    #[serde(default)]
+    #[allow(dead_code)]
+    pub version: Option<u32>,
+    #[serde(default)]
+    pub actions: Vec<ActionConfig>,
+    #[serde(default)]
+    pub triggers: Vec<ActionTriggerConfig>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ActionConfig {
+    Shoot { id: String, params: ShootActionConfig },
+    Grenade { id: String, params: GrenadeActionConfig },
+    Sprint { id: String, params: SprintActionConfig },
+    Zoom { id: String, params: ZoomActionConfig },
+    Jump { id: String, params: JumpActionConfig },
+    Noclip { id: String, params: NoclipActionConfig },
+    Grab { id: String, params: GrabActionConfig },
+    Reload {
+        id: String,
+        #[allow(dead_code)]
+        params: ReloadActionConfig,
+    },
+    Fov { id: String, params: FovActionConfig },
+    SceneTransition { id: String, params: SceneTransitionActionConfig },
+    Quit {
+        id: String,
+        #[allow(dead_code)]
+        params: QuitActionConfig,
+    },
+}
+
+impl ActionConfig {
+    pub fn id(&self) -> &str {
+        match self {
+            ActionConfig::Shoot { id, .. }
+            | ActionConfig::Grenade { id, .. }
+            | ActionConfig::Sprint { id, .. }
+            | ActionConfig::Zoom { id, .. }
+            | ActionConfig::Jump { id, .. }
+            | ActionConfig::Noclip { id, .. }
+            | ActionConfig::Grab { id, .. }
+            | ActionConfig::Reload { id, .. }
+            | ActionConfig::Fov { id, .. }
+            | ActionConfig::SceneTransition { id, .. }
+            | ActionConfig::Quit { id, .. } => id,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone, Copy)]
+#[serde(rename_all = "snake_case")]
+pub enum TriggerMode {
+    Press,
+    Hold,
+}
+
+impl Default for TriggerMode {
+    fn default() -> Self {
+        TriggerMode::Press
+    }
+}
+
+#[derive(Debug, Deserialize, Clone, Copy)]
+#[serde(rename_all = "snake_case")]
+pub enum VolumeTriggerMode {
+    Enter,
+    Exit,
+    Inside,
+}
+
+impl Default for VolumeTriggerMode {
+    fn default() -> Self {
+        VolumeTriggerMode::Enter
+    }
+}
+
+#[derive(Debug, Deserialize, Clone, Copy)]
+#[serde(rename_all = "snake_case")]
+pub enum VolumeShapeKind {
+    Box,
+    Sphere,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct VolumeShapeConfig {
+    pub kind: VolumeShapeKind,
+    #[serde(default)]
+    pub radius: Option<f32>,
+    #[serde(default)]
+    pub size: Option<DimensionsConfig>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ActionTriggerConfig {
+    Key {
+        #[allow(dead_code)]
+        id: String,
+        action: String,
+        key: String,
+        #[serde(default)]
+        mode: TriggerMode,
+    },
+    Mouse {
+        #[allow(dead_code)]
+        id: String,
+        action: String,
+        mouse: String,
+        #[serde(default)]
+        mode: TriggerMode,
+    },
+    Volume {
+        #[allow(dead_code)]
+        id: String,
+        action: String,
+        #[serde(default)]
+        mode: VolumeTriggerMode,
+        shape: VolumeShapeConfig,
+        transform: PositionConfig,
+        #[serde(default)]
+        once: bool,
+    },
 }

@@ -1,14 +1,12 @@
-use bevy::{
-    input::keyboard::KeyCode,
-    prelude::{ButtonInput, Commands, Entity, Query, Res, ResMut, Vec3, With},
-};
+use bevy::{input::keyboard::KeyCode, prelude::{ButtonInput, Commands, Entity, Query, Res, ResMut, Vec3, With}};
 use bevy_rapier3d::prelude::{GravityScale, RigidBody, Sensor, Velocity};
 
-use super::super::types::{NoclipState, PlayerBody, SceneNoclipConfig};
+use super::super::types::{ActionStates, NoclipState, PlayerBody, SceneNoclipConfig};
 
 pub fn apply_noclip_toggle(
     keys: Res<ButtonInput<KeyCode>>,
     config: Option<Res<SceneNoclipConfig>>,
+    states: Option<Res<ActionStates>>,
     state: Option<ResMut<NoclipState>>,
     mut bodies: Query<(Entity, &mut RigidBody, &mut GravityScale, &mut Velocity, Option<&Sensor>), With<PlayerBody>>,
     mut commands: Commands,
@@ -16,11 +14,14 @@ pub fn apply_noclip_toggle(
     let Some(config) = config else {
         return;
     };
+    let Some(states) = states else {
+        return;
+    };
     let Some(mut state) = state else {
         return;
     };
 
-    if config.action.toggle && keys.just_pressed(config.trigger) {
+    if config.action.toggle && states.get(&config.id).just_pressed {
         state.active = !state.active;
     }
 

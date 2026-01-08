@@ -6,8 +6,6 @@ pub struct InputConfig {
     pub camera: CameraInputConfig,
     #[serde(default)]
     pub overlays: Vec<OverlayInputConfig>,
-    #[serde(default)]
-    pub actions: Vec<ActionBindingConfig>,
 }
 
 impl Default for InputConfig {
@@ -15,7 +13,6 @@ impl Default for InputConfig {
         Self {
             camera: CameraInputConfig::default(),
             overlays: vec![],
-            actions: vec![],
         }
     }
 }
@@ -44,18 +41,6 @@ impl Default for CameraInputConfig {
 pub struct OverlayInputConfig {
     pub name: String,
     pub toggle: String,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct ActionBindingConfig {
-    pub name: String,
-    pub action: String,
-    #[serde(default)]
-    pub mouse: String,
-    #[serde(default)]
-    pub key: String,
-    #[serde(default)]
-    pub value: Option<f32>,
 }
 
 #[derive(Debug, Deserialize)]

@@ -1,23 +1,23 @@
-use bevy::{
-    input::keyboard::KeyCode,
-    prelude::{ButtonInput, Projection, Query, Res, ResMut, With},
-};
+use bevy::prelude::{Projection, Query, Res, ResMut, With};
 
-use super::super::types::{SceneCamera, SceneFovConfig, ZoomState};
+use super::super::types::{ActionStates, SceneCamera, SceneFovConfig, ZoomState};
 
 pub fn apply_fov_action(
-    keys: Res<ButtonInput<KeyCode>>,
     config: Option<Res<SceneFovConfig>>,
+    states: Option<Res<ActionStates>>,
     zoom_state: Option<ResMut<ZoomState>>,
     mut cameras: Query<&mut Projection, With<SceneCamera>>,
 ) {
     let Some(config) = config else {
         return;
     };
+    let Some(states) = states else {
+        return;
+    };
 
     let mut selected = None;
     for binding in &config.bindings {
-        if keys.just_pressed(binding.trigger) {
+        if states.get(&binding.action_id).just_pressed {
             selected = Some(binding.fov_degrees);
         }
     }

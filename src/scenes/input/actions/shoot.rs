@@ -1,8 +1,5 @@
-use bevy::{
-    input::mouse::MouseButton,
-    prelude::{
-        ButtonInput, Commands, GlobalTransform, Local, Query, Res, Time, Transform, Vec3, With,
-    },
+use bevy::prelude::{
+    Commands, GlobalTransform, Local, Query, Res, Time, Transform, Vec3, With,
 };
 use bevy_rapier3d::prelude::{
     AdditionalMassProperties, Ccd, Collider, Friction, Restitution, RigidBody, Velocity,
@@ -10,7 +7,7 @@ use bevy_rapier3d::prelude::{
 
 use crate::scenes::bounds::DespawnOutsideBounds;
 
-use super::super::types::{SceneCamera, SceneShootConfig};
+use super::super::types::{ActionStates, SceneCamera, SceneShootConfig};
 
 #[derive(Default)]
 pub(crate) struct ShootState {
@@ -20,8 +17,8 @@ pub(crate) struct ShootState {
 
 pub fn apply_shoot_action(
     time: Res<Time>,
-    buttons: Res<ButtonInput<MouseButton>>,
     config: Option<Res<SceneShootConfig>>,
+    states: Option<Res<ActionStates>>,
     mut state: Local<ShootState>,
     cameras: Query<&GlobalTransform, With<SceneCamera>>,
     mut commands: Commands,
@@ -29,8 +26,12 @@ pub fn apply_shoot_action(
     let Some(config) = config else {
         return;
     };
+    let Some(states) = states else {
+        return;
+    };
+    let action_state = states.get(&config.id);
 
-    if !buttons.pressed(config.trigger) {
+    if !action_state.pressed {
         state.accumulator = 0.0;
         state.delay_remaining = 0.0;
         return;
@@ -87,7 +88,7 @@ pub fn apply_shoot_action(
     };
 
     let dt = time.delta_secs();
-    if buttons.just_pressed(config.trigger) {
+    if action_state.just_pressed {
         state.delay_remaining = config.action.start_delay.max(0.0);
         state.accumulator = 0.0;
         if state.delay_remaining <= 0.0 {

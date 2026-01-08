@@ -4,6 +4,10 @@ pub fn input_config_path(scene: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/input.toml")
 }
 
+pub fn actions_config_path(scene: &str) -> String {
+    format!("{SCENE_ROOT}/{scene}/actions.toml")
+}
+
 pub fn action_config_path(scene: &str, action_path: &str) -> String {
     format!("{SCENE_ROOT}/{scene}/{action_path}")
 }

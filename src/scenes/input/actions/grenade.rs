@@ -1,7 +1,6 @@
 use bevy::{
-    input::keyboard::KeyCode,
     prelude::{
-        ButtonInput, Commands, Component, GlobalTransform, Query, Res, Time, Transform, Vec3, With,
+        Commands, Component, GlobalTransform, Query, Res, Time, Transform, Vec3, With,
     },
     time::Timer,
 };
@@ -11,7 +10,7 @@ use bevy_rapier3d::prelude::{
 
 use crate::scenes::bounds::DespawnOutsideBounds;
 
-use super::super::types::{SceneCamera, SceneGrenadeConfig};
+use super::super::types::{ActionStates, SceneCamera, SceneGrenadeConfig};
 
 #[derive(Component)]
 pub(crate) struct GrenadeFuse {
@@ -21,15 +20,18 @@ pub(crate) struct GrenadeFuse {
 }
 
 pub fn apply_grenade_action(
-    keys: Res<ButtonInput<KeyCode>>,
     config: Option<Res<SceneGrenadeConfig>>,
+    states: Option<Res<ActionStates>>,
     cameras: Query<&GlobalTransform, With<SceneCamera>>,
     mut commands: Commands,
 ) {
     let Some(config) = config else {
         return;
     };
-    if !keys.just_pressed(config.trigger) {
+    let Some(states) = states else {
+        return;
+    };
+    if !states.get(&config.id).just_pressed {
         return;
     }
 

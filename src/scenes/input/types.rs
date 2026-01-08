@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy::{
     input::keyboard::KeyCode,
     input::mouse::MouseButton,
@@ -54,8 +56,8 @@ pub struct ResolvedOverlayToggle {
 
 #[derive(Resource, Clone)]
 pub struct SceneShootConfig {
+    pub id: String,
     pub action: ShootActionConfig,
-    pub trigger: MouseButton,
     pub name: String,
     pub shape: ShapeConfig,
     pub physics: Option<PhysicsConfig>,
@@ -65,8 +67,8 @@ pub struct SceneShootConfig {
 
 #[derive(Resource, Clone)]
 pub struct SceneGrenadeConfig {
+    pub id: String,
     pub action: GrenadeActionConfig,
-    pub trigger: KeyCode,
     pub name: String,
     pub shape: ShapeConfig,
     pub physics: Option<PhysicsConfig>,
@@ -76,26 +78,26 @@ pub struct SceneGrenadeConfig {
 
 #[derive(Resource, Clone)]
 pub struct SceneSprintConfig {
+    pub id: String,
     pub action: SprintActionConfig,
-    pub trigger: KeyCode,
 }
 
 #[derive(Resource, Clone)]
 pub struct SceneZoomConfig {
+    pub id: String,
     pub action: ZoomActionConfig,
-    pub trigger: KeyCode,
 }
 
 #[derive(Resource, Clone)]
 pub struct SceneJumpConfig {
+    pub id: String,
     pub action: JumpActionConfig,
-    pub trigger: KeyCode,
 }
 
 #[derive(Resource, Clone)]
 pub struct SceneNoclipConfig {
+    pub id: String,
     pub action: NoclipActionConfig,
-    pub trigger: KeyCode,
     pub speed_toggle_key: Option<KeyCode>,
     pub up_key: Option<KeyCode>,
     pub down_key: Option<KeyCode>,
@@ -103,14 +105,14 @@ pub struct SceneNoclipConfig {
 
 #[derive(Resource, Clone)]
 pub struct SceneGrabConfig {
+    pub id: String,
     pub action: GrabActionConfig,
-    pub trigger: KeyCode,
     pub outline_color: Color,
 }
 
 #[derive(Resource, Clone)]
 pub struct SceneReloadConfig {
-    pub trigger: KeyCode,
+    pub id: String,
 }
 
 #[derive(Resource, Default)]
@@ -121,7 +123,7 @@ pub struct ZoomState {
 
 #[derive(Clone)]
 pub struct FovBinding {
-    pub trigger: KeyCode,
+    pub action_id: String,
     pub fov_degrees: f32,
 }
 
@@ -155,6 +157,91 @@ pub struct GrabHover {
 #[derive(Resource, Clone)]
 pub struct PlayerSpawn {
     pub position: Vec3,
+}
+
+#[derive(Clone, Copy, Default)]
+pub struct ActionState {
+    pub pressed: bool,
+    pub just_pressed: bool,
+    pub just_released: bool,
+}
+
+#[derive(Resource, Default)]
+pub struct ActionStates {
+    pub states: HashMap<String, ActionState>,
+}
+
+impl ActionStates {
+    pub fn get(&self, action_id: &str) -> ActionState {
+        self.states.get(action_id).copied().unwrap_or_default()
+    }
+
+    pub fn update(&mut self, action_id: &str, pressed: bool, just_pressed: bool, just_released: bool) {
+        let entry = self.states.entry(action_id.to_string()).or_default();
+        entry.pressed |= pressed;
+        entry.just_pressed |= just_pressed;
+        entry.just_released |= just_released;
+    }
+
+    pub fn clear(&mut self) {
+        self.states.clear();
+    }
+}
+
+#[derive(Clone)]
+pub enum TriggerSource {
+    Key(KeyCode),
+    Mouse(MouseButton),
+}
+
+#[derive(Clone, Copy)]
+pub enum TriggerMode {
+    Press,
+    Hold,
+}
+
+#[derive(Clone, Copy)]
+pub enum VolumeTriggerMode {
+    Enter,
+    Exit,
+    Inside,
+}
+
+#[derive(Clone)]
+pub struct VolumeShape {
+    pub kind: VolumeShapeKind,
+    pub radius: f32,
+    pub size: Vec3,
+}
+
+#[derive(Clone, Copy)]
+pub enum VolumeShapeKind {
+    Box,
+    Sphere,
+}
+
+#[derive(Clone)]
+pub struct ResolvedActionTrigger {
+    pub action: String,
+    pub source: TriggerSource,
+    pub mode: TriggerMode,
+}
+
+#[derive(Clone)]
+pub struct ResolvedVolumeTrigger {
+    pub action: String,
+    pub mode: VolumeTriggerMode,
+    pub shape: VolumeShape,
+    pub position: Vec3,
+    pub once: bool,
+    pub fired: bool,
+    pub inside: bool,
+}
+
+#[derive(Resource, Default)]
+pub struct SceneActionTriggers {
+    pub input: Vec<ResolvedActionTrigger>,
+    pub volumes: Vec<ResolvedVolumeTrigger>,
 }
 
 #[derive(Resource, Default, Clone)]

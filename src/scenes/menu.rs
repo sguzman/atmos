@@ -1,16 +1,23 @@
 use bevy::{
     app::AppExit,
-    input::keyboard::KeyCode,
     prelude::*,
     window::{CursorGrabMode, CursorOptions, PrimaryWindow},
 };
 use bevy::state::state::NextState;
 use bevy::state::condition::in_state;
 
-use super::input::{resolve_camera_input_config, resolve_key_or_warn, resolve_overlay_toggles, SceneInputConfig};
+use super::config::{
+    ActionConfig, ActionTriggerConfig, ActionsConfig, TriggerMode, VolumeShapeKind,
+    VolumeTriggerMode,
+};
+use super::input::{
+    resolve_camera_input_config, resolve_key_or_warn, resolve_mouse_button_or_warn,
+    resolve_overlay_toggles, ActionStates, ResolvedActionTrigger, ResolvedVolumeTrigger,
+    SceneActionTriggers, SceneInputConfig, TriggerMode as InputTriggerMode, TriggerSource,
+    VolumeShape, VolumeShapeKind as InputVolumeShapeKind, VolumeTriggerMode as InputVolumeTriggerMode,
+};
 use super::loaders::{
-    load_input_config, load_quit_action_config, load_scene_transition_action_config, ConfigLoad,
-    TomlCache,
+    load_actions_config, load_input_config, ConfigLoad, TomlCache,
 };
 use super::spawn::{spawn_overlays_from_config, reset_overlay_spawn_state, OverlayTag};
 use super::TomlAsset;
@@ -21,13 +28,13 @@ struct MenuCamera;
 
 #[derive(Resource)]
 struct MenuSceneTransition {
-    trigger: KeyCode,
+    action_id: String,
     target_scene: String,
 }
 
 #[derive(Resource)]
 struct MenuQuitAction {
-    trigger: KeyCode,
+    action_id: String,
 }
 
 pub struct MenuPlugin;
@@ -44,6 +51,7 @@ impl Plugin for MenuPlugin {
             spawn_overlays_from_config.run_if(in_state(AppState::Menu)),
         );
         app.add_systems(OnExit(AppState::Menu), cleanup_menu);
+        app.add_systems(Update, super::input::update_action_states.run_if(in_state(AppState::Menu)));
         app.add_systems(Update, handle_menu_input.run_if(in_state(AppState::Menu)));
     }
 }
@@ -79,47 +87,32 @@ fn setup_menu(
         overlays: resolve_overlay_toggles(&input_config.overlays),
     });
 
+    let actions_config: ActionsConfig = match load_actions_config(
+        "menu",
+        &mut toml_cache,
+        &asset_server,
+        &toml_assets,
+    ) {
+        ConfigLoad::Pending => return,
+        ConfigLoad::Ready(config) => config,
+    };
+
     let mut transition = None;
     let mut quit = None;
-    for action_binding in &input_config.actions {
-        if action_binding.action.ends_with("scene-transition.toml") {
-            if let Some(trigger) =
-                resolve_key_or_warn(&action_binding.key, "menu scene transition")
-            {
-                let action = match load_scene_transition_action_config(
-                    "menu",
-                    &action_binding.action,
-                    &mut toml_cache,
-                    &asset_server,
-                    &toml_assets,
-                ) {
-                    ConfigLoad::Pending => return,
-                    ConfigLoad::Ready(action) => action,
-                };
-                if let Some(action) = action {
-                    transition = Some(MenuSceneTransition {
-                        trigger,
-                        target_scene: action.target_scene,
-                    });
-                }
+    for action in actions_config.actions.iter() {
+        match action {
+            ActionConfig::SceneTransition { id, params } => {
+                transition = Some(MenuSceneTransition {
+                    action_id: id.clone(),
+                    target_scene: params.target_scene.clone(),
+                });
             }
-        }
-        if action_binding.action.ends_with("quit.toml") {
-            if let Some(trigger) = resolve_key_or_warn(&action_binding.key, "menu quit") {
-                let action = match load_quit_action_config(
-                    "menu",
-                    &action_binding.action,
-                    &mut toml_cache,
-                    &asset_server,
-                    &toml_assets,
-                ) {
-                    ConfigLoad::Pending => return,
-                    ConfigLoad::Ready(action) => action,
-                };
-                if action.is_some() {
-                    quit = Some(MenuQuitAction { trigger });
-                }
+            ActionConfig::Quit { id, .. } => {
+                quit = Some(MenuQuitAction {
+                    action_id: id.clone(),
+                });
             }
+            _ => {}
         }
     }
 
@@ -129,6 +122,69 @@ fn setup_menu(
     if let Some(quit) = quit {
         commands.insert_resource(quit);
     }
+
+    let mut resolved_triggers = Vec::new();
+    let mut resolved_volumes = Vec::new();
+    for trigger in actions_config.triggers.iter() {
+        match trigger {
+            ActionTriggerConfig::Key { key, mode, action, .. } => {
+                if let Some(trigger) = resolve_key_or_warn(key, "menu action key") {
+                    resolved_triggers.push(ResolvedActionTrigger {
+                        action: action.clone(),
+                        source: TriggerSource::Key(trigger),
+                        mode: map_trigger_mode(*mode),
+                    });
+                }
+            }
+            ActionTriggerConfig::Mouse { mouse, mode, action, .. } => {
+                if let Some(trigger) = resolve_mouse_button_or_warn(mouse, "menu action mouse") {
+                    resolved_triggers.push(ResolvedActionTrigger {
+                        action: action.clone(),
+                        source: TriggerSource::Mouse(trigger),
+                        mode: map_trigger_mode(*mode),
+                    });
+                }
+            }
+            ActionTriggerConfig::Volume {
+                action,
+                mode,
+                shape,
+                transform,
+                once,
+                ..
+            } => {
+                let (kind, radius, size) = match shape.kind {
+                    VolumeShapeKind::Sphere => (
+                        InputVolumeShapeKind::Sphere,
+                        shape.radius.unwrap_or(1.0).max(0.0),
+                        Vec3::ZERO,
+                    ),
+                    VolumeShapeKind::Box => {
+                        let size_cfg = shape.size.clone().unwrap_or_default();
+                        (
+                            InputVolumeShapeKind::Box,
+                            0.0,
+                            Vec3::new(size_cfg.width, size_cfg.height, size_cfg.depth),
+                        )
+                    }
+                };
+                resolved_volumes.push(ResolvedVolumeTrigger {
+                    action: action.clone(),
+                    mode: map_volume_mode(*mode),
+                    shape: VolumeShape { kind, radius, size },
+                    position: Vec3::new(transform.x, transform.y, transform.z),
+                    once: *once,
+                    fired: false,
+                    inside: false,
+                });
+            }
+        }
+    }
+    commands.insert_resource(SceneActionTriggers {
+        input: resolved_triggers,
+        volumes: resolved_volumes,
+    });
+    commands.insert_resource(ActionStates::default());
 
     let use_2d = input_config
         .camera
@@ -158,24 +214,44 @@ fn cleanup_menu(
     commands.remove_resource::<SceneInputConfig>();
     commands.remove_resource::<MenuSceneTransition>();
     commands.remove_resource::<MenuQuitAction>();
+    commands.remove_resource::<SceneActionTriggers>();
+    commands.remove_resource::<ActionStates>();
 }
 
 fn handle_menu_input(
-    keys: Res<ButtonInput<KeyCode>>,
     transition: Option<Res<MenuSceneTransition>>,
     quit: Option<Res<MenuQuitAction>>,
+    states: Option<Res<ActionStates>>,
     mut next_state: ResMut<NextState<AppState>>,
     mut app_exit: MessageWriter<AppExit>,
 ) {
+    let Some(states) = states else {
+        return;
+    };
     if let Some(transition) = transition.as_ref() {
-        if keys.just_pressed(transition.trigger) {
+        if states.get(&transition.action_id).just_pressed {
             next_state.set(AppState::from_scene_name(&transition.target_scene));
         }
     }
     if let Some(quit) = quit.as_ref() {
-        if keys.just_pressed(quit.trigger) {
+        if states.get(&quit.action_id).just_pressed {
             app_exit.write(AppExit::Success);
         }
+    }
+}
+
+fn map_trigger_mode(mode: TriggerMode) -> InputTriggerMode {
+    match mode {
+        TriggerMode::Press => InputTriggerMode::Press,
+        TriggerMode::Hold => InputTriggerMode::Hold,
+    }
+}
+
+fn map_volume_mode(mode: VolumeTriggerMode) -> InputVolumeTriggerMode {
+    match mode {
+        VolumeTriggerMode::Enter => InputVolumeTriggerMode::Enter,
+        VolumeTriggerMode::Exit => InputVolumeTriggerMode::Exit,
+        VolumeTriggerMode::Inside => InputVolumeTriggerMode::Inside,
     }
 }
 

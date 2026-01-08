@@ -1,0 +1,30 @@
+version = 1
+
+[[actions]]
+id = "menu_play"
+type = "scene_transition"
+
+[actions.params]
+name = "menu_play"
+target_scene = "main"
+
+[[actions]]
+id = "menu_quit"
+type = "quit"
+
+[actions.params]
+name = "menu_quit"
+
+[[triggers]]
+id = "menu_play_enter"
+action = "menu_play"
+type = "key"
+key = "Enter"
+mode = "press"
+
+[[triggers]]
+id = "menu_quit_q"
+action = "menu_quit"
+type = "key"
+key = "q"
+mode = "press"

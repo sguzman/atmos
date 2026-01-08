@@ -18,9 +18,9 @@ mod transforms;
 
 pub use active::{ActiveScene, OVERLAY_ROOT, SCENE_FS_ROOT, SCENE_ROOT};
 pub use actions::{
-    GrabActionConfig, GrenadeActionConfig, JumpActionConfig, NoclipActionConfig, QuitActionConfig,
-    ReloadActionConfig, SceneTransitionActionConfig, ShootActionConfig, SprintActionConfig,
-    ZoomActionConfig,
+    ActionConfig, ActionTriggerConfig, ActionsConfig, GrabActionConfig, GrenadeActionConfig,
+    JumpActionConfig, NoclipActionConfig, ShootActionConfig, SprintActionConfig, TriggerMode,
+    VolumeShapeKind, VolumeTriggerMode, ZoomActionConfig,
 };
 pub use bounds::BoundingBoxConfig;
 pub use camera::CameraConfig;
@@ -42,7 +42,7 @@ pub use overlay::{
 };
 pub use render::{BloomConfig, FogConfig, FogFalloffConfig, RenderConfig};
 pub use paths::{
-    action_config_path, input_config_path, overlay_config_path,
+    action_config_path, actions_config_path, input_config_path, overlay_config_path,
 };
 pub use physics::{PhysicsConfig, WorldPhysicsConfig};
 pub use skybox::SkyboxConfig;

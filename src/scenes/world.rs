@@ -11,6 +11,7 @@ pub struct WorldConfig {
     #[serde(default)]
     pub startup_scene: Option<String>,
     #[serde(default)]
+    #[allow(dead_code)]
     pub scene_type: Option<String>,
     #[serde(default)]
     pub camera: CameraConfig,

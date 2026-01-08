@@ -4,7 +4,7 @@ use bevy_rapier3d::prelude::{DefaultRapierContext, RapierConfiguration, RapierCo
 use crate::app_config::AppConfig;
 use crate::scenes::{
     config::ActiveScene,
-    loaders::TomlCache,
+    loaders::{load_actions_config, ConfigLoad, TomlCache},
     MeshCacheSettings, TomlAsset,
 };
 
@@ -40,7 +40,7 @@ pub(crate) fn setup_scene(
         return;
     }
 
-    let input_config = match input::load_scene_input(
+    let _input_config = match input::load_scene_input(
         &active_scene,
         &mut commands,
         &mut toml_cache,
@@ -49,6 +49,16 @@ pub(crate) fn setup_scene(
     ) {
         Some(config) => config,
         None => return,
+    };
+
+    let actions_config = match load_actions_config(
+        &active_scene.name,
+        &mut toml_cache,
+        &asset_server,
+        &toml_assets,
+    ) {
+        ConfigLoad::Pending => return,
+        ConfigLoad::Ready(config) => config,
     };
 
     let (world_config, entities_config) = match world::load_world_and_entities(
@@ -63,7 +73,7 @@ pub(crate) fn setup_scene(
     };
 
     let initial_noclip = match actions::setup_actions(
-        &input_config,
+        &actions_config,
         &active_scene,
         &mesh_cache,
         &mut commands,

@@ -9,6 +9,7 @@ mod sprint;
 mod zoom;
 
 pub use fov::apply_fov_action;
+pub use dispatch::update_action_states;
 pub use grenade::{apply_grenade_action, update_grenade_fuses};
 pub use grab::{apply_grab_action, update_grab_hold, update_grab_hover};
 pub use jump::apply_jump_action;
@@ -17,3 +18,4 @@ pub use respawn::apply_player_respawn;
 pub use shoot::apply_shoot_action;
 pub use sprint::apply_sprint_toggle;
 pub use zoom::apply_zoom_action;
+mod dispatch;

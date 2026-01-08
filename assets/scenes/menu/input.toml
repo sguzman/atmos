@@ -20,13 +20,3 @@ pitch_down = ""
 [[overlays]]
 name = "menu"
 toggle = ""
-
-[[actions]]
-name = "menu_play"
-action = "actions/scene-transition.toml"
-key = "Enter"
-
-[[actions]]
-name = "menu_quit"
-action = "actions/quit.toml"
-key = "q"

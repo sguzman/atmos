@@ -1,16 +1,15 @@
 use bevy::{
-    input::keyboard::KeyCode,
     prelude::{
-        default, Alpha, AlphaMode, Assets, ButtonInput, ChildOf, Commands, Component, Entity,
-        GlobalTransform, InheritedVisibility, Query, Res, ResMut, StandardMaterial, Transform,
-        Vec3, ViewVisibility, Visibility, With, Without,
+        default, Alpha, AlphaMode, Assets, ChildOf, Commands, Component, Entity, GlobalTransform,
+        InheritedVisibility, Query, Res, ResMut, StandardMaterial, Transform, Vec3, ViewVisibility,
+        Visibility, With, Without,
     },
     render::render_resource::Face,
 };
 use bevy_rapier3d::prelude::{GravityScale, QueryFilter, ReadRapierContext, RigidBody, Sensor, Velocity};
 
 use super::super::types::{
-    GrabHover, GrabState, PlayerBody, SceneCamera, SceneGrabConfig,
+    ActionStates, GrabHover, GrabState, PlayerBody, SceneCamera, SceneGrabConfig,
 };
 
 #[derive(Component)]
@@ -167,8 +166,8 @@ pub fn update_grab_hold(
 }
 
 pub fn apply_grab_action(
-    keys: Res<ButtonInput<KeyCode>>,
     config: Option<Res<SceneGrabConfig>>,
+    states: Option<Res<ActionStates>>,
     state: Option<ResMut<GrabState>>,
     hover: Option<Res<GrabHover>>,
     cameras: Query<&GlobalTransform, With<SceneCamera>>,
@@ -189,13 +188,16 @@ pub fn apply_grab_action(
     let Some(config) = config else {
         return;
     };
+    let Some(states) = states else {
+        return;
+    };
     let Some(mut state) = state else {
         return;
     };
     let Some(hover) = hover else {
         return;
     };
-    if !keys.just_pressed(config.trigger) {
+    if !states.get(&config.id).just_pressed {
         return;
     }
 

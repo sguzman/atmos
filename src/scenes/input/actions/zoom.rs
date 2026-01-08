@@ -1,17 +1,17 @@
-use bevy::{
-    input::keyboard::KeyCode,
-    prelude::{ButtonInput, Projection, Query, Res, ResMut, With},
-};
+use bevy::prelude::{Projection, Query, Res, ResMut, With};
 
-use super::super::types::{SceneCamera, SceneZoomConfig, ZoomState};
+use super::super::types::{ActionStates, SceneCamera, SceneZoomConfig, ZoomState};
 
 pub fn apply_zoom_action(
-    keys: Res<ButtonInput<KeyCode>>,
     config: Option<Res<SceneZoomConfig>>,
+    states: Option<Res<ActionStates>>,
     state: Option<ResMut<ZoomState>>,
     mut cameras: Query<&mut Projection, With<SceneCamera>>,
 ) {
     let Some(config) = config else {
+        return;
+    };
+    let Some(states) = states else {
         return;
     };
     let Some(mut state) = state else {
@@ -34,11 +34,11 @@ pub fn apply_zoom_action(
 
     let was_active = state.active;
     if config.action.toggle {
-        if keys.just_pressed(config.trigger) {
+        if states.get(&config.id).just_pressed {
             state.active = !state.active;
         }
     } else {
-        state.active = keys.pressed(config.trigger);
+        state.active = states.get(&config.id).pressed;
     }
 
     if !was_active && state.active {
