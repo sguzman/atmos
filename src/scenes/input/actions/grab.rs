@@ -173,6 +173,7 @@ pub fn apply_grab_action(
     hover: Option<Res<GrabHover>>,
     cameras: Query<&GlobalTransform, With<SceneCamera>>,
     grabbed: Query<&GrabbedBody>,
+    player_velocity: Query<&Velocity, With<PlayerBody>>,
     mut bodies: Query<
         (
             Entity,
@@ -201,6 +202,11 @@ pub fn apply_grab_action(
     let Ok(camera) = cameras.single() else {
         return;
     };
+    let player_linvel = player_velocity
+        .iter()
+        .next()
+        .map(|vel| vel.linvel)
+        .unwrap_or(Vec3::ZERO);
 
     if let Some(held) = state.held {
         if let Ok((entity, mut body, mut gravity, velocity, _sensor)) = bodies.get_mut(held) {
@@ -227,7 +233,8 @@ pub fn apply_grab_action(
                 }
             }
 
-            let throw_velocity = camera.forward().as_vec3() * config.action.throw_speed.max(0.0);
+            let throw_velocity =
+                camera.forward().as_vec3() * config.action.throw_speed.max(0.0) + player_linvel;
             if let Some(mut velocity) = velocity {
                 velocity.linvel = throw_velocity;
                 velocity.angvel = Vec3::ZERO;
