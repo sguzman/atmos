@@ -1,6 +1,0 @@
-# Web build defaults.
-allow_runtime_mesh = false
-fps_limit = 60
-rapier_debug = false
-inspector = false
-window_size_mode = "match_parent"

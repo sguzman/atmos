@@ -21,8 +21,6 @@ mod overlays;
 mod render;
 mod reload;
 mod setup;
-#[cfg(target_arch = "wasm32")]
-mod wasm;
 
 pub(crate) use setup::SceneSetupState;
 
@@ -76,13 +74,5 @@ impl Plugin for ScenePlugin {
         app.add_systems(Update, despawn_out_of_bounds.run_if(in_state(AppState::Main)));
         app.add_systems(Update, overlays::toggle_overlays.run_if(in_state(AppState::Main)));
 
-        #[cfg(target_arch = "wasm32")]
-        {
-            app.add_systems(OnEnter(AppState::Main), wasm::reset_wasm_cursor_state);
-            app.add_systems(OnEnter(AppState::Main), wasm::spawn_wasm_kill_button);
-            app.add_systems(OnExit(AppState::Main), wasm::cleanup_wasm_kill_button);
-            app.add_systems(Update, wasm::handle_wasm_kill_button.run_if(in_state(AppState::Main)));
-            app.add_systems(Update, wasm::lock_cursor_on_click.run_if(in_state(AppState::Main)));
-        }
     }
 }

@@ -2,32 +2,18 @@ mod app_config;
 mod scenes;
 
 use app_config::load_app_config;
-#[cfg(target_arch = "wasm32")]
-use app_config::load_wasm_config;
 use bevy::asset::{AssetApp, AssetMetaCheck, AssetPlugin};
-#[cfg(target_arch = "wasm32")]
-use bevy::audio::AudioPlugin;
 use bevy::prelude::*;
 use bevy::state::app::AppExtStates;
 use bevy_rapier3d::prelude::*;
 use bevy::winit::WinitSettings;
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
-#[cfg(not(target_arch = "wasm32"))]
 use clap::{Parser, Subcommand};
 
-#[cfg(not(target_arch = "wasm32"))]
 fn main() {
     let cli = Cli::parse();
     let app_config = load_app_config();
     run_app(app_config, cli.allow_runtime_mesh, cli.command);
-}
-
-#[cfg(target_arch = "wasm32")]
-fn main() {
-    let mut app_config = load_app_config();
-    let wasm_config = load_wasm_config();
-    app_config.apply_wasm_config(&wasm_config);
-    run_app(app_config, wasm_config.allow_runtime_mesh, None);
 }
 
 fn run_app(
@@ -38,28 +24,18 @@ fn run_app(
     let log_plugin = app_config.to_log_plugin();
     let window_plugin = app_config.to_window_plugin();
 
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        if let Some(Commands::Bake { scene }) = command {
-            let settings = scenes::MeshCacheSettings::default();
-            if let Err(err) = bake_mesh_cache(scene.as_deref(), &settings) {
-                eprintln!("Bake failed: {err}");
-                std::process::exit(1);
-            }
-            return;
+    if let Some(Commands::Bake { scene }) = command {
+        let settings = scenes::MeshCacheSettings::default();
+        if let Err(err) = bake_mesh_cache(scene.as_deref(), &settings) {
+            eprintln!("Bake failed: {err}");
+            std::process::exit(1);
         }
+        return;
     }
-    #[cfg(target_arch = "wasm32")]
-    let _ = command;
 
     let mut app = App::new();
 
-    let winit_settings = if cfg!(target_arch = "wasm32") {
-        WinitSettings::game()
-    } else {
-        app_config.winit_settings()
-    };
-    app.insert_resource::<WinitSettings>(winit_settings);
+    app.insert_resource::<WinitSettings>(app_config.winit_settings());
     app.insert_resource(app_config.clone());
     app.insert_resource(scenes::MeshCacheSettings::new(
         allow_runtime_mesh && matches!(app_config.mode, app_config::AppMode::Dev),
@@ -73,8 +49,6 @@ fn run_app(
             meta_check: AssetMetaCheck::Never,
             ..default()
         });
-    #[cfg(target_arch = "wasm32")]
-    let default_plugins = default_plugins.disable::<AudioPlugin>();
     app.add_plugins(default_plugins);
     app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
 
@@ -98,7 +72,6 @@ fn run_app(
         .run();
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 #[derive(Parser)]
 #[command(author, version, about)]
 struct Cli {
@@ -108,7 +81,6 @@ struct Cli {
     allow_runtime_mesh: bool,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 #[derive(Subcommand)]
 enum Commands {
     Bake {
@@ -116,9 +88,6 @@ enum Commands {
         scene: Option<String>,
     },
 }
-
-#[cfg(target_arch = "wasm32")]
-enum Commands {}
 
 fn bake_mesh_cache(scene: Option<&str>, settings: &scenes::MeshCacheSettings) -> Result<(), String> {
     scenes::bake_meshes(scene, settings).map_err(|err| err.to_string())
@@ -137,12 +106,5 @@ fn initial_state_from_world() -> scenes::AppState {
 }
 
 fn load_world_startup_toml() -> Option<String> {
-    #[cfg(target_arch = "wasm32")]
-    {
-        return Some(include_str!("../assets/scenes/main/world.toml").to_string());
-    }
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        return std::fs::read_to_string("assets/scenes/main/world.toml").ok();
-    }
+    std::fs::read_to_string("assets/scenes/main/world.toml").ok()
 }
