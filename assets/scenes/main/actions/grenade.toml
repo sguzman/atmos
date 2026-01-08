@@ -1,0 +1,14 @@
+name = "grenade"
+velocity = 12.0
+spawn_offset = 1.1
+fuse_seconds = 1.5
+explosion_radius = 4.0
+explosion_force = 18.0
+color = "green"
+radius = 0.2
+ccd = true
+
+[spin]
+x = 0.0
+y = 0.0
+z = 0.0

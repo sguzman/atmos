@@ -5,9 +5,10 @@ use crate::scenes::{
     bounds::despawn_out_of_bounds,
     config::ActiveScene,
     input::{
-        apply_camera_input, apply_fov_action, apply_grab_action, apply_jump_action,
-        apply_noclip_toggle, apply_player_respawn, apply_shoot_action,
+        apply_camera_input, apply_fov_action, apply_grab_action, apply_grenade_action,
+        apply_jump_action, apply_noclip_toggle, apply_player_respawn, apply_shoot_action,
         apply_sprint_toggle, apply_zoom_action, update_grab_hold, update_grab_hover,
+        update_grenade_fuses,
     },
     AppState,
 };
@@ -68,11 +69,13 @@ impl Plugin for ScenePlugin {
         app.add_systems(Update, apply_noclip_toggle.run_if(in_state(AppState::Main)));
         app.add_systems(Update, apply_player_respawn.run_if(in_state(AppState::Main)));
         app.add_systems(Update, apply_shoot_action.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, apply_grenade_action.run_if(in_state(AppState::Main)));
         app.add_systems(Update, apply_sprint_toggle.run_if(in_state(AppState::Main)));
         app.add_systems(Update, apply_zoom_action.run_if(in_state(AppState::Main)));
         app.add_systems(Update, reload::apply_scene_reload.run_if(in_state(AppState::Main)));
         app.add_systems(Update, despawn_out_of_bounds.run_if(in_state(AppState::Main)));
         app.add_systems(Update, overlays::toggle_overlays.run_if(in_state(AppState::Main)));
+        app.add_systems(Update, update_grenade_fuses.run_if(in_state(AppState::Main)));
 
     }
 }

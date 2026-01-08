@@ -5,8 +5,8 @@ use bevy::{
 };
 
 use crate::scenes::config::{
-    GrabActionConfig, JumpActionConfig, NoclipActionConfig, PhysicsConfig, ShapeConfig,
-    ShootActionConfig, SprintActionConfig, ZoomActionConfig,
+    GrabActionConfig, GrenadeActionConfig, JumpActionConfig, NoclipActionConfig, PhysicsConfig,
+    ShapeConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig,
 };
 
 #[derive(Resource, Debug, Clone)]
@@ -56,6 +56,17 @@ pub struct ResolvedOverlayToggle {
 pub struct SceneShootConfig {
     pub action: ShootActionConfig,
     pub trigger: MouseButton,
+    pub name: String,
+    pub shape: ShapeConfig,
+    pub physics: Option<PhysicsConfig>,
+    pub mesh: Handle<Mesh>,
+    pub material: Handle<StandardMaterial>,
+}
+
+#[derive(Resource, Clone)]
+pub struct SceneGrenadeConfig {
+    pub action: GrenadeActionConfig,
+    pub trigger: KeyCode,
     pub name: String,
     pub shape: ShapeConfig,
     pub physics: Option<PhysicsConfig>,

@@ -13,14 +13,15 @@ use crate::scenes::{
     input::{
         resolve_camera_input_config, resolve_overlay_toggles, CameraLookState, FovBinding,
         GrabHover, GrabState, NoclipState, PlayerBody, PlayerSpawn, SceneCamera, SceneFovConfig,
-        SceneGrabConfig, SceneInputConfig, SceneJumpConfig, SceneNoclipConfig, SceneReloadConfig,
-        SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
+        SceneGrabConfig, SceneGrenadeConfig, SceneInputConfig, SceneJumpConfig, SceneNoclipConfig,
+        SceneReloadConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState,
+        ZoomState,
     },
     loaders::{
         load_entity_template_from_path, load_entities_config, load_grab_action_config,
-        load_input_config, load_jump_action_config, load_noclip_action_config,
-        load_reload_action_config, load_shoot_action_config, load_sprint_action_config,
-        load_world_config,
+        load_grenade_action_config, load_input_config, load_jump_action_config,
+        load_noclip_action_config, load_reload_action_config, load_shoot_action_config,
+        load_sprint_action_config, load_world_config,
         load_zoom_action_config, ConfigLoad, TomlCache,
     },
     world::WorldConfig,
@@ -155,6 +156,79 @@ pub(crate) fn setup_scene(
                     &asset_server,
                 );
                 commands.insert_resource(SceneShootConfig {
+                    action,
+                    trigger,
+                    name: projectile.name.clone(),
+                    shape,
+                    physics: projectile.physics.clone(),
+                    mesh: sphere_mesh,
+                    material: sphere_material,
+                });
+            }
+        }
+    }
+
+    if let Some(action_binding) = input_config
+        .actions
+        .iter()
+        .find(|action| action.action.ends_with("grenade.toml"))
+    {
+        if let Some(trigger) =
+            crate::scenes::input::resolve_key_or_warn(&action_binding.key, "grenade")
+        {
+            let action = match load_grenade_action_config(
+                &active_scene.name,
+                &action_binding.action,
+                &mut toml_cache,
+                &asset_server,
+                &toml_assets,
+            ) {
+                ConfigLoad::Pending => return,
+                ConfigLoad::Ready(action) => action,
+            };
+            if let Some(action) = action {
+                let projectile = match load_entity_template_from_path(
+                    &active_scene.name,
+                    "entities/sphere.3D.toml",
+                    &mut toml_cache,
+                    &asset_server,
+                    &toml_assets,
+                ) {
+                    ConfigLoad::Pending => return,
+                    ConfigLoad::Ready(template) => template,
+                };
+                let Some(projectile) = projectile else {
+                    warn!("Grenade template missing; grenade action disabled.");
+                    return;
+                };
+
+                let Some(mut shape) = projectile.shape.clone() else {
+                    warn!("Grenade template has no shape; grenade action disabled.");
+                    return;
+                };
+                if shape.kind != crate::scenes::config::ShapeKind::Sphere {
+                    warn!("Grenade template is not a sphere; grenade action disabled.");
+                    return;
+                }
+                if action.radius > 0.0 {
+                    shape.radius = Some(action.radius);
+                }
+                if !action.color.trim().is_empty() {
+                    shape.color = Some(action.color.clone());
+                }
+                let color = shape
+                    .color
+                    .as_deref()
+                    .and_then(crate::scenes::config::parse_color)
+                    .unwrap_or([0, 255, 0]);
+                let sphere_material = materials.add(Color::srgb_u8(color[0], color[1], color[2]));
+                let sphere_mesh = crate::scenes::load_or_generate_mesh_handle(
+                    &mesh_cache,
+                    &shape,
+                    &mut meshes,
+                    &asset_server,
+                );
+                commands.insert_resource(SceneGrenadeConfig {
                     action,
                     trigger,
                     name: projectile.name.clone(),

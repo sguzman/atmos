@@ -28,6 +28,11 @@ action = "actions/shoot-balls.toml"
 mouse = "left"
 
 [[actions]]
+name = "grenade"
+action = "actions/grenade.toml"
+key = "w"
+
+[[actions]]
 name = "sprint"
 action = "actions/sprint.toml"
 key = "Shift"

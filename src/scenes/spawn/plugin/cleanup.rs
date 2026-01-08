@@ -3,8 +3,8 @@ use bevy::prelude::*;
 use crate::scenes::bounds::SceneBounds;
 use crate::scenes::input::{
     CameraLookState, GrabHover, GrabState, NoclipState, PlayerSpawn, SceneFovConfig,
-    SceneGrabConfig, SceneInputConfig, SceneJumpConfig, SceneNoclipConfig, SceneShootConfig,
-    SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
+    SceneGrabConfig, SceneGrenadeConfig, SceneInputConfig, SceneJumpConfig, SceneNoclipConfig,
+    SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
 };
 use crate::scenes::spawn::{OverlayTag, SceneEntityTag};
 
@@ -30,6 +30,7 @@ pub(crate) fn cleanup_main_scene_inner(
 
     commands.remove_resource::<SceneInputConfig>();
     commands.remove_resource::<SceneShootConfig>();
+    commands.remove_resource::<SceneGrenadeConfig>();
     commands.remove_resource::<SceneSprintConfig>();
     commands.remove_resource::<SceneZoomConfig>();
     commands.remove_resource::<SceneJumpConfig>();

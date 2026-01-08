@@ -1,4 +1,5 @@
 mod fov;
+mod grenade;
 mod grab;
 mod jump;
 mod noclip;
@@ -8,6 +9,7 @@ mod sprint;
 mod zoom;
 
 pub use fov::apply_fov_action;
+pub use grenade::{apply_grenade_action, update_grenade_fuses};
 pub use grab::{apply_grab_action, update_grab_hold, update_grab_hover};
 pub use jump::apply_jump_action;
 pub use noclip::apply_noclip_toggle;

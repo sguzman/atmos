@@ -35,6 +35,43 @@ impl Default for ShootActionConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(default)]
+pub struct GrenadeActionConfig {
+    pub name: String,
+    pub velocity: f32,
+    pub spawn_offset: f32,
+    pub fuse_seconds: f32,
+    pub explosion_radius: f32,
+    pub explosion_force: f32,
+    pub color: String,
+    pub radius: f32,
+    #[serde(default)]
+    pub ccd: bool,
+    pub spin: Vec3Config,
+}
+
+impl Default for GrenadeActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "grenade".to_string(),
+            velocity: 12.0,
+            spawn_offset: 1.1,
+            fuse_seconds: 1.5,
+            explosion_radius: 4.0,
+            explosion_force: 18.0,
+            color: "green".to_string(),
+            radius: 0.2,
+            ccd: false,
+            spin: Vec3Config {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
 pub struct SprintActionConfig {
     pub name: String,
     pub multiplier: f32,
