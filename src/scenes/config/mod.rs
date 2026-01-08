@@ -19,8 +19,8 @@ mod transforms;
 pub use active::{ActiveScene, OVERLAY_ROOT, SCENE_FS_ROOT, SCENE_ROOT};
 pub use actions::{
     ActionConfig, ActionTriggerConfig, ActionsConfig, GrabActionConfig, GrenadeActionConfig,
-    JumpActionConfig, NoclipActionConfig, ShootActionConfig, SprintActionConfig, TriggerMode,
-    VolumeShapeKind, VolumeTriggerMode, ZoomActionConfig,
+    JumpActionConfig, NoclipActionConfig, PauseActionConfig, ShootActionConfig, SprintActionConfig,
+    TriggerMode, VolumeShapeKind, VolumeTriggerMode, ZoomActionConfig,
 };
 pub use bounds::BoundingBoxConfig;
 pub use camera::CameraConfig;

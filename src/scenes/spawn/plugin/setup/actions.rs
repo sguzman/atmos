@@ -8,10 +8,11 @@ use crate::scenes::{
         VolumeShapeKind, VolumeTriggerMode,
     },
     input::{
-        ActionStates, FovBinding, GrabHover, GrabState, NoclipState, ResolvedActionTrigger,
-        ResolvedVolumeTrigger, SceneActionTriggers, SceneFovConfig, SceneGrabConfig,
-        SceneGrenadeConfig, SceneJumpConfig, SceneNoclipConfig, SceneReloadConfig, SceneShootConfig,
-        SceneSprintConfig, SceneZoomConfig, SprintState, TriggerSource, ZoomState,
+        ActionStates, FovBinding, GrabHover, GrabState, NoclipState, PauseState,
+        ResolvedActionTrigger, ResolvedVolumeTrigger, SceneActionTriggers, SceneFovConfig,
+        SceneGrabConfig, SceneGrenadeConfig, SceneJumpConfig, SceneNoclipConfig, ScenePauseConfig,
+        SceneReloadConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState,
+        TriggerSource, ZoomState,
         TriggerMode as InputTriggerMode, VolumeShape, VolumeShapeKind as InputVolumeShapeKind,
         VolumeTriggerMode as InputVolumeTriggerMode,
     },
@@ -195,6 +196,18 @@ pub(crate) fn setup_actions(
             }
             ActionConfig::Reload { id, .. } => {
                 commands.insert_resource(SceneReloadConfig { id: id.clone() });
+            }
+            ActionConfig::Pause { id, params } => {
+                commands.insert_resource(ScenePauseConfig {
+                    id: id.clone(),
+                    action: params.clone(),
+                });
+                commands.insert_resource(PauseState {
+                    active: false,
+                    pause_scene: params.pause_scene,
+                    overlay: params.overlay.clone(),
+                    stored_time_scale: 1.0,
+                });
             }
             ActionConfig::Fov { id, params } => {
                 fov_bindings.push(FovBinding {

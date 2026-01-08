@@ -100,6 +100,15 @@ type = "reload"
 name = "reload"
 
 [[actions]]
+id = "pause"
+type = "pause"
+
+[actions.params]
+name = "pause"
+overlay = "pause"
+pause_scene = true
+
+[[actions]]
 id = "fov_1"
 type = "fov"
 
@@ -198,6 +207,13 @@ action = "zoom"
 type = "key"
 key = "z"
 mode = "hold"
+
+[[triggers]]
+id = "pause_escape"
+action = "pause"
+type = "key"
+key = "Escape"
+mode = "press"
 
 [[triggers]]
 id = "jump_space"

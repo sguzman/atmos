@@ -118,6 +118,7 @@ pub struct SceneReloadConfig {
 #[derive(Resource, Clone)]
 pub struct ScenePauseConfig {
     pub id: String,
+    #[allow(dead_code)]
     pub action: PauseActionConfig,
 }
 

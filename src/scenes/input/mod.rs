@@ -5,9 +5,9 @@ mod types;
 
 pub use actions::{
     apply_fov_action, apply_grab_action, apply_grenade_action, apply_jump_action,
-    apply_noclip_toggle, apply_player_respawn, apply_shoot_action, apply_sprint_toggle,
-    apply_zoom_action, update_action_states, update_grab_hold, update_grab_hover,
-    update_grenade_fuses,
+    apply_noclip_toggle, apply_pause_toggle, apply_player_respawn, apply_shoot_action,
+    apply_sprint_toggle, apply_zoom_action, update_action_states, update_grab_hold,
+    update_grab_hover, update_grenade_fuses,
 };
 pub use camera::apply_camera_input;
 pub use resolve::{
