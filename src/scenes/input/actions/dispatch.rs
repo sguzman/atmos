@@ -14,8 +14,11 @@ pub fn update_action_states(
     mouse: Res<ButtonInput<MouseButton>>,
     triggers: Option<ResMut<SceneActionTriggers>>,
     player: Query<&GlobalTransform, With<PlayerBody>>,
-    mut states: ResMut<ActionStates>,
+    states: Option<ResMut<ActionStates>>,
 ) {
+    let Some(mut states) = states else {
+        return;
+    };
     let Some(mut triggers) = triggers else {
         states.clear();
         return;
