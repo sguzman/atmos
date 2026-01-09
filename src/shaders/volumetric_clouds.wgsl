@@ -147,6 +147,13 @@ fn clouds_compute(@builtin(global_invocation_id) id: vec3<u32>) {
         }
     }
 
+    if (params.debug_view != 0u) {
+        let hit = t_max > t_min;
+        let color = select(vec3<f32>(0.0), vec3<f32>(0.0, 1.0, 1.0), hit);
+        textureStore(clouds_output, vec2<i32>(id.xy), vec4<f32>(color, 1.0));
+        return;
+    }
+
     if (t_max <= t_min) {
         textureStore(clouds_output, vec2<i32>(id.xy), vec4<f32>(0.0));
         return;
@@ -188,17 +195,7 @@ fn clouds_compute(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 
     let alpha = clamp(1.0 - transmittance, 0.0, 1.0);
-    var out_color = color;
-    var out_alpha = alpha;
-    if (params.debug_view != 0u) {
-        if (alpha <= 0.0001) {
-            out_color = vec3<f32>(0.0, 1.0, 1.0);
-        } else {
-            out_color = vec3<f32>(alpha);
-        }
-        out_alpha = 1.0;
-    }
-    textureStore(clouds_output, vec2<i32>(id.xy), vec4<f32>(out_color, out_alpha));
+    textureStore(clouds_output, vec2<i32>(id.xy), vec4<f32>(color, alpha));
 }
 
 @group(0) @binding(0)
