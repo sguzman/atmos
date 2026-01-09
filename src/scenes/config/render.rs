@@ -16,6 +16,10 @@ pub struct RenderConfig {
     pub bloom: Option<BloomConfig>,
     #[serde(default)]
     pub fog: Option<FogConfig>,
+    #[serde(default)]
+    pub dlss: Option<DlssConfig>,
+    #[serde(default)]
+    pub ray_tracing: Option<RayTracingConfig>,
 }
 
 #[derive(Debug, Deserialize, Clone, Default)]
@@ -75,4 +79,22 @@ pub enum FogFalloffConfig {
     Exponential { density: f32 },
     ExponentialSquared { density: f32 },
     Atmospheric { extinction: Vec3Config, inscattering: Vec3Config },
+}
+
+#[derive(Debug, Deserialize, Clone, Default)]
+pub struct DlssConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default)]
+    pub mode: Option<String>,
+    #[serde(default)]
+    pub sharpness: Option<f32>,
+}
+
+#[derive(Debug, Deserialize, Clone, Default)]
+pub struct RayTracingConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default)]
+    pub mode: Option<String>,
 }

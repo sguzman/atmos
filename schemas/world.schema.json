@@ -175,6 +175,23 @@
         "falloff": { "$ref": "#/$defs/fogFalloff" }
       }
     },
+    "dlss": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "mode": { "type": "string" },
+        "sharpness": { "type": "number" }
+      }
+    },
+    "ray_tracing": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "mode": { "type": "string" }
+      }
+    },
     "render": {
       "type": "object",
       "additionalProperties": false,
@@ -196,7 +213,9 @@
         "deband_dither": { "type": "boolean" },
         "hdr": { "type": "boolean" },
         "bloom": { "$ref": "#/$defs/bloom" },
-        "fog": { "$ref": "#/$defs/fog" }
+        "fog": { "$ref": "#/$defs/fog" },
+        "dlss": { "$ref": "#/$defs/dlss" },
+        "ray_tracing": { "$ref": "#/$defs/ray_tracing" }
       }
     },
     "physics": {

@@ -58,6 +58,15 @@ scale = { x = 1.0, y = 1.0 }
 threshold = 0.0
 threshold_softness = 0.0
 
+[render.dlss]
+enabled = false
+mode = "quality"
+sharpness = 0.2
+
+[render.ray_tracing]
+enabled = false
+mode = "quality"
+
 [render.fog]
 enabled = true
 color = "white"

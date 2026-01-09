@@ -1,11 +1,14 @@
 use bevy::prelude::*;
+use bevy::log::warn;
 use bevy::camera::Exposure;
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::post_process::bloom::{Bloom, BloomCompositeMode, BloomPrefilter};
 use bevy::pbr::{DistanceFog, FogFalloff};
 use bevy::render::view::Hdr;
 
-use crate::scenes::config::{BloomConfig, FogConfig, FogFalloffConfig, RenderConfig};
+use crate::scenes::config::{
+    BloomConfig, DlssConfig, FogConfig, FogFalloffConfig, RayTracingConfig, RenderConfig,
+};
 
 pub(crate) fn apply_render_settings(camera: &mut EntityCommands, render: &RenderConfig) {
     let bloom_enabled = render.bloom.as_ref().is_some_and(|bloom| bloom.enabled);
@@ -53,6 +56,32 @@ pub(crate) fn apply_render_settings(camera: &mut EntityCommands, render: &Render
     if let Some(fog) = render.fog.as_ref().filter(|fog| fog.enabled) {
         camera.insert(resolve_fog(fog));
     }
+
+    if let Some(dlss) = render.dlss.as_ref().filter(|dlss| dlss.enabled) {
+        warn_dlss_unavailable(dlss);
+    }
+    if let Some(ray) = render
+        .ray_tracing
+        .as_ref()
+        .filter(|ray| ray.enabled)
+    {
+        warn_ray_tracing_unavailable(ray);
+    }
+}
+
+fn warn_dlss_unavailable(config: &DlssConfig) {
+    let mode = config.mode.as_deref().unwrap_or("default");
+    let sharpness = config.sharpness.unwrap_or(0.0);
+    warn!(
+        "DLSS requested (mode={mode}, sharpness={sharpness}) but no DLSS backend is configured."
+    );
+}
+
+fn warn_ray_tracing_unavailable(config: &RayTracingConfig) {
+    let mode = config.mode.as_deref().unwrap_or("default");
+    warn!(
+        "Ray tracing requested (mode={mode}) but Bevy's renderer does not expose ray tracing here."
+    );
 }
 
 fn parse_tonemapping(value: &str) -> Option<Tonemapping> {
