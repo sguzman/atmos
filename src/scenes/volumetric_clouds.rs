@@ -92,6 +92,7 @@ struct CloudsParams {
     density: f32,
     raymarch_steps: u32,
     shadow_raymarch_steps: u32,
+    use_depth: u32,
     base_scale: f32,
     detail_scale: f32,
     detail_strength: f32,
@@ -125,6 +126,8 @@ struct CloudsTexturesInner {
     size: UVec2,
     texture: Option<Texture>,
     view: Option<TextureView>,
+    dummy_depth: Option<TextureView>,
+    dummy_depth_texture: Option<Texture>,
 }
 
 #[derive(Resource, Default)]
@@ -269,10 +272,22 @@ impl ViewNode for CloudsRenderNode {
         let size = cloud_render_size(view, &config.config);
         ensure_clouds_texture(render_device, &mut textures_guard, size);
 
-        let Some(clouds_view) = textures_guard.view.as_ref() else {
+        let depth_samples = depth.texture.sample_count();
+        if depth_samples > 1 {
+            ensure_dummy_depth(render_device, &mut textures_guard);
+        }
+        let clouds_view = textures_guard.view.as_ref().cloned();
+        let depth_view = if depth_samples > 1 {
+            textures_guard.dummy_depth.as_ref().cloned()
+        } else {
+            Some(depth.view().clone())
+        };
+        let Some(clouds_view) = clouds_view else {
             return Ok(());
         };
-        let depth_view = depth.view();
+        let Some(depth_view) = depth_view else {
+            return Ok(());
+        };
         let Some(uniform_binding) = uniforms.buffer.binding() else {
             return Ok(());
         };
@@ -286,7 +301,7 @@ impl ViewNode for CloudsRenderNode {
         let compute_bind_group = render_device.create_bind_group(
             "clouds_compute_bind_group",
             &pipeline.compute_layout,
-            &BindGroupEntries::sequential((clouds_view, depth_view, uniform_binding.clone())),
+            &BindGroupEntries::sequential((&clouds_view, &depth_view, uniform_binding.clone())),
         );
 
         let mut compute_pass = render_context
@@ -320,7 +335,7 @@ impl ViewNode for CloudsRenderNode {
             &pipeline.render_layout,
             &BindGroupEntries::sequential((
                 source,
-                clouds_view,
+                &clouds_view,
                 &pipeline.sampler,
                 uniform_binding,
             )),
@@ -379,6 +394,30 @@ fn ensure_clouds_texture(
     textures.size = size;
     textures.texture = Some(texture);
     textures.view = Some(view);
+}
+
+fn ensure_dummy_depth(render_device: &RenderDevice, textures: &mut CloudsTexturesInner) {
+    if textures.dummy_depth.is_some() {
+        return;
+    }
+
+    let texture = render_device.create_texture(&TextureDescriptor {
+        label: Some("volumetric_clouds_dummy_depth"),
+        size: Extent3d {
+            width: 1,
+            height: 1,
+            depth_or_array_layers: 1,
+        },
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: TextureDimension::D2,
+        format: TextureFormat::Depth32Float,
+        usage: TextureUsages::TEXTURE_BINDING,
+        view_formats: &[],
+    });
+    let view = texture.create_view(&TextureViewDescriptor::default());
+    textures.dummy_depth_texture = Some(texture);
+    textures.dummy_depth = Some(view);
 }
 
 fn get_or_create_render_pipeline(
@@ -441,6 +480,7 @@ fn update_clouds_uniforms(
     view: &ExtractedView,
     cloud_cfg: &VolumetricCloudsConfig,
     sun_direction: Vec3,
+    use_depth: bool,
     uniforms: &mut CloudsUniforms,
     render_device: &RenderDevice,
     render_queue: &RenderQueue,
@@ -503,6 +543,7 @@ fn update_clouds_uniforms(
         density,
         raymarch_steps,
         shadow_raymarch_steps,
+        use_depth: if use_depth { 1 } else { 0 },
         base_scale,
         detail_scale,
         detail_strength,
@@ -549,19 +590,21 @@ fn prepare_clouds_uniforms(
     mut uniforms: ResMut<CloudsUniforms>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
-    views: Query<&ExtractedView>,
+    views: Query<(&ExtractedView, &ViewDepthTexture)>,
 ) {
     let Some(config) = config else {
         return;
     };
-    let Some(view) = views.iter().next() else {
+    let Some((view, depth)) = views.iter().next() else {
         return;
     };
+    let use_depth = depth.texture.sample_count() == 1;
     update_clouds_uniforms(
         &time,
         view,
         &config.config,
         config.sun_direction,
+        use_depth,
         &mut uniforms,
         &render_device,
         &render_queue,

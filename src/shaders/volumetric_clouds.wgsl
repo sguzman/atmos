@@ -4,6 +4,7 @@ struct CloudsParams {
     density: f32,
     raymarch_steps: u32,
     shadow_raymarch_steps: u32,
+    use_depth: u32,
     base_scale: f32,
     detail_scale: f32,
     detail_strength: f32,
@@ -120,7 +121,8 @@ fn clouds_compute(@builtin(global_invocation_id) id: vec3<u32>) {
     let far_pos = world_far.xyz / world_far.w;
     let ray_dir = normalize(far_pos - near_pos);
 
-    let depth_sample = textureLoad(depth_tex, vec2<i32>(id.xy), 0);
+    let sampled_depth = textureLoad(depth_tex, vec2<i32>(id.xy), 0);
+    let depth_sample = select(1.0, sampled_depth, params.use_depth != 0u);
     var max_distance = 20000.0;
     if (depth_sample > 0.0) {
         let clip = vec4<f32>(ndc, depth_sample, 1.0);
