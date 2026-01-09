@@ -91,7 +91,9 @@ pub fn update_grab_hover(
         if let Ok(children) = children.get(prev) {
             for child in children.iter() {
                 if outlines.get(*child).is_ok() {
-                    commands.entity(*child).despawn();
+                    commands
+                        .entity(*child)
+                        .queue_silenced(bevy::ecs::system::entity_command::despawn());
                 }
             }
         }

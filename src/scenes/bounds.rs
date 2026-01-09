@@ -42,7 +42,9 @@ pub fn despawn_out_of_bounds(
             || pos.z < bounds.min.z
             || pos.z > bounds.max.z
         {
-            commands.entity(entity).despawn();
+            commands
+                .entity(entity)
+                .queue_silenced(bevy::ecs::system::entity_command::despawn());
         }
     }
 }

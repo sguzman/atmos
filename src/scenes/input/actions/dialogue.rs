@@ -110,13 +110,17 @@ pub fn apply_dialogue_action(
 
     if !dialogue_state.active {
         for entity in ui_nodes.iter() {
-            commands.entity(entity).despawn();
+            commands
+                .entity(entity)
+                .queue_silenced(bevy::ecs::system::entity_command::despawn());
         }
         return;
     }
 
     for entity in ui_nodes.iter() {
-        commands.entity(entity).despawn();
+        commands
+            .entity(entity)
+            .queue_silenced(bevy::ecs::system::entity_command::despawn());
     }
 
     spawn_dialogue_ui(

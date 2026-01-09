@@ -206,10 +206,14 @@ fn cleanup_menu(
     cameras: Query<Entity, With<MenuCamera>>,
 ) {
     for (entity, _tag) in &overlays {
-        commands.entity(entity).despawn();
+        commands
+            .entity(entity)
+            .queue_silenced(bevy::ecs::system::entity_command::despawn());
     }
     for entity in &cameras {
-        commands.entity(entity).despawn();
+        commands
+            .entity(entity)
+            .queue_silenced(bevy::ecs::system::entity_command::despawn());
     }
     commands.remove_resource::<SceneInputConfig>();
     commands.remove_resource::<MenuSceneTransition>();

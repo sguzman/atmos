@@ -140,7 +140,9 @@ pub fn update_grenade_fuses(
             }
         }
 
-        commands.entity(grenade_entity).despawn();
+        commands
+            .entity(grenade_entity)
+            .queue_silenced(bevy::ecs::system::entity_command::despawn());
     }
 }
 
