@@ -44,6 +44,7 @@ pub use overlay::{
 };
 pub use render::{
     BloomConfig, DlssConfig, FogConfig, FogFalloffConfig, RayTracingConfig, RenderConfig,
+    VolumetricCloudsConfig,
 };
 pub use paths::{
     action_config_path, actions_config_path, dialogue_config_path, input_config_path,

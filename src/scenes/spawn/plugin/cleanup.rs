@@ -12,6 +12,7 @@ use crate::scenes::input::{
     SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
 };
 use crate::scenes::spawn::{OverlayTag, SceneEntityTag};
+use crate::scenes::SceneCloudsConfig;
 
 pub(crate) fn cleanup_main_scene(
     mut commands: Commands,
@@ -110,4 +111,5 @@ pub(crate) fn cleanup_main_scene_inner(
     commands.remove_resource::<CameraLookState>();
     commands.remove_resource::<SceneBounds>();
     commands.remove_resource::<AmbientLight>();
+    commands.remove_resource::<SceneCloudsConfig>();
 }

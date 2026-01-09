@@ -80,6 +80,38 @@ kind = "linear"
 start = 0.0
 end = 100.0
 
+[render.clouds]
+enabled = false
+raymarch_steps = 64
+shadow_raymarch_steps = 12
+planet_radius = 6371000.0
+bottom_height = 1200.0
+top_height = 2400.0
+coverage = 0.55
+density = 0.03
+base_scale = 1.5
+detail_scale = 40.0
+detail_strength = 0.28
+base_edge_softness = 0.12
+bottom_softness = 0.22
+shadow_step_size = 12.0
+shadow_step_multiply = 1.25
+forward_scattering_g = 0.8
+backward_scattering_g = -0.2
+scattering_lerp = 0.5
+ambient_color_top = "#9AB0D0"
+ambient_color_bottom = "#2A3E55"
+min_transmittance = 0.1
+render_resolution = { x = 1920.0, y = 1080.0 }
+wind_velocity = { x = -1.2, y = 0.0, z = 2.1 }
+
+[render.clouds.god_rays]
+enabled = true
+intensity = 0.6
+decay = 0.95
+exposure = 0.8
+samples = 48
+
 
 [[lights]]
 kind = "point"

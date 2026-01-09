@@ -8,6 +8,7 @@ use crate::scenes::{
     entities::EntitiesConfig,
     loaders::{load_entities_config, load_world_config, ConfigLoad, TomlCache},
     spawn::{lights::spawn_lights, sun::spawn_sun, world::spawn_world_entities},
+    apply_clouds_settings,
     world::WorldConfig,
     MeshCacheSettings, TomlAsset,
 };
@@ -116,6 +117,8 @@ pub(crate) fn spawn_world_content(
         time_scale: 1.0,
         substeps,
     });
+
+    apply_clouds_settings(world_config.render.as_ref(), commands);
 
     spawn_lights(&world_config.lights, commands);
     true
