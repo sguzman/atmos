@@ -31,7 +31,7 @@ substeps = 4
 solver_iterations = 20
 
 [skybox]
-color = "lightblue"
+color = "skyblue"
 
 [sun]
 time = 12.0
@@ -81,7 +81,7 @@ start = 0.0
 end = 100.0
 
 [render.clouds]
-enabled = false
+enabled = true
 raymarch_steps = 64
 shadow_raymarch_steps = 12
 planet_radius = 6371000.0
