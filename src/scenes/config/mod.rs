@@ -43,7 +43,8 @@ pub use overlay::{
     OverlayAnchor, OverlayConfig, OverlayElement, TextOverlay,
 };
 pub use render::{
-    BloomConfig, DlssConfig, FogConfig, FogFalloffConfig, RayTracingConfig, RenderConfig,
+    BloomConfig, CloudsConfig, DlssConfig, FogConfig, FogFalloffConfig, RayTracingConfig,
+    RenderConfig,
 };
 pub use paths::{
     action_config_path, actions_config_path, dialogue_config_path, input_config_path,

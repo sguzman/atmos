@@ -216,7 +216,46 @@
         "bloom": { "$ref": "#/$defs/bloom" },
         "fog": { "$ref": "#/$defs/fog" },
         "dlss": { "$ref": "#/$defs/dlss" },
-        "ray_tracing": { "$ref": "#/$defs/ray_tracing" }
+        "ray_tracing": { "$ref": "#/$defs/ray_tracing" },
+        "clouds": { "$ref": "#/$defs/clouds" }
+      }
+    },
+    "clouds": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "raymarch_steps": { "type": "integer", "minimum": 1 },
+        "shadow_raymarch_steps": { "type": "integer", "minimum": 1 },
+        "planet_radius": { "type": "number" },
+        "bottom_height": { "type": "number" },
+        "top_height": { "type": "number" },
+        "coverage": { "type": "number" },
+        "detail_strength": { "type": "number" },
+        "base_edge_softness": { "type": "number" },
+        "bottom_softness": { "type": "number" },
+        "density": { "type": "number" },
+        "shadow_step_size": { "type": "number" },
+        "shadow_step_multiply": { "type": "number" },
+        "forward_scattering_g": { "type": "number" },
+        "backward_scattering_g": { "type": "number" },
+        "scattering_lerp": { "type": "number" },
+        "ambient_color_top": { "type": "string" },
+        "ambient_alpha_top": { "type": "number" },
+        "ambient_intensity_top": { "type": "number" },
+        "ambient_color_bottom": { "type": "string" },
+        "ambient_alpha_bottom": { "type": "number" },
+        "ambient_intensity_bottom": { "type": "number" },
+        "min_transmittance": { "type": "number" },
+        "base_scale": { "type": "number" },
+        "detail_scale": { "type": "number" },
+        "sun_direction": { "$ref": "#/$defs/vec3" },
+        "sun_color": { "type": "string" },
+        "sun_alpha": { "type": "number" },
+        "sun_intensity": { "type": "number" },
+        "reprojection_strength": { "type": "number" },
+        "render_resolution": { "$ref": "#/$defs/vec2" },
+        "wind_velocity": { "$ref": "#/$defs/vec3" }
       }
     },
     "physics": {

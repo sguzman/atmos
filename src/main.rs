@@ -8,6 +8,7 @@ use bevy::state::app::AppExtStates;
 use bevy_rapier3d::prelude::*;
 use bevy::winit::WinitSettings;
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
+use bevy_volumetric_clouds::CloudsPlugin;
 use clap::{Parser, Subcommand};
 
 fn main() {
@@ -50,6 +51,7 @@ fn run_app(
             ..default()
         });
     app.add_plugins(default_plugins);
+    app.add_plugins(CloudsPlugin);
     app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
 
     if app_config.debug.rapier_debug {
