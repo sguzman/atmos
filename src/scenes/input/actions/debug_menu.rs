@@ -1,3 +1,4 @@
+use bevy::ecs::system::entity_command;
 use bevy::input::ButtonInput;
 use bevy::prelude::*;
 use bevy::time::{Time, Virtual};
@@ -668,7 +669,7 @@ fn default_font(asset_server: &AssetServer) -> Handle<Font> {
 }
 
 fn safe_despawn(commands: &mut Commands, entity: Entity) {
-    if let Ok(mut target) = commands.get_entity(entity) {
-        target.despawn();
-    }
+    commands
+        .entity(entity)
+        .queue_silenced(entity_command::despawn());
 }

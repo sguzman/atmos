@@ -1,3 +1,4 @@
+use bevy::ecs::system::entity_command;
 use bevy::prelude::*;
 use bevy::time::{Time, Virtual};
 use bevy_rapier3d::prelude::TimestepMode;
@@ -63,18 +64,24 @@ pub(crate) fn cleanup_main_scene_inner(
     }
 
     for entity in scene_entities {
-        commands.entity(entity).despawn();
+        commands
+            .entity(entity)
+            .queue_silenced(entity_command::despawn());
     }
     for entity in overlays {
-        commands.entity(entity).despawn();
+        commands
+            .entity(entity)
+            .queue_silenced(entity_command::despawn());
     }
     for entity in dialogue_ui {
-        commands.entity(entity).despawn();
+        commands
+            .entity(entity)
+            .queue_silenced(entity_command::despawn());
     }
     for entity in debug_menu_ui {
-        if let Ok(mut target) = commands.get_entity(entity) {
-            target.despawn();
-        }
+        commands
+            .entity(entity)
+            .queue_silenced(entity_command::despawn());
     }
 
     commands.remove_resource::<SceneInputConfig>();
