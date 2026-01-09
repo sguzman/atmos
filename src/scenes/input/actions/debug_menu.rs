@@ -27,7 +27,10 @@ enum DebugMenuAction {
     ToggleBloom,
     ToggleFog,
     ToggleDlss,
+    CycleDlssMode,
+    AdjustDlssSharpness(f32),
     ToggleRayTracing,
+    CycleRayTracingMode,
     AdjustFov(f32),
     AdjustGravity(f32),
     TogglePhysics,
@@ -317,8 +320,22 @@ fn apply_debug_menu_action(
             debug_state.settings.dlss_enabled = !debug_state.settings.dlss_enabled;
             debug_state.needs_refresh = true;
         }
+        DebugMenuAction::CycleDlssMode => {
+            debug_state.settings.dlss_mode = next_quality_mode(&debug_state.settings.dlss_mode);
+            debug_state.needs_refresh = true;
+        }
+        DebugMenuAction::AdjustDlssSharpness(delta) => {
+            let next = (debug_state.settings.dlss_sharpness + delta).clamp(0.0, 1.0);
+            debug_state.settings.dlss_sharpness = next;
+            debug_state.needs_refresh = true;
+        }
         DebugMenuAction::ToggleRayTracing => {
             debug_state.settings.ray_tracing_enabled = !debug_state.settings.ray_tracing_enabled;
+            debug_state.needs_refresh = true;
+        }
+        DebugMenuAction::CycleRayTracingMode => {
+            debug_state.settings.ray_tracing_mode =
+                next_quality_mode(&debug_state.settings.ray_tracing_mode);
             debug_state.needs_refresh = true;
         }
         DebugMenuAction::AdjustFov(delta) => {
@@ -582,12 +599,43 @@ fn entries_for_page(state: &DebugMenuState, page: DebugMenuPage) -> Vec<DebugMen
                 action: DebugMenuAction::ToggleFog,
             });
             entries.push(DebugMenuEntry {
-                label: format!("DLSS: {}", on_off(state.settings.dlss_enabled)),
+                label: format!(
+                    "DLSS: {} ({})",
+                    on_off(state.settings.dlss_enabled),
+                    state.settings.dlss_mode
+                ),
                 action: DebugMenuAction::ToggleDlss,
             });
             entries.push(DebugMenuEntry {
-                label: format!("Ray Tracing: {}", on_off(state.settings.ray_tracing_enabled)),
+                label: "DLSS Mode: cycle".to_string(),
+                action: DebugMenuAction::CycleDlssMode,
+            });
+            entries.push(DebugMenuEntry {
+                label: format!(
+                    "DLSS Sharpness: {:.2}",
+                    state.settings.dlss_sharpness
+                ),
+                action: DebugMenuAction::Noop,
+            });
+            entries.push(DebugMenuEntry {
+                label: "DLSS Sharpness +0.1".to_string(),
+                action: DebugMenuAction::AdjustDlssSharpness(0.1),
+            });
+            entries.push(DebugMenuEntry {
+                label: "DLSS Sharpness -0.1".to_string(),
+                action: DebugMenuAction::AdjustDlssSharpness(-0.1),
+            });
+            entries.push(DebugMenuEntry {
+                label: format!(
+                    "Ray Tracing: {} ({})",
+                    on_off(state.settings.ray_tracing_enabled),
+                    state.settings.ray_tracing_mode
+                ),
                 action: DebugMenuAction::ToggleRayTracing,
+            });
+            entries.push(DebugMenuEntry {
+                label: "Ray Tracing Mode: cycle".to_string(),
+                action: DebugMenuAction::CycleRayTracingMode,
             });
             entries.push(DebugMenuEntry {
                 label: "Back".to_string(),
@@ -661,6 +709,14 @@ fn page_title(page: DebugMenuPage) -> &'static str {
 
 fn on_off(value: bool) -> &'static str {
     if value { "On" } else { "Off" }
+}
+
+fn next_quality_mode(current: &str) -> String {
+    match current.trim().to_ascii_lowercase().as_str() {
+        "performance" => "balanced".to_string(),
+        "balanced" => "quality".to_string(),
+        _ => "performance".to_string(),
+    }
 }
 
 fn default_font(asset_server: &AssetServer) -> Handle<Font> {
