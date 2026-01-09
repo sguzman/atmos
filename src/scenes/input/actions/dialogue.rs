@@ -137,15 +137,15 @@ fn find_node<'a>(
 
 fn resolve_option_index(keys: &ButtonInput<KeyCode>) -> Option<usize> {
     let mapping = [
-        (KeyCode::Digit1, 0),
-        (KeyCode::Digit2, 1),
-        (KeyCode::Digit3, 2),
-        (KeyCode::Digit4, 3),
-        (KeyCode::Digit5, 4),
-        (KeyCode::Digit6, 5),
-        (KeyCode::Digit7, 6),
-        (KeyCode::Digit8, 7),
-        (KeyCode::Digit9, 8),
+        (KeyCode::F1, 0),
+        (KeyCode::F2, 1),
+        (KeyCode::F3, 2),
+        (KeyCode::F4, 3),
+        (KeyCode::F5, 4),
+        (KeyCode::F6, 5),
+        (KeyCode::F7, 6),
+        (KeyCode::F8, 7),
+        (KeyCode::F9, 8),
     ];
     for (key, index) in mapping.iter() {
         if keys.just_pressed(*key) {
@@ -166,12 +166,24 @@ fn spawn_dialogue_ui(
     body.push_str(node_text);
     body.push_str("\n\n");
     for (idx, option) in node_options.iter().enumerate() {
+        let key_label = match idx {
+            0 => "F1",
+            1 => "F2",
+            2 => "F3",
+            3 => "F4",
+            4 => "F5",
+            5 => "F6",
+            6 => "F7",
+            7 => "F8",
+            8 => "F9",
+            _ => "?",
+        };
         let done = if visited.contains(&option.id) {
             " (done)"
         } else {
             ""
         };
-        let line = format!("{}. {}{}\n", idx + 1, option.text, done);
+        let line = format!("{key_label}. {}{}\n", option.text, done);
         body.push_str(&line);
     }
 
