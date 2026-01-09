@@ -31,7 +31,7 @@ substeps = 4
 solver_iterations = 20
 
 [skybox]
-color = "lightblue"
+color = "skyblue"
 
 [sun]
 time = 12.0
