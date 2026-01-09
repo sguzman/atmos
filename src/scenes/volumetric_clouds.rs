@@ -19,7 +19,7 @@ use bevy::render::{
         TextureView, TextureViewDescriptor, TextureViewDimension, UniformBuffer,
     },
     renderer::{RenderContext, RenderDevice, RenderQueue},
-    view::{ExtractedView, ViewTarget},
+    view::{ExtractedView, ViewDepthTexture, ViewTarget},
     Render, RenderApp, RenderSystems,
 };
 use bevy_shader::Shader;
@@ -79,10 +79,26 @@ struct CloudsParams {
     time: f32,
     coverage: f32,
     density: f32,
+    raymarch_steps: u32,
+    base_scale: f32,
+    detail_scale: f32,
+    detail_strength: f32,
+    base_edge_softness: f32,
+    bottom_softness: f32,
+    bottom_height: f32,
+    top_height: f32,
+    min_transmittance: f32,
+    forward_scattering_g: f32,
+    backward_scattering_g: f32,
+    scattering_lerp: f32,
     composite_intensity: f32,
-    color: Vec4,
-    wind: Vec3,
     god_rays_intensity: f32,
+    ambient_color_top: Vec3,
+    ambient_color_bottom: Vec3,
+    sun_direction: Vec3,
+    wind: Vec3,
+    camera_pos: Vec3,
+    view_proj_inv: Mat4,
 }
 
 #[derive(Resource, Default)]
@@ -132,6 +148,11 @@ impl FromWorld for CloudsPipeline {
                         access: StorageTextureAccess::WriteOnly,
                         format: TextureFormat::Rgba16Float,
                         view_dimension: TextureViewDimension::D2,
+                    },
+                    BindingType::Texture {
+                        sample_type: TextureSampleType::Depth,
+                        view_dimension: TextureViewDimension::D2,
+                        multisampled: false,
                     },
                     BindingType::Buffer {
                         ty: BufferBindingType::Uniform,
@@ -195,13 +216,17 @@ impl FromWorld for CloudsPipeline {
 struct CloudsRenderNode;
 
 impl ViewNode for CloudsRenderNode {
-    type ViewQuery = (&'static ViewTarget, &'static ExtractedView);
+    type ViewQuery = (
+        &'static ViewTarget,
+        &'static ExtractedView,
+        &'static ViewDepthTexture,
+    );
 
     fn run(
         &self,
         _graph: &mut RenderGraphContext,
         render_context: &mut RenderContext,
-        (target, view): bevy::ecs::query::QueryItem<Self::ViewQuery>,
+        (target, view, depth): bevy::ecs::query::QueryItem<Self::ViewQuery>,
         world: &World,
     ) -> Result<(), NodeRunError> {
         let config = world.resource::<SceneCloudsConfig>();
@@ -216,12 +241,13 @@ impl ViewNode for CloudsRenderNode {
         let textures = world.resource::<CloudsTextures>();
         let mut textures_guard = textures.inner.lock().unwrap();
 
-        let size = UVec2::new(view.viewport.z.max(1), view.viewport.w.max(1));
+        let size = cloud_render_size(view, &config.config);
         ensure_clouds_texture(render_device, &mut textures_guard, size);
 
         let Some(clouds_view) = textures_guard.view.as_ref() else {
             return Ok(());
         };
+        let depth_view = depth.view();
         let Some(uniform_binding) = uniforms.buffer.binding() else {
             return Ok(());
         };
@@ -235,7 +261,7 @@ impl ViewNode for CloudsRenderNode {
         let compute_bind_group = render_device.create_bind_group(
             "clouds_compute_bind_group",
             &pipeline.compute_layout,
-            &BindGroupEntries::sequential((clouds_view, uniform_binding.clone())),
+            &BindGroupEntries::sequential((clouds_view, depth_view, uniform_binding.clone())),
         );
 
         let mut compute_pass = render_context
@@ -370,44 +396,129 @@ fn build_render_pipeline(pipeline: &CloudsPipeline, format: TextureFormat) -> Re
     }
 }
 
-fn prepare_clouds_uniforms(
-    time: Res<Time>,
-    config: Res<SceneCloudsConfig>,
-    mut uniforms: ResMut<CloudsUniforms>,
-    render_device: Res<RenderDevice>,
-    render_queue: Res<RenderQueue>,
+fn cloud_render_size(view: &ExtractedView, config: &VolumetricCloudsConfig) -> UVec2 {
+    let viewport_size = UVec2::new(view.viewport.z.max(1), view.viewport.w.max(1));
+    let Some(target) = config.render_resolution.as_ref() else {
+        return viewport_size;
+    };
+    let requested = UVec2::new(
+        target.x.max(1.0).round() as u32,
+        target.y.max(1.0).round() as u32,
+    );
+    UVec2::new(
+        requested.x.min(viewport_size.x),
+        requested.y.min(viewport_size.y),
+    )
+}
+
+fn update_clouds_uniforms(
+    time: &Time,
+    view: &ExtractedView,
+    cloud_cfg: &VolumetricCloudsConfig,
+    uniforms: &mut CloudsUniforms,
+    render_device: &RenderDevice,
+    render_queue: &RenderQueue,
 ) {
-    let cloud_cfg = &config.config;
     let coverage = cloud_cfg.coverage.unwrap_or(0.5);
     let density = cloud_cfg.density.unwrap_or(0.03);
+    let base_scale = cloud_cfg.base_scale.unwrap_or(1.5);
+    let detail_scale = cloud_cfg.detail_scale.unwrap_or(20.0);
+    let detail_strength = cloud_cfg.detail_strength.unwrap_or(0.35);
+    let raymarch_steps = cloud_cfg.raymarch_steps.unwrap_or(64);
+    let base_edge_softness = cloud_cfg.base_edge_softness.unwrap_or(0.12);
+    let bottom_softness = cloud_cfg.bottom_softness.unwrap_or(0.22);
+    let bottom_height = cloud_cfg.bottom_height.unwrap_or(1200.0);
+    let top_height = cloud_cfg.top_height.unwrap_or(2400.0);
+    let min_transmittance = cloud_cfg.min_transmittance.unwrap_or(0.1);
+    let forward_scattering_g = cloud_cfg.forward_scattering_g.unwrap_or(0.6);
+    let backward_scattering_g = cloud_cfg.backward_scattering_g.unwrap_or(-0.2);
+    let scattering_lerp = cloud_cfg.scattering_lerp.unwrap_or(0.5);
     let composite_intensity = cloud_cfg
         .god_rays
         .as_ref()
         .and_then(|rays| rays.intensity)
         .unwrap_or(0.6);
-    let color = cloud_cfg
-        .ambient_color_top
-        .as_deref()
-        .and_then(crate::scenes::config::parse_color)
-        .unwrap_or([200, 200, 200]);
-    let linear = Color::srgb_u8(color[0], color[1], color[2]).to_linear();
+
     let wind = cloud_cfg.wind_velocity.clone().unwrap_or_default();
     let god_rays_intensity = cloud_cfg
         .god_rays
         .as_ref()
         .and_then(|rays| if rays.enabled { rays.intensity } else { None })
         .unwrap_or(0.0);
+    let ambient_top = cloud_cfg
+        .ambient_color_top
+        .as_deref()
+        .and_then(crate::scenes::config::parse_color)
+        .unwrap_or([160, 176, 208]);
+    let ambient_bottom = cloud_cfg
+        .ambient_color_bottom
+        .as_deref()
+        .and_then(crate::scenes::config::parse_color)
+        .unwrap_or([64, 80, 96]);
+    let ambient_top = Color::srgb_u8(ambient_top[0], ambient_top[1], ambient_top[2]).to_linear();
+    let ambient_bottom =
+        Color::srgb_u8(ambient_bottom[0], ambient_bottom[1], ambient_bottom[2]).to_linear();
+
+    let sun_dir = Vec3::new(0.3, -0.8, 0.2).normalize();
+    let world_from_view = view.world_from_view.to_matrix();
+    let view_from_world = world_from_view.inverse();
+    let clip_from_world = view
+        .clip_from_world
+        .unwrap_or_else(|| view.clip_from_view * view_from_world);
+    let view_proj_inv = clip_from_world.inverse();
+    let camera_pos = view.world_from_view.translation();
 
     uniforms.buffer.set(CloudsParams {
         time: time.elapsed_secs(),
         coverage,
         density,
+        raymarch_steps,
+        base_scale,
+        detail_scale,
+        detail_strength,
+        base_edge_softness,
+        bottom_softness,
+        bottom_height,
+        top_height,
+        min_transmittance,
+        forward_scattering_g,
+        backward_scattering_g,
+        scattering_lerp,
         composite_intensity,
-        color: Vec4::new(linear.red, linear.green, linear.blue, 1.0),
-        wind: Vec3::new(wind.x, wind.y, wind.z),
         god_rays_intensity,
+        ambient_color_top: Vec3::new(ambient_top.red, ambient_top.green, ambient_top.blue),
+        ambient_color_bottom: Vec3::new(
+            ambient_bottom.red,
+            ambient_bottom.green,
+            ambient_bottom.blue,
+        ),
+        sun_direction: sun_dir,
+        wind: Vec3::new(wind.x, wind.y, wind.z),
+        camera_pos,
+        view_proj_inv,
     });
     uniforms
         .buffer
-        .write_buffer(&render_device, &render_queue);
+        .write_buffer(render_device, render_queue);
+}
+
+fn prepare_clouds_uniforms(
+    time: Res<Time>,
+    config: Res<SceneCloudsConfig>,
+    mut uniforms: ResMut<CloudsUniforms>,
+    render_device: Res<RenderDevice>,
+    render_queue: Res<RenderQueue>,
+    views: Query<&ExtractedView>,
+) {
+    let Some(view) = views.iter().next() else {
+        return;
+    };
+    update_clouds_uniforms(
+        &time,
+        view,
+        &config.config,
+        &mut uniforms,
+        &render_device,
+        &render_queue,
+    );
 }
