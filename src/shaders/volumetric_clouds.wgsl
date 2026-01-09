@@ -152,11 +152,6 @@ fn clouds_compute(@builtin(global_invocation_id) id: vec3<u32>) {
         return;
     }
 
-    if (params.debug_view != 0u) {
-        textureStore(clouds_output, vec2<i32>(id.xy), vec4<f32>(0.0, 1.0, 1.0, 1.0));
-        return;
-    }
-
     let steps = max(8.0, f32(params.raymarch_steps));
     let step_size = (t_max - t_min) / steps;
     var transmittance = 1.0;
@@ -193,7 +188,13 @@ fn clouds_compute(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 
     let alpha = clamp(1.0 - transmittance, 0.0, 1.0);
-    textureStore(clouds_output, vec2<i32>(id.xy), vec4<f32>(color, alpha));
+    var out_color = color;
+    var out_alpha = alpha;
+    if (params.debug_view != 0u) {
+        out_color = vec3<f32>(alpha);
+        out_alpha = 1.0;
+    }
+    textureStore(clouds_output, vec2<i32>(id.xy), vec4<f32>(out_color, out_alpha));
 }
 
 @group(0) @binding(0)
@@ -215,8 +216,7 @@ fn clouds_composite(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     let scene = textureSample(scene_tex, scene_sampler, in.uv);
     let clouds = textureSample(clouds_tex, scene_sampler, in.uv);
     if (composite_params.debug_view != 0u) {
-        let debug_tint = vec3<f32>(0.0, 0.8, 0.8) * clouds.a;
-        return vec4<f32>(scene.rgb + debug_tint, scene.a);
+        return vec4<f32>(scene.rgb + clouds.rgb, scene.a);
     }
     let color = mix(scene.rgb, scene.rgb + clouds.rgb * composite_params.composite_intensity, clouds.a);
     return vec4<f32>(color, scene.a);
