@@ -129,7 +129,7 @@ fn handle_slider_input(
     {
         let mut sliders = slider_params.p0();
         for (entity, interaction, slider, computed, transform) in sliders.iter_mut() {
-            if mouse_buttons.just_pressed(MouseButton::Left) && *interaction == Interaction::Hovered {
+            if mouse_buttons.just_pressed(MouseButton::Left) && *interaction != Interaction::None {
                 debug_state.active_slider = Some(entity);
             }
 
