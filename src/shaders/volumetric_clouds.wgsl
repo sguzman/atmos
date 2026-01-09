@@ -114,8 +114,8 @@ fn clouds_compute(@builtin(global_invocation_id) id: vec3<u32>) {
 
     let uv = (vec2<f32>(f32(id.x) + 0.5, f32(id.y) + 0.5) / vec2<f32>(size));
     let ndc = vec2<f32>(uv * 2.0 - 1.0);
-    let clip_near = vec4<f32>(ndc, 0.0, 1.0);
-    let clip_far = vec4<f32>(ndc, 1.0, 1.0);
+    let clip_near = vec4<f32>(ndc, 1.0, 1.0);
+    let clip_far = vec4<f32>(ndc, 0.0, 1.0);
     let world_near = params.view_proj_inv * clip_near;
     let world_far = params.view_proj_inv * clip_far;
     let near_pos = world_near.xyz / world_near.w;
