@@ -61,12 +61,15 @@ impl Plugin for VolumetricCloudsPlugin {
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
             return;
         };
-        render_app.init_resource::<CloudsPipeline>();
         render_app.init_resource::<CloudsTextures>();
         render_app.init_resource::<CloudsUniforms>();
         render_app.add_systems(
             Render,
             prepare_clouds_uniforms.in_set(RenderSystems::PrepareResources),
+        );
+        render_app.add_systems(
+            Render,
+            init_clouds_pipeline.in_set(RenderSystems::PrepareResources),
         );
 
         render_app.add_render_graph_node::<ViewNodeRunner<CloudsRenderNode>>(
@@ -221,6 +224,17 @@ impl FromWorld for CloudsPipeline {
             fullscreen_shader,
         }
     }
+}
+
+fn init_clouds_pipeline(
+    mut commands: Commands,
+    pipeline: Option<Res<CloudsPipeline>>,
+    render_device: Option<Res<RenderDevice>>,
+) {
+    if pipeline.is_some() || render_device.is_none() {
+        return;
+    }
+    commands.init_resource::<CloudsPipeline>();
 }
 
 #[derive(Default)]
