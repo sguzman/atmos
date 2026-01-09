@@ -545,12 +545,15 @@ fn sun_direction_from_config(sun: Option<&SunConfig>) -> Vec3 {
 
 fn prepare_clouds_uniforms(
     time: Res<Time>,
-    config: Res<SceneCloudsConfig>,
+    config: Option<Res<SceneCloudsConfig>>,
     mut uniforms: ResMut<CloudsUniforms>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
     views: Query<&ExtractedView>,
 ) {
+    let Some(config) = config else {
+        return;
+    };
     let Some(view) = views.iter().next() else {
         return;
     };
