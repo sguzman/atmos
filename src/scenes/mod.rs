@@ -19,5 +19,5 @@ pub use mesh_cache::{
     bake_meshes, load_or_generate_mesh_handle, MeshCacheLoader, MeshCacheSettings,
 };
 pub use world::WorldConfig;
-pub use volumetric_clouds::{apply_clouds_settings, SceneCloudsConfig};
+pub use volumetric_clouds::{apply_clouds_settings, SceneCloudsConfig, VolumetricCloudsPlugin};
 pub use toml_asset::{TomlAsset, TomlAssetLoader};

@@ -50,6 +50,7 @@ fn run_app(
             ..default()
         });
     app.add_plugins(default_plugins);
+    app.add_plugins(scenes::VolumetricCloudsPlugin);
     app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
 
     if app_config.debug.rapier_debug {
