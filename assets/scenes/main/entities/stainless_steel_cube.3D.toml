@@ -1,0 +1,21 @@
+name = "stainless_steel_cube"
+
+[shape]
+kind = "box"
+[shape.dimensions]
+width = 1.0
+height = 1.0
+depth = 1.0
+
+[material]
+preset = "stainless_steel"
+base_color_texture = "textures/stainless_steel_brushed/Stainless_Steel_Brushed_diffuse.png"
+normal_map = "textures/stainless_steel_brushed/Stainless_Steel_Brushed_normal.png"
+metallic_roughness_texture = "textures/stainless_steel_brushed/Stainless_Steel_Brushed_roughness.png"
+
+[physics]
+enabled = true
+body_type = "dynamic"
+mass = 2.0
+restitution = 0.1
+friction = 0.4

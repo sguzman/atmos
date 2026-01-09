@@ -45,6 +45,7 @@ fn resolve_material_from_config(
         Some("metal") | Some("metallic") => preset_metal(),
         Some("marble") => preset_marble(),
         Some("blue_marble") => preset_blue_marble(),
+        Some("stainless_steel") | Some("stainless") => preset_stainless_steel(),
         Some("stone") => preset_stone(),
         Some("glass") => preset_glass(),
         _ => StandardMaterial::default(),
@@ -199,6 +200,16 @@ fn preset_blue_marble() -> StandardMaterial {
         metallic: 0.0,
         perceptual_roughness: 0.35,
         reflectance: 0.55,
+        ..default()
+    }
+}
+
+fn preset_stainless_steel() -> StandardMaterial {
+    StandardMaterial {
+        base_color: Color::srgb_u8(180, 180, 185),
+        metallic: 1.0,
+        perceptual_roughness: 0.3,
+        reflectance: 0.9,
         ..default()
     }
 }
