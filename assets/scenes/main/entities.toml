@@ -185,3 +185,9 @@ template = "entities/stainless_steel_cube.3D.toml"
 name_override = "stainless_steel_cube"
 [entities.transform]
 position = { x = 8.0, y = 1.0, z = -6.0 }
+
+[[entities]]
+template = "entities/large_red_bricks_cube.3D.toml"
+name_override = "large_red_bricks_cube"
+[entities.transform]
+position = { x = 10.0, y = 1.0, z = -6.0 }

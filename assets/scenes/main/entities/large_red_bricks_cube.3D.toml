@@ -1,0 +1,21 @@
+name = "large_red_bricks_cube"
+
+[shape]
+kind = "box"
+[shape.dimensions]
+width = 1.0
+height = 1.0
+depth = 1.0
+
+[material]
+preset = "large_red_bricks"
+base_color_texture = "textures/1k/large_red_bricks/TH_Large_Red_Bricks_baseColor.png"
+normal_map = "textures/1k/large_red_bricks/TH_Large_Red_Bricks_normal.png"
+metallic_roughness_texture = "textures/1k/large_red_bricks/TH_Large_Red_Bricks_roughness.png"
+
+[physics]
+enabled = true
+body_type = "dynamic"
+mass = 2.0
+restitution = 0.2
+friction = 0.7
