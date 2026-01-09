@@ -2,12 +2,12 @@ name = "rectangle_stack"
 
 [stack]
 count = 15
-spacing = { x = 0.0, y = 4.2, z = 0.0 }
-start_offset = { x = 0.0, y = 0.2, z = 0.0 }
+spacing = { x = 0.0, y = 4.02, z = 0.0 }
+start_offset = { x = 0.0, y = 0.01, z = 0.0 }
 
 [overrides.physics]
-restitution = 0.05
-friction = 0.9
+restitution = 0.0
+friction = 1.0
 
 [[parts]]
 template = "entities/rectangle.3D.toml"

@@ -26,8 +26,8 @@ y = -15
 z = 0.0
 
 [physics]
-substeps = 1
-solver_iterations = 8
+substeps = 4
+solver_iterations = 20
 
 [skybox]
 color = "lightblue"

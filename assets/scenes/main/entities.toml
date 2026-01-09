@@ -38,7 +38,7 @@ range = 30.0
 
 [[entities]]
 template = "combo/stack_of_rectangles.toml"
-name_override = "stack_rects"
+name_override = "stack_rects1"
 [entities.transform]
 position = { x = -8.0, y = 2.0, z = 2.0 }
 
@@ -64,37 +64,73 @@ position = { x = -8.0, y = 2.0, z = 8.0 }
 template = "combo/stack_of_rectangles.toml"
 name_override = "stack_rects5"
 [entities.transform]
-position = { x = -8.0, y = 2.0, z = 10.0 }
+position = { x = -6.0, y = 2.0, z = 2.0 }
 
 [[entities]]
 template = "combo/stack_of_rectangles.toml"
 name_override = "stack_rects6"
 [entities.transform]
-position = { x = -8.0, y = 2.0, z = 12.0 }
+position = { x = -6.0, y = 2.0, z = 4.0 }
 
 [[entities]]
 template = "combo/stack_of_rectangles.toml"
 name_override = "stack_rects7"
 [entities.transform]
-position = { x = -8.0, y = 2.0, z = 14.0 }
+position = { x = -6.0, y = 2.0, z = 6.0 }
 
 [[entities]]
 template = "combo/stack_of_rectangles.toml"
 name_override = "stack_rects8"
 [entities.transform]
-position = { x = -8.0, y = 2.0, z = 16.0 }
+position = { x = -6.0, y = 2.0, z = 8.0 }
 
 [[entities]]
 template = "combo/stack_of_rectangles.toml"
 name_override = "stack_rects9"
 [entities.transform]
-position = { x = -8.0, y = 2.0, z = 18.0 }
+position = { x = -4.0, y = 2.0, z = 2.0 }
 
 [[entities]]
 template = "combo/stack_of_rectangles.toml"
 name_override = "stack_rects10"
 [entities.transform]
-position = { x = -8.0, y = 2.0, z = 20.0 }
+position = { x = -4.0, y = 2.0, z = 4.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects11"
+[entities.transform]
+position = { x = -4.0, y = 2.0, z = 6.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects12"
+[entities.transform]
+position = { x = -4.0, y = 2.0, z = 8.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects13"
+[entities.transform]
+position = { x = -2.0, y = 2.0, z = 2.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects14"
+[entities.transform]
+position = { x = -2.0, y = 2.0, z = 4.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects15"
+[entities.transform]
+position = { x = -2.0, y = 2.0, z = 6.0 }
+
+[[entities]]
+template = "combo/stack_of_rectangles.toml"
+name_override = "stack_rects16"
+[entities.transform]
+position = { x = -2.0, y = 2.0, z = 8.0 }
 
 [[entities]]
 template = "entities/billboard.2D.toml"
