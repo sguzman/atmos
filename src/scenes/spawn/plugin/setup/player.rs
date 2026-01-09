@@ -1,4 +1,4 @@
-use bevy::camera::{CameraOutputMode, ClearColorConfig};
+use bevy::camera::{CameraOutputMode, ClearColorConfig, Projection};
 use bevy::prelude::*;
 use bevy::render::render_resource::BlendState;
 use bevy_rapier3d::prelude::{Collider, GravityScale, LockedAxes, RigidBody, Velocity};
@@ -76,6 +76,10 @@ pub(crate) fn spawn_player_and_cameras(
     );
     let camera_id = {
         let mut camera = commands.spawn(camera_components);
+        camera.insert(Projection::Perspective(PerspectiveProjection {
+            fov: world_config.camera.fov.to_radians(),
+            ..default()
+        }));
         if let Some(msaa) = app_config.msaa_component() {
             camera.insert(msaa);
         }

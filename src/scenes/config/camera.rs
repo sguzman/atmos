@@ -5,6 +5,8 @@ use super::transforms::Vec3Config;
 #[derive(Debug, Deserialize)]
 pub struct CameraConfig {
     pub name: String,
+    #[serde(default = "default_camera_fov")]
+    pub fov: f32,
     #[serde(default)]
     pub transform: TransformConfig,
 }
@@ -13,6 +15,7 @@ impl Default for CameraConfig {
     fn default() -> Self {
         Self {
             name: "main_camera".to_string(),
+            fov: default_camera_fov(),
             transform: TransformConfig::default(),
         }
     }
@@ -60,4 +63,8 @@ fn default_camera_up() -> Vec3Config {
         y: 1.0,
         z: 0.0,
     }
+}
+
+fn default_camera_fov() -> f32 {
+    60.0
 }

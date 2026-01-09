@@ -3,6 +3,7 @@ startup_scene = "menu"
 
 [camera]
 name = "main_camera"
+fov = 90.0
 [camera.transform]
 position = { x = 20.5, y = 4.5, z = 9.0 }
 look_at = { x = -70.0, y = 200.0, z = 0.0 }
