@@ -122,14 +122,15 @@ fn clouds_compute(@builtin(global_invocation_id) id: vec3<u32>) {
     let far_pos = world_far.xyz / world_far.w;
     let ray_dir = normalize(far_pos - near_pos);
 
-    let sampled_depth = textureLoad(depth_tex, vec2<i32>(id.xy), 0);
-    let depth_sample = select(1.0, sampled_depth, params.use_depth != 0u);
     var max_distance = 20000.0;
-    if (depth_sample > 0.0) {
-        let clip = vec4<f32>(ndc, depth_sample, 1.0);
-        let world = params.view_proj_inv * clip;
-        let world_pos = world.xyz / world.w;
-        max_distance = distance(params.camera_pos, world_pos);
+    if (params.use_depth != 0u) {
+        let depth_sample = textureLoad(depth_tex, vec2<i32>(id.xy), 0);
+        if (depth_sample > 0.0) {
+            let clip = vec4<f32>(ndc, depth_sample, 1.0);
+            let world = params.view_proj_inv * clip;
+            let world_pos = world.xyz / world.w;
+            max_distance = distance(params.camera_pos, world_pos);
+        }
     }
 
     var t_min = 0.0;
