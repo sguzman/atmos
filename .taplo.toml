@@ -39,6 +39,11 @@ include = ["assets/scenes/**/actions.toml"]
 [rule.schema]
 path = "schemas/actions.schema.json"
 
+[[rule]]
+include = ["assets/dialogue/*.toml"]
+[rule.schema]
+path = "schemas/dialogue.schema.json"
+
 [formatting]
 indent_string = "  "     # 2 spaces
 column_width = 40

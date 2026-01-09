@@ -8,11 +8,11 @@ use crate::scenes::{
         VolumeShapeKind, VolumeTriggerMode,
     },
     input::{
-        ActionStates, FovBinding, GrabHover, GrabState, NoclipState, PauseState,
+        ActionStates, DialogueState, FovBinding, GrabHover, GrabState, NoclipState, PauseState,
         ResolvedActionTrigger, ResolvedVolumeTrigger, SceneActionTriggers, SceneFovConfig,
-        SceneGrabConfig, SceneGrenadeConfig, SceneJumpConfig, SceneNoclipConfig, ScenePauseConfig,
-        SceneReloadConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig, SprintState,
-        TriggerSource, ZoomState,
+        SceneDialogueConfig, SceneGrabConfig, SceneGrenadeConfig, SceneJumpConfig,
+        SceneNoclipConfig, ScenePauseConfig, SceneReloadConfig, SceneShootConfig,
+        SceneSprintConfig, SceneZoomConfig, SprintState, TriggerSource, ZoomState,
         TriggerMode as InputTriggerMode, VolumeShape, VolumeShapeKind as InputVolumeShapeKind,
         VolumeTriggerMode as InputVolumeTriggerMode,
     },
@@ -38,6 +38,8 @@ pub(crate) fn setup_actions(
 
     let mut initial_noclip = None;
     let mut fov_bindings = Vec::new();
+    let mut dialogue_prompt = None;
+    let mut dialogue_interact = None;
     for action in actions_config.actions.iter() {
         match action {
             ActionConfig::Shoot { id, params } => {
@@ -209,6 +211,12 @@ pub(crate) fn setup_actions(
                     stored_time_scale: 1.0,
                 });
             }
+            ActionConfig::DialoguePrompt { id, params } => {
+                dialogue_prompt = Some((id.clone(), params.clone()));
+            }
+            ActionConfig::Dialogue { id, params } => {
+                dialogue_interact = Some((id.clone(), params.clone()));
+            }
             ActionConfig::Fov { id, params } => {
                 fov_bindings.push(FovBinding {
                     action_id: id.clone(),
@@ -223,6 +231,18 @@ pub(crate) fn setup_actions(
         commands.insert_resource(SceneFovConfig {
             bindings: fov_bindings,
         });
+    }
+
+    if let (Some((prompt_id, prompt_params)), Some((interact_id, interact_params))) =
+        (dialogue_prompt, dialogue_interact)
+    {
+        commands.insert_resource(SceneDialogueConfig {
+            prompt_action_id: prompt_id,
+            interact_action_id: interact_id,
+            prompt_overlay: prompt_params.overlay,
+            dialogue: interact_params.dialogue,
+        });
+        commands.insert_resource(DialogueState::default());
     }
 
     let mut resolved_triggers = Vec::new();

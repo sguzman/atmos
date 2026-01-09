@@ -7,8 +7,9 @@ use bevy::{
 };
 
 use crate::scenes::config::{
-    GrabActionConfig, GrenadeActionConfig, JumpActionConfig, NoclipActionConfig, PauseActionConfig,
-    PhysicsConfig, ShapeConfig, ShootActionConfig, SprintActionConfig, ZoomActionConfig,
+    DialogueConfig, GrabActionConfig, GrenadeActionConfig, JumpActionConfig, NoclipActionConfig,
+    PauseActionConfig, PhysicsConfig, ShapeConfig, ShootActionConfig, SprintActionConfig,
+    ZoomActionConfig,
 };
 
 #[derive(Resource, Debug, Clone)]
@@ -128,6 +129,23 @@ pub struct PauseState {
     pub pause_scene: bool,
     pub overlay: String,
     pub stored_time_scale: f32,
+}
+
+#[derive(Resource, Clone)]
+pub struct SceneDialogueConfig {
+    pub prompt_action_id: String,
+    pub interact_action_id: String,
+    pub prompt_overlay: String,
+    pub dialogue: String,
+}
+
+#[derive(Resource, Default)]
+pub struct DialogueState {
+    pub active: bool,
+    pub pending: bool,
+    pub current: String,
+    pub visited: std::collections::HashSet<String>,
+    pub dialogue: Option<DialogueConfig>,
 }
 
 #[derive(Resource, Default)]

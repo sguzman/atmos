@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atmos dialogue",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["start", "nodes"],
+  "properties": {
+    "start": { "type": "string" },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/node" }
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text"],
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "options": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/option" }
+        }
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text"],
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "next": { "type": "string" },
+        "once": { "type": "boolean" }
+      }
+    }
+  }
+}

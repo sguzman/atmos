@@ -1,8 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::scenes::config::{
-    action_config_path, actions_config_path, ActionsConfig, ComboTemplate, EntityTemplate,
-    InputConfig, OverlayConfig, input_config_path, overlay_config_path,
+    action_config_path, actions_config_path, ActionsConfig, ComboTemplate, DialogueConfig,
+    EntityTemplate, InputConfig, OverlayConfig, dialogue_config_path, input_config_path,
+    overlay_config_path,
 };
 use crate::scenes::entities::EntitiesConfig;
 use crate::scenes::world::WorldConfig;
@@ -204,5 +205,25 @@ pub fn load_overlay_config(
         &path,
         OverlayConfig::default(),
         "overlay",
+    )
+}
+
+pub fn load_dialogue_config(
+    name: &str,
+    cache: &mut TomlCache,
+    asset_server: &AssetServer,
+    toml_assets: &Assets<TomlAsset>,
+) -> ConfigLoad<DialogueConfig> {
+    let path = dialogue_config_path(name);
+    load_toml_config(
+        cache,
+        asset_server,
+        toml_assets,
+        &path,
+        DialogueConfig {
+            start: String::new(),
+            nodes: Vec::new(),
+        },
+        "dialogue",
     )
 }

@@ -18,3 +18,14 @@ pub fn overlay_config_path(name: &str) -> String {
         overlay_root = crate::scenes::config::OVERLAY_ROOT
     )
 }
+
+pub fn dialogue_config_path(name: &str) -> String {
+    let mut file = name.trim().to_string();
+    if !file.ends_with(".toml") {
+        file.push_str(".toml");
+    }
+    format!(
+        "{dialogue_root}/{file}",
+        dialogue_root = crate::scenes::config::DIALOGUE_ROOT
+    )
+}

@@ -1,0 +1,31 @@
+start = "intro"
+
+[[nodes]]
+id = "intro"
+text = "Hey there. Want to hear about the towers?"
+
+[[nodes.options]]
+id = "ask_towers"
+text = "Sure, tell me."
+next = "towers"
+once = true
+
+[[nodes.options]]
+id = "ask_skip"
+text = "No thanks."
+next = "end"
+once = true
+
+[[nodes]]
+id = "towers"
+text = "They are just stacks of rectangles for now. We will build more later."
+
+[[nodes.options]]
+id = "ask_more"
+text = "Cool."
+next = "end"
+once = true
+
+[[nodes]]
+id = "end"
+text = "See you around."

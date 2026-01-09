@@ -1,0 +1,14 @@
+# Dialogue prompt overlay
+
+[[elements]]
+kind = "text"
+content = "Press E to talk"
+color = "white"
+font_size = 20.0
+font_family = "sans-serif"
+visible = false
+opacity = 1.0
+anchor = "center"
+offset = { x = 0.0, y = -160.0 }
+rotation_deg = 0.0
+scale = 1.0

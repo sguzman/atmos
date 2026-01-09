@@ -109,6 +109,22 @@ overlay = "pause"
 pause_scene = true
 
 [[actions]]
+id = "dialogue_prompt"
+type = "dialogue_prompt"
+
+[actions.params]
+name = "dialogue_prompt"
+overlay = "dialogue_prompt"
+
+[[actions]]
+id = "dialogue_interact"
+type = "dialogue"
+
+[actions.params]
+name = "dialogue_interact"
+dialogue = "intro"
+
+[[actions]]
 id = "fov_1"
 type = "fov"
 
@@ -213,6 +229,22 @@ id = "pause_escape"
 action = "pause"
 type = "key"
 key = "p"
+mode = "press"
+
+[[triggers]]
+id = "dialogue_prompt_volume"
+action = "dialogue_prompt"
+type = "volume"
+mode = "inside"
+once = false
+shape = { kind = "sphere", radius = 3.0 }
+transform = { x = 6.0, y = 0.5, z = 6.0 }
+
+[[triggers]]
+id = "dialogue_interact_key"
+action = "dialogue_interact"
+type = "key"
+key = "e"
 mode = "press"
 
 [[triggers]]

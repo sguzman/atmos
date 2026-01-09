@@ -288,6 +288,38 @@ impl Default for PauseActionConfig {
     }
 }
 
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct DialoguePromptActionConfig {
+    pub name: String,
+    pub overlay: String,
+}
+
+impl Default for DialoguePromptActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "dialogue_prompt".to_string(),
+            overlay: "dialogue_prompt".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct DialogueActionConfig {
+    pub name: String,
+    pub dialogue: String,
+}
+
+impl Default for DialogueActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "dialogue".to_string(),
+            dialogue: "intro".to_string(),
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct ActionsConfig {
     #[serde(default)]
@@ -315,6 +347,8 @@ pub enum ActionConfig {
         params: ReloadActionConfig,
     },
     Pause { id: String, params: PauseActionConfig },
+    DialoguePrompt { id: String, params: DialoguePromptActionConfig },
+    Dialogue { id: String, params: DialogueActionConfig },
     Fov { id: String, params: FovActionConfig },
     SceneTransition { id: String, params: SceneTransitionActionConfig },
     Quit {
@@ -336,6 +370,8 @@ impl ActionConfig {
             | ActionConfig::Grab { id, .. }
             | ActionConfig::Reload { id, .. }
             | ActionConfig::Pause { id, .. }
+            | ActionConfig::DialoguePrompt { id, .. }
+            | ActionConfig::Dialogue { id, .. }
             | ActionConfig::Fov { id, .. }
             | ActionConfig::SceneTransition { id, .. }
             | ActionConfig::Quit { id, .. } => id,

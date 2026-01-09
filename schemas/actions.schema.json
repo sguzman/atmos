@@ -146,6 +146,22 @@
         "pause_scene": { "type": "boolean" }
       }
     },
+    "dialoguePromptParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "overlay": { "type": "string" }
+      }
+    },
+    "dialogueParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "dialogue": { "type": "string" }
+      }
+    },
     "fovParams": {
       "type": "object",
       "additionalProperties": false,
@@ -259,6 +275,26 @@
             "id": { "type": "string" },
             "type": { "const": "pause" },
             "params": { "$ref": "#/$defs/pauseParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "dialogue_prompt" },
+            "params": { "$ref": "#/$defs/dialoguePromptParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "dialogue" },
+            "params": { "$ref": "#/$defs/dialogueParams" }
           }
         },
         {

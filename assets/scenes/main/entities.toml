@@ -133,6 +133,12 @@ name_override = "stack_rects16"
 position = { x = -2.0, y = 2.0, z = 8.0 }
 
 [[entities]]
+template = "entities/dialogue_cube.3D.toml"
+name_override = "dialogue_cube"
+[entities.transform]
+position = { x = 6.0, y = 0.5, z = 6.0 }
+
+[[entities]]
 template = "entities/billboard.2D.toml"
 name_override = "pink_billboard"
 [entities.transform]
