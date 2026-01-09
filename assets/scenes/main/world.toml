@@ -46,7 +46,7 @@ hdr = false
 tonemapping = "reinhard_luminance"
 
 [render.bloom]
-enabled = true
+enabled = false
 preset = "natural"
 intensity = 0.15
 low_frequency_boost = 0.7
@@ -69,7 +69,7 @@ enabled = false
 mode = "quality"
 
 [render.fog]
-enabled = true
+enabled = false
 color = "white"
 alpha = 1.0
 directional_light_color = "white"
@@ -85,10 +85,10 @@ enabled = true
 raymarch_steps = 64
 shadow_raymarch_steps = 12
 planet_radius = 6371000.0
-bottom_height = 1200.0
-top_height = 2400.0
-coverage = 0.55
-density = 0.03
+bottom_height = 5.0
+top_height = 40.0
+coverage = 0.75
+density = 0.08
 base_scale = 1.5
 detail_scale = 40.0
 detail_strength = 0.28
