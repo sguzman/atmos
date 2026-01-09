@@ -20,6 +20,7 @@ pub struct AppConfig {
     pub msaa_samples: Option<u32>,
     pub mouse: MouseConfig,
     pub debug: DebugConfig,
+    pub debug_menu: DebugMenuConfig,
 }
 
 impl Default for AppConfig {
@@ -32,6 +33,7 @@ impl Default for AppConfig {
             msaa_samples: Some(4),
             mouse: MouseConfig::default(),
             debug: DebugConfig::default(),
+            debug_menu: DebugMenuConfig::default(),
         }
     }
 }
@@ -116,6 +118,22 @@ impl Default for DebugConfig {
         Self {
             rapier_debug: false,
             inspector: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
+pub struct DebugMenuConfig {
+    pub enabled: bool,
+    pub pause_scene: bool,
+}
+
+impl Default for DebugMenuConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            pause_scene: false,
         }
     }
 }

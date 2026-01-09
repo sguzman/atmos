@@ -2,17 +2,26 @@ use bevy::prelude::{Query, Res, ResMut, Visibility};
 use bevy::time::{Time, Virtual};
 use bevy_rapier3d::prelude::TimestepMode;
 
-use crate::scenes::input::{ActionStates, PauseState, ScenePauseConfig};
+use crate::app_config::{AppConfig, AppMode};
+use crate::scenes::input::{ActionStates, DebugMenuState, PauseState, ScenePauseConfig};
 use crate::scenes::spawn::OverlayTag;
 
 pub fn apply_pause_toggle(
+    app_config: Res<AppConfig>,
     config: Option<Res<ScenePauseConfig>>,
     states: Option<Res<ActionStates>>,
     pause_state: Option<ResMut<PauseState>>,
+    debug_menu: Option<Res<DebugMenuState>>,
     mut overlays: Query<(&OverlayTag, &mut Visibility)>,
     time: Option<ResMut<Time<Virtual>>>,
     timestep: Option<ResMut<TimestepMode>>,
 ) {
+    if matches!(app_config.mode, AppMode::Dev)
+        && app_config.debug_menu.enabled
+        && debug_menu.is_some()
+    {
+        return;
+    }
     let Some(config) = config else {
         return;
     };

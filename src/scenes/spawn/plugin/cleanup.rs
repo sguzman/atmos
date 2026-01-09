@@ -4,11 +4,11 @@ use bevy_rapier3d::prelude::TimestepMode;
 
 use crate::scenes::bounds::SceneBounds;
 use crate::scenes::input::{
-    ActionStates, CameraLookState, DialogueState, DialogueUiTag, GrabHover, GrabState, NoclipState,
-    PauseState, PlayerSpawn, SceneActionTriggers, SceneDialogueConfig, SceneFovConfig,
-    SceneGrabConfig, SceneGrenadeConfig, SceneInputConfig, SceneJumpConfig, SceneNoclipConfig,
-    ScenePauseConfig, SceneReloadConfig, SceneShootConfig, SceneSprintConfig, SceneZoomConfig,
-    SprintState, ZoomState,
+    ActionStates, CameraLookState, DebugMenuState, DebugMenuUiTag, DialogueState, DialogueUiTag,
+    GrabHover, GrabState, NoclipState, PauseState, PlayerSpawn, SceneActionTriggers,
+    SceneDialogueConfig, SceneFovConfig, SceneGrabConfig, SceneGrenadeConfig, SceneInputConfig,
+    SceneJumpConfig, SceneNoclipConfig, ScenePauseConfig, SceneReloadConfig, SceneShootConfig,
+    SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
 };
 use crate::scenes::spawn::{OverlayTag, SceneEntityTag};
 
@@ -17,6 +17,7 @@ pub(crate) fn cleanup_main_scene(
     scene_entities: Query<Entity, With<SceneEntityTag>>,
     overlays: Query<Entity, With<OverlayTag>>,
     dialogue_ui: Query<Entity, With<DialogueUiTag>>,
+    debug_menu_ui: Query<Entity, With<DebugMenuUiTag>>,
     time: Option<ResMut<Time<Virtual>>>,
     timestep: Option<ResMut<TimestepMode>>,
     pause_state: Option<Res<PauseState>>,
@@ -26,6 +27,7 @@ pub(crate) fn cleanup_main_scene(
         &scene_entities,
         &overlays,
         &dialogue_ui,
+        &debug_menu_ui,
         time,
         timestep,
         pause_state,
@@ -37,6 +39,7 @@ pub(crate) fn cleanup_main_scene_inner(
     scene_entities: &Query<Entity, With<SceneEntityTag>>,
     overlays: &Query<Entity, With<OverlayTag>>,
     dialogue_ui: &Query<Entity, With<DialogueUiTag>>,
+    debug_menu_ui: &Query<Entity, With<DebugMenuUiTag>>,
     mut time: Option<ResMut<Time<Virtual>>>,
     mut timestep: Option<ResMut<TimestepMode>>,
     pause_state: Option<Res<PauseState>>,
@@ -68,6 +71,9 @@ pub(crate) fn cleanup_main_scene_inner(
     for entity in dialogue_ui {
         commands.entity(entity).despawn();
     }
+    for entity in debug_menu_ui {
+        commands.entity(entity).despawn();
+    }
 
     commands.remove_resource::<SceneInputConfig>();
     commands.remove_resource::<SceneActionTriggers>();
@@ -90,6 +96,7 @@ pub(crate) fn cleanup_main_scene_inner(
     commands.remove_resource::<GrabHover>();
     commands.remove_resource::<PauseState>();
     commands.remove_resource::<DialogueState>();
+    commands.remove_resource::<DebugMenuState>();
     commands.remove_resource::<PlayerSpawn>();
     commands.remove_resource::<CameraLookState>();
     commands.remove_resource::<SceneBounds>();

@@ -4,6 +4,9 @@ use bevy::prelude::*;
 use crate::scenes::config::{ShapeConfig, ShapeKind, SunConfig};
 use crate::scenes::spawn::SceneEntityTag;
 
+#[derive(Component, Clone, Copy)]
+pub struct SunLight;
+
 pub(super) fn spawn_sun(
     sun: Option<&SunConfig>,
     commands: &mut Commands,
@@ -25,6 +28,7 @@ pub(super) fn spawn_sun(
     // Directional light pointing along dir
     commands.spawn((
         SceneEntityTag,
+        SunLight,
         DirectionalLight {
             illuminance: sun.brightness,
             shadows_enabled: sun.shadows,

@@ -12,8 +12,9 @@ use bevy_rapier3d::prelude::Velocity;
 use crate::app_config::AppConfig;
 
 use super::types::{
-    CameraControl, CameraLookState, NoclipState, PlayerBody, SceneCamera, SceneInputConfig,
-    SceneNoclipConfig, SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
+    CameraControl, CameraLookState, DebugMenuState, NoclipState, PlayerBody, SceneCamera,
+    SceneInputConfig, SceneNoclipConfig, SceneSprintConfig, SceneZoomConfig, SprintState,
+    ZoomState,
 };
 
 const CAMERA_OFFSET: Vec3 = Vec3::new(0.0, 0.6, 0.0);
@@ -23,6 +24,7 @@ pub fn apply_camera_input(
     keys: Res<ButtonInput<KeyCode>>,
     mut mouse_motion: MessageReader<MouseMotion>,
     app_config: Res<AppConfig>,
+    debug_menu: Option<Res<DebugMenuState>>,
     sprint: Option<Res<SprintState>>,
     sprint_config: Option<Res<SceneSprintConfig>>,
     zoom_state: Option<Res<ZoomState>>,
@@ -38,6 +40,9 @@ pub fn apply_camera_input(
     let Some(config) = config else {
         return;
     };
+    if debug_menu.as_ref().is_some_and(|state| state.active) {
+        return;
+    }
 
     if keys.just_pressed(KeyCode::Escape) {
         app_exit.write(AppExit::Success);

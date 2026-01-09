@@ -20,3 +20,7 @@ invert_y = false
 [debug]
 rapier_debug = true
 inspector = true
+
+[debug_menu]
+enabled = true
+pause_scene = false

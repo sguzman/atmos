@@ -1,9 +1,10 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{DefaultRapierContext, RapierConfiguration, RapierContextSimulation};
 
-use crate::app_config::AppConfig;
+use crate::app_config::{AppConfig, AppMode};
 use crate::scenes::{
     config::ActiveScene,
+    input::DebugMenuState,
     loaders::{load_actions_config, ConfigLoad, TomlCache},
     MeshCacheSettings, TomlAsset,
 };
@@ -60,6 +61,10 @@ pub(crate) fn setup_scene(
         ConfigLoad::Pending => return,
         ConfigLoad::Ready(config) => config,
     };
+
+    if matches!(app_config.mode, AppMode::Dev) && app_config.debug_menu.enabled {
+        commands.insert_resource(DebugMenuState::default());
+    }
 
     let (world_config, entities_config) = match world::load_world_and_entities(
         &active_scene,

@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use bevy::{
     input::keyboard::KeyCode,
     input::mouse::MouseButton,
+    pbr::DistanceFog,
+    post_process::bloom::Bloom,
     prelude::{Color, Component, Entity, Handle, Mesh, Resource, StandardMaterial, Vec3},
 };
 
@@ -129,6 +131,67 @@ pub struct PauseState {
     pub pause_scene: bool,
     pub overlay: String,
     pub stored_time_scale: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DebugMenuPage {
+    Root,
+    Camera,
+    Render,
+    Physics,
+    Sun,
+}
+
+impl Default for DebugMenuPage {
+    fn default() -> Self {
+        DebugMenuPage::Root
+    }
+}
+
+#[derive(Clone)]
+pub struct DebugMenuSettings {
+    pub initialized: bool,
+    pub fov_degrees: f32,
+    pub bloom_enabled: bool,
+    pub bloom: Option<Bloom>,
+    pub fog_enabled: bool,
+    pub fog: Option<DistanceFog>,
+    pub dlss_enabled: bool,
+    pub ray_tracing_enabled: bool,
+    pub gravity: Vec3,
+    pub physics_enabled: bool,
+    pub sun_brightness: f32,
+    pub sun_shadows: bool,
+    pub sun_present: bool,
+}
+
+impl Default for DebugMenuSettings {
+    fn default() -> Self {
+        Self {
+            initialized: false,
+            fov_degrees: 60.0,
+            bloom_enabled: false,
+            bloom: None,
+            fog_enabled: false,
+            fog: None,
+            dlss_enabled: false,
+            ray_tracing_enabled: false,
+            gravity: Vec3::new(0.0, -9.81, 0.0),
+            physics_enabled: true,
+            sun_brightness: 0.0,
+            sun_shadows: false,
+            sun_present: false,
+        }
+    }
+}
+
+#[derive(Resource, Default)]
+pub struct DebugMenuState {
+    pub active: bool,
+    pub stack: Vec<DebugMenuPage>,
+    pub settings: DebugMenuSettings,
+    pub stored_time_scale: f32,
+    pub needs_refresh: bool,
 }
 
 #[derive(Resource, Clone)]
