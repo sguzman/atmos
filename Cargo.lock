@@ -365,7 +365,6 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy-inspector-egui",
- "bevy-volumetric-clouds",
  "bevy_mesh",
  "bevy_rapier3d",
  "bevy_winit",
@@ -464,15 +463,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "bevy-volumetric-clouds"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c054ab45a84801251dd47ec4f1ba2ea331e84b1c00d59665358bcec6c4ee48a9"
-dependencies = [
- "bevy",
 ]
 
 [[package]]
