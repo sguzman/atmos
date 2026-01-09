@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::ui::FocusPolicy;
 
 use crate::scenes::input::{DebugMenuPage, DebugMenuState};
 
@@ -15,32 +16,42 @@ pub(crate) fn spawn_debug_menu_ui(
     let page = current_page(debug_state);
     let entries = entries_for_page(debug_state, page);
 
-    let root_node = Node {
-        position_type: PositionType::Absolute,
-        left: Val::Px(16.0),
-        top: Val::Px(16.0),
-        width: Val::Px(420.0),
-        padding: UiRect::all(Val::Px(12.0)),
-        row_gap: Val::Px(8.0),
-        flex_direction: FlexDirection::Column,
-        ..Default::default()
-    };
-
-    let root = commands
+    let container = commands
         .spawn((
-            root_node,
-            BackgroundColor(Color::srgba(0.05, 0.05, 0.05, 0.85)),
+            Node {
+                position_type: PositionType::Absolute,
+                left: Val::Px(0.0),
+                right: Val::Px(0.0),
+                top: Val::Px(0.0),
+                bottom: Val::Px(0.0),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..Default::default()
+            },
             GlobalZIndex(200),
             DebugMenuUiTag,
         ))
         .id();
 
-    commands.entity(root).with_children(|parent| {
+    commands.entity(container).with_children(|parent| {
+        parent
+            .spawn((
+                Node {
+                    width: Val::Px(520.0),
+                    padding: UiRect::all(Val::Px(16.0)),
+                    row_gap: Val::Px(10.0),
+                    flex_direction: FlexDirection::Column,
+                    ..Default::default()
+                },
+                BackgroundColor(Color::srgba(0.05, 0.05, 0.05, 0.85)),
+                DebugMenuUiTag,
+            ))
+            .with_children(|parent| {
         parent.spawn((
             Text::new(format!("Debug Menu: {}", page_title(page))),
             TextFont {
                 font: default_font(asset_server),
-                font_size: 20.0,
+                font_size: 22.0,
                 ..Default::default()
             },
             TextColor(Color::WHITE),
@@ -62,6 +73,8 @@ pub(crate) fn spawn_debug_menu_ui(
             parent
                 .spawn((
                     Button,
+                    Interaction::default(),
+                    FocusPolicy::Block,
                     Node {
                         width: Val::Percent(100.0),
                         min_height: Val::Px(30.0),
@@ -125,6 +138,8 @@ pub(crate) fn spawn_debug_menu_ui(
                     let mut fill_entity = None;
                     let mut bar = row.spawn((
                         Button,
+                        Interaction::default(),
+                        FocusPolicy::Block,
                         Node {
                             width: Val::Px(180.0),
                             height: Val::Px(12.0),
@@ -157,6 +172,7 @@ pub(crate) fn spawn_debug_menu_ui(
                     }
                 });
         }
+            });
     });
 }
 
