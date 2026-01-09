@@ -244,7 +244,7 @@ transform = { x = 6.0, y = 0.5, z = 6.0 }
 id = "dialogue_interact_key"
 action = "dialogue_interact"
 type = "key"
-key = "e"
+key = "t"
 mode = "press"
 
 [[triggers]]

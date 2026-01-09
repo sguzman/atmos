@@ -2,7 +2,7 @@
 
 [[elements]]
 kind = "text"
-content = "Press E to talk"
+content = "Press T to talk"
 color = "white"
 font_size = 20.0
 font_family = "sans-serif"
