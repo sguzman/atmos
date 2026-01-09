@@ -5,6 +5,7 @@ struct CloudsParams {
     raymarch_steps: u32,
     shadow_raymarch_steps: u32,
     use_depth: u32,
+    debug_view: u32,
     base_scale: f32,
     detail_scale: f32,
     detail_strength: f32,
@@ -207,6 +208,9 @@ struct FullscreenVertexOutput {
 fn clouds_composite(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     let scene = textureSample(scene_tex, scene_sampler, in.uv);
     let clouds = textureSample(clouds_tex, scene_sampler, in.uv);
+    if (composite_params.debug_view != 0u) {
+        return vec4<f32>(clouds.rgb, 1.0);
+    }
     let color = mix(scene.rgb, scene.rgb + clouds.rgb * composite_params.composite_intensity, clouds.a);
     return vec4<f32>(color, scene.a);
 }

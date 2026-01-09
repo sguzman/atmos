@@ -107,6 +107,8 @@ pub struct VolumetricCloudsConfig {
     #[serde(default)]
     pub enabled: bool,
     #[serde(default)]
+    pub debug_view: bool,
+    #[serde(default)]
     pub raymarch_steps: Option<u32>,
     #[serde(default)]
     pub shadow_raymarch_steps: Option<u32>,

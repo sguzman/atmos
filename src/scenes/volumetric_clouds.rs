@@ -93,6 +93,7 @@ struct CloudsParams {
     raymarch_steps: u32,
     shadow_raymarch_steps: u32,
     use_depth: u32,
+    debug_view: u32,
     base_scale: f32,
     detail_scale: f32,
     detail_strength: f32,
@@ -496,6 +497,7 @@ fn update_clouds_uniforms(
     let shadow_step_multiply = cloud_cfg.shadow_step_multiply.unwrap_or(1.25);
     let base_edge_softness = cloud_cfg.base_edge_softness.unwrap_or(0.12);
     let bottom_softness = cloud_cfg.bottom_softness.unwrap_or(0.22);
+    let debug_view = cloud_cfg.debug_view;
     let bottom_height = cloud_cfg.bottom_height.unwrap_or(1200.0);
     let top_height = cloud_cfg.top_height.unwrap_or(2400.0);
     let min_transmittance = cloud_cfg.min_transmittance.unwrap_or(0.1);
@@ -544,6 +546,7 @@ fn update_clouds_uniforms(
         raymarch_steps,
         shadow_raymarch_steps,
         use_depth: if use_depth { 1 } else { 0 },
+        debug_view: if debug_view { 1 } else { 0 },
         base_scale,
         detail_scale,
         detail_strength,

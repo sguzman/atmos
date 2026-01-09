@@ -82,6 +82,7 @@ end = 100.0
 
 [render.clouds]
 enabled = true
+debug_view = true
 raymarch_steps = 64
 shadow_raymarch_steps = 12
 planet_radius = 6371000.0

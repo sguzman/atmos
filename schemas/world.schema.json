@@ -225,6 +225,7 @@
       "additionalProperties": false,
       "properties": {
         "enabled": { "type": "boolean" },
+        "debug_view": { "type": "boolean" },
         "raymarch_steps": { "type": "integer", "minimum": 1 },
         "shadow_raymarch_steps": { "type": "integer", "minimum": 1 },
         "planet_radius": { "type": "number" },
