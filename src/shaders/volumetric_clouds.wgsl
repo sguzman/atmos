@@ -3,6 +3,7 @@ struct CloudsParams {
     coverage: f32,
     density: f32,
     raymarch_steps: u32,
+    shadow_raymarch_steps: u32,
     base_scale: f32,
     detail_scale: f32,
     detail_strength: f32,
@@ -10,6 +11,8 @@ struct CloudsParams {
     bottom_softness: f32,
     bottom_height: f32,
     top_height: f32,
+    shadow_step_size: f32,
+    shadow_step_multiply: f32,
     min_transmittance: f32,
     forward_scattering_g: f32,
     backward_scattering_g: f32,
@@ -83,6 +86,23 @@ fn cloud_density(p: vec3<f32>) -> f32 {
     return shaped * height_factor * params.density;
 }
 
+fn shadow_transmittance(pos: vec3<f32>, sun_dir: vec3<f32>) -> f32 {
+    let steps = max(1.0, f32(params.shadow_raymarch_steps));
+    let step_size = max(1.0, params.shadow_step_size);
+    var transmittance = 1.0;
+    var t = step_size;
+    for (var i = 0.0; i < steps; i = i + 1.0) {
+        let sample_pos = pos + sun_dir * t;
+        let density = cloud_density(sample_pos);
+        transmittance *= exp(-density * step_size * params.shadow_step_multiply);
+        if (transmittance < 0.02) {
+            break;
+        }
+        t += step_size;
+    }
+    return clamp(transmittance, 0.0, 1.0);
+}
+
 @compute @workgroup_size(8, 8, 1)
 fn clouds_compute(@builtin(global_invocation_id) id: vec3<u32>) {
     let size = textureDimensions(clouds_output);
@@ -152,7 +172,8 @@ fn clouds_compute(@builtin(global_invocation_id) id: vec3<u32>) {
         let phase_forward = hg_phase(cos_theta, params.forward_scattering_g);
         let phase_backward = hg_phase(cos_theta, params.backward_scattering_g);
         let phase = mix(phase_backward, phase_forward, params.scattering_lerp);
-        let lighting = ambient + phase * params.god_rays_intensity;
+        let shadow = shadow_transmittance(pos, sun_dir);
+        let lighting = (ambient + phase * params.god_rays_intensity) * shadow;
 
         let absorb = exp(-density * step_size * 2.0);
         color += transmittance * lighting * density * step_size * 0.35;

@@ -118,7 +118,11 @@ pub(crate) fn spawn_world_content(
         substeps,
     });
 
-    apply_clouds_settings(world_config.render.as_ref(), commands);
+    apply_clouds_settings(
+        world_config.render.as_ref(),
+        world_config.sun.as_ref(),
+        commands,
+    );
 
     spawn_lights(&world_config.lights, commands);
     true

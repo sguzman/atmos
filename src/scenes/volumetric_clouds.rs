@@ -26,18 +26,26 @@ use bevy_shader::Shader;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use crate::scenes::config::{RenderConfig, VolumetricCloudsConfig};
+use crate::scenes::config::{RenderConfig, SunConfig, VolumetricCloudsConfig};
 
 #[derive(Resource, Debug, Clone, ExtractResource)]
 pub struct SceneCloudsConfig {
     pub config: VolumetricCloudsConfig,
+    pub sun_direction: Vec3,
 }
 
-pub fn apply_clouds_settings(render: Option<&RenderConfig>, commands: &mut Commands) {
+pub fn apply_clouds_settings(
+    render: Option<&RenderConfig>,
+    sun: Option<&SunConfig>,
+    commands: &mut Commands,
+) {
     let config = render
         .and_then(|render| render.clouds.clone())
         .unwrap_or_default();
-    commands.insert_resource(SceneCloudsConfig { config });
+    commands.insert_resource(SceneCloudsConfig {
+        config,
+        sun_direction: sun_direction_from_config(sun),
+    });
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, RenderLabel)]
@@ -80,6 +88,7 @@ struct CloudsParams {
     coverage: f32,
     density: f32,
     raymarch_steps: u32,
+    shadow_raymarch_steps: u32,
     base_scale: f32,
     detail_scale: f32,
     detail_strength: f32,
@@ -87,6 +96,8 @@ struct CloudsParams {
     bottom_softness: f32,
     bottom_height: f32,
     top_height: f32,
+    shadow_step_size: f32,
+    shadow_step_multiply: f32,
     min_transmittance: f32,
     forward_scattering_g: f32,
     backward_scattering_g: f32,
@@ -415,6 +426,7 @@ fn update_clouds_uniforms(
     time: &Time,
     view: &ExtractedView,
     cloud_cfg: &VolumetricCloudsConfig,
+    sun_direction: Vec3,
     uniforms: &mut CloudsUniforms,
     render_device: &RenderDevice,
     render_queue: &RenderQueue,
@@ -425,6 +437,9 @@ fn update_clouds_uniforms(
     let detail_scale = cloud_cfg.detail_scale.unwrap_or(20.0);
     let detail_strength = cloud_cfg.detail_strength.unwrap_or(0.35);
     let raymarch_steps = cloud_cfg.raymarch_steps.unwrap_or(64);
+    let shadow_raymarch_steps = cloud_cfg.shadow_raymarch_steps.unwrap_or(12);
+    let shadow_step_size = cloud_cfg.shadow_step_size.unwrap_or(12.0);
+    let shadow_step_multiply = cloud_cfg.shadow_step_multiply.unwrap_or(1.25);
     let base_edge_softness = cloud_cfg.base_edge_softness.unwrap_or(0.12);
     let bottom_softness = cloud_cfg.bottom_softness.unwrap_or(0.22);
     let bottom_height = cloud_cfg.bottom_height.unwrap_or(1200.0);
@@ -459,7 +474,7 @@ fn update_clouds_uniforms(
     let ambient_bottom =
         Color::srgb_u8(ambient_bottom[0], ambient_bottom[1], ambient_bottom[2]).to_linear();
 
-    let sun_dir = Vec3::new(0.3, -0.8, 0.2).normalize();
+    let sun_dir = sun_direction.normalize_or_zero();
     let world_from_view = view.world_from_view.to_matrix();
     let view_from_world = world_from_view.inverse();
     let clip_from_world = view
@@ -473,6 +488,7 @@ fn update_clouds_uniforms(
         coverage,
         density,
         raymarch_steps,
+        shadow_raymarch_steps,
         base_scale,
         detail_scale,
         detail_strength,
@@ -480,6 +496,8 @@ fn update_clouds_uniforms(
         bottom_softness,
         bottom_height,
         top_height,
+        shadow_step_size,
+        shadow_step_multiply,
         min_transmittance,
         forward_scattering_g,
         backward_scattering_g,
@@ -502,6 +520,15 @@ fn update_clouds_uniforms(
         .write_buffer(render_device, render_queue);
 }
 
+fn sun_direction_from_config(sun: Option<&SunConfig>) -> Vec3 {
+    let Some(sun) = sun else {
+        return Vec3::new(0.3, -0.8, 0.2);
+    };
+    let fraction = (sun.time.rem_euclid(24.0)) / 24.0;
+    let elevation = (std::f32::consts::PI * fraction).sin().max(0.0);
+    Vec3::new(0.0, -(0.1 + elevation), -1.0).normalize()
+}
+
 fn prepare_clouds_uniforms(
     time: Res<Time>,
     config: Res<SceneCloudsConfig>,
@@ -517,6 +544,7 @@ fn prepare_clouds_uniforms(
         &time,
         view,
         &config.config,
+        config.sun_direction,
         &mut uniforms,
         &render_device,
         &render_queue,
