@@ -9,10 +9,10 @@ depth = 1.0
 
 [material]
 preset = "blue_marble"
-base_color_texture = "textures/blue_dune_marble/Blue_Dune_Marble_baseColor.png"
-normal_map = "textures/blue_dune_marble/Blue_Dune_Marble_normal.png"
-metallic_roughness_texture = "textures/blue_dune_marble/Blue_Dune_Marble_mask.png"
-occlusion_texture = "textures/blue_dune_marble/Blue_Dune_Marble_mask.png"
+base_color_texture = "textures/1k/blue_dune_marble/Blue_Dune_Marble_baseColor.png"
+normal_map = "textures/1k/blue_dune_marble/Blue_Dune_Marble_normal.png"
+metallic_roughness_texture = "textures/1k/blue_dune_marble/Blue_Dune_Marble_mask.png"
+occlusion_texture = "textures/1k/blue_dune_marble/Blue_Dune_Marble_mask.png"
 
 [physics]
 enabled = true

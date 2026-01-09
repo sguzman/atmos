@@ -9,9 +9,9 @@ depth = 1.0
 
 [material]
 preset = "stainless_steel"
-base_color_texture = "textures/stainless_steel_brushed/Stainless_Steel_Brushed_diffuse.png"
-normal_map = "textures/stainless_steel_brushed/Stainless_Steel_Brushed_normal.png"
-metallic_roughness_texture = "textures/stainless_steel_brushed/Stainless_Steel_Brushed_roughness.png"
+base_color_texture = "textures/1k/stainless_steel_brushed/Stainless_Steel_Brushed_diffuse.png"
+normal_map = "textures/1k/stainless_steel_brushed/Stainless_Steel_Brushed_normal.png"
+metallic_roughness_texture = "textures/1k/stainless_steel_brushed/Stainless_Steel_Brushed_roughness.png"
 
 [physics]
 enabled = true

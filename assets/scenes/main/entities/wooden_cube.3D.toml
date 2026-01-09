@@ -9,9 +9,9 @@ depth = 1.0
 
 [material]
 preset = "wooden"
-base_color_texture = "textures/wood_table/TH_Wood_Table_baseColor.png"
-normal_map = "textures/wood_table/TH_Wood_Table_normal.png"
-metallic_roughness_texture = "textures/wood_table/TH_Wood_Table_roughness.png"
+base_color_texture = "textures/1k/wood_table/TH_Wood_Table_baseColor.png"
+normal_map = "textures/1k/wood_table/TH_Wood_Table_normal.png"
+metallic_roughness_texture = "textures/1k/wood_table/TH_Wood_Table_roughness.png"
 
 [physics]
 enabled = true
