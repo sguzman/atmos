@@ -2,9 +2,10 @@ use bevy::ecs::system::entity_command;
 use bevy::input::ButtonInput;
 use bevy::prelude::*;
 use bevy::time::{Time, Virtual};
-use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
+use bevy::ui::ComputedNode;
+use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow, Window};
 use bevy::post_process::bloom::Bloom;
-use bevy::pbr::DistanceFog;
+use bevy::pbr::{DistanceFog, FogFalloff};
 use bevy_rapier3d::prelude::{DefaultRapierContext, RapierConfiguration, TimestepMode};
 
 use crate::app_config::{AppConfig, AppMode};
@@ -19,6 +20,35 @@ pub(crate) struct DebugMenuButton {
     action: DebugMenuAction,
 }
 
+#[derive(Component, Clone)]
+pub(crate) struct DebugMenuSlider {
+    kind: DebugMenuSliderKind,
+    min: f32,
+    max: f32,
+    fill: Entity,
+}
+
+#[derive(Component, Clone)]
+pub(crate) struct DebugMenuSliderLabel {
+    kind: DebugMenuSliderKind,
+    label: String,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum DebugMenuSliderKind {
+    Fov,
+    GravityY,
+    SunBrightness,
+    DlssSharpness,
+    BloomIntensity,
+    BloomThreshold,
+    BloomThresholdSoftness,
+    FogAlpha,
+    FogDensity,
+    FogLinearStart,
+    FogLinearEnd,
+}
+
 #[derive(Clone)]
 enum DebugMenuAction {
     Noop,
@@ -28,13 +58,10 @@ enum DebugMenuAction {
     ToggleFog,
     ToggleDlss,
     CycleDlssMode,
-    AdjustDlssSharpness(f32),
+    CycleFogMode,
     ToggleRayTracing,
     CycleRayTracingMode,
-    AdjustFov(f32),
-    AdjustGravity(f32),
     TogglePhysics,
-    AdjustSunBrightness(f32),
     ToggleSunShadows,
 }
 
@@ -106,12 +133,18 @@ pub fn update_debug_menu_ui(
     mut commands: Commands,
     ui_nodes: Query<Entity, With<DebugMenuUiTag>>,
     mut buttons: Query<(&Interaction, &mut BackgroundColor, &Children, &DebugMenuButton), Changed<Interaction>>,
+    mut slider_params: ParamSet<(
+        Query<(Entity, &Interaction, &DebugMenuSlider, &ComputedNode, &GlobalTransform)>,
+        Query<&mut Node>,
+        Query<(&mut Text, &DebugMenuSliderLabel)>,
+    )>,
     mut text_colors: Query<&mut TextColor>,
     mut projections: Query<&mut Projection, With<SceneCamera>>,
     mut zoom_state: Option<ResMut<ZoomState>>,
     camera_entities: Query<Entity, With<SceneCamera>>,
     mut rapier_config: Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
     mut sun: Query<&mut DirectionalLight, With<SunLight>>,
+    windows: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
 ) {
     if !debug_menu_enabled(&app_config) {
@@ -149,14 +182,25 @@ pub fn update_debug_menu_ui(
                 &button.action,
                 &mut debug_state,
                 &mut commands,
-                &mut projections,
-                &mut zoom_state,
                 &camera_entities,
                 &mut rapier_config,
                 &mut sun,
             );
         }
     }
+
+    handle_slider_input(
+        &mouse_buttons,
+        &windows,
+        &mut debug_state,
+        &mut slider_params,
+        &mut commands,
+        &mut projections,
+        &mut zoom_state,
+        &camera_entities,
+        &mut rapier_config,
+        &mut sun,
+    );
 
     if debug_state.needs_refresh {
         for entity in &ui_nodes {
@@ -210,6 +254,7 @@ fn open_debug_menu(
         }
     }
 
+    debug_state.active_slider = None;
 }
 
 fn close_debug_menu(
@@ -266,8 +311,34 @@ fn initialize_debug_menu_settings(
         }
         debug_state.settings.bloom_enabled = bloom.is_some();
         debug_state.settings.bloom = bloom.cloned();
+        if let Some(bloom) = bloom {
+            debug_state.settings.bloom_intensity = bloom.intensity;
+            debug_state.settings.bloom_threshold = bloom.prefilter.threshold;
+            debug_state.settings.bloom_threshold_softness = bloom.prefilter.threshold_softness;
+        }
         debug_state.settings.fog_enabled = fog.is_some();
         debug_state.settings.fog = fog.cloned();
+        if let Some(fog) = fog {
+            debug_state.settings.fog_alpha = fog.color.alpha();
+            match &fog.falloff {
+                FogFalloff::Linear { start, end } => {
+                    debug_state.settings.fog_mode = "linear".to_string();
+                    debug_state.settings.fog_linear_start = *start;
+                    debug_state.settings.fog_linear_end = *end;
+                }
+                FogFalloff::Exponential { density } => {
+                    debug_state.settings.fog_mode = "exponential".to_string();
+                    debug_state.settings.fog_density = *density;
+                }
+                FogFalloff::ExponentialSquared { density } => {
+                    debug_state.settings.fog_mode = "exponential_squared".to_string();
+                    debug_state.settings.fog_density = *density;
+                }
+                FogFalloff::Atmospheric { .. } => {
+                    debug_state.settings.fog_mode = "linear".to_string();
+                }
+            }
+        }
     }
 
     if let Ok(config) = rapier_config.single() {
@@ -288,8 +359,6 @@ fn apply_debug_menu_action(
     action: &DebugMenuAction,
     debug_state: &mut DebugMenuState,
     commands: &mut Commands,
-    projections: &mut Query<&mut Projection, With<SceneCamera>>,
-    zoom_state: &mut Option<ResMut<ZoomState>>,
     camera_entities: &Query<Entity, With<SceneCamera>>,
     rapier_config: &mut Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
     sun: &mut Query<&mut DirectionalLight, With<SunLight>>,
@@ -308,12 +377,12 @@ fn apply_debug_menu_action(
         }
         DebugMenuAction::ToggleBloom => {
             debug_state.settings.bloom_enabled = !debug_state.settings.bloom_enabled;
-            apply_bloom_toggle(debug_state, commands, camera_entities);
+            apply_bloom_settings(debug_state, commands, camera_entities);
             debug_state.needs_refresh = true;
         }
         DebugMenuAction::ToggleFog => {
             debug_state.settings.fog_enabled = !debug_state.settings.fog_enabled;
-            apply_fog_toggle(debug_state, commands, camera_entities);
+            apply_fog_settings(debug_state, commands, camera_entities);
             debug_state.needs_refresh = true;
         }
         DebugMenuAction::ToggleDlss => {
@@ -324,9 +393,9 @@ fn apply_debug_menu_action(
             debug_state.settings.dlss_mode = next_quality_mode(&debug_state.settings.dlss_mode);
             debug_state.needs_refresh = true;
         }
-        DebugMenuAction::AdjustDlssSharpness(delta) => {
-            let next = (debug_state.settings.dlss_sharpness + delta).clamp(0.0, 1.0);
-            debug_state.settings.dlss_sharpness = next;
+        DebugMenuAction::CycleFogMode => {
+            debug_state.settings.fog_mode = next_fog_mode(&debug_state.settings.fog_mode);
+            apply_fog_settings(debug_state, commands, camera_entities);
             debug_state.needs_refresh = true;
         }
         DebugMenuAction::ToggleRayTracing => {
@@ -338,28 +407,10 @@ fn apply_debug_menu_action(
                 next_quality_mode(&debug_state.settings.ray_tracing_mode);
             debug_state.needs_refresh = true;
         }
-        DebugMenuAction::AdjustFov(delta) => {
-            let next = (debug_state.settings.fov_degrees + delta).clamp(30.0, 160.0);
-            debug_state.settings.fov_degrees = next;
-            apply_fov(debug_state, projections, zoom_state);
-            debug_state.needs_refresh = true;
-        }
-        DebugMenuAction::AdjustGravity(delta) => {
-            debug_state.settings.gravity.y += delta;
-            apply_gravity(debug_state, rapier_config);
-            debug_state.needs_refresh = true;
-        }
         DebugMenuAction::TogglePhysics => {
             debug_state.settings.physics_enabled = !debug_state.settings.physics_enabled;
             apply_physics_toggle(debug_state, rapier_config);
             debug_state.needs_refresh = true;
-        }
-        DebugMenuAction::AdjustSunBrightness(delta) => {
-            if debug_state.settings.sun_present {
-                debug_state.settings.sun_brightness = (debug_state.settings.sun_brightness + delta).max(0.0);
-                apply_sun(debug_state, sun);
-                debug_state.needs_refresh = true;
-            }
         }
         DebugMenuAction::ToggleSunShadows => {
             if debug_state.settings.sun_present {
@@ -390,7 +441,7 @@ fn apply_fov(
     }
 }
 
-fn apply_bloom_toggle(
+fn apply_bloom_settings(
     debug_state: &DebugMenuState,
     commands: &mut Commands,
     cameras: &Query<Entity, With<SceneCamera>>,
@@ -399,18 +450,21 @@ fn apply_bloom_toggle(
         return;
     };
     if debug_state.settings.bloom_enabled {
-        let bloom = debug_state
+        let mut bloom = debug_state
             .settings
             .bloom
             .clone()
             .unwrap_or_else(Bloom::default);
+        bloom.intensity = debug_state.settings.bloom_intensity;
+        bloom.prefilter.threshold = debug_state.settings.bloom_threshold;
+        bloom.prefilter.threshold_softness = debug_state.settings.bloom_threshold_softness;
         commands.entity(camera).insert(bloom);
     } else {
         commands.entity(camera).remove::<Bloom>();
     }
 }
 
-fn apply_fog_toggle(
+fn apply_fog_settings(
     debug_state: &DebugMenuState,
     commands: &mut Commands,
     cameras: &Query<Entity, With<SceneCamera>>,
@@ -419,11 +473,25 @@ fn apply_fog_toggle(
         return;
     };
     if debug_state.settings.fog_enabled {
-        let fog = debug_state
+        let mut fog = debug_state
             .settings
             .fog
             .clone()
             .unwrap_or_else(DistanceFog::default);
+        let alpha = debug_state.settings.fog_alpha.clamp(0.0, 1.0);
+        fog.color.set_alpha(alpha);
+        fog.falloff = match debug_state.settings.fog_mode.as_str() {
+            "exponential" => FogFalloff::Exponential {
+                density: debug_state.settings.fog_density,
+            },
+            "exponential_squared" => FogFalloff::ExponentialSquared {
+                density: debug_state.settings.fog_density,
+            },
+            _ => FogFalloff::Linear {
+                start: debug_state.settings.fog_linear_start,
+                end: debug_state.settings.fog_linear_end,
+            },
+        };
         commands.entity(camera).insert(fog);
     } else {
         commands.entity(camera).remove::<DistanceFog>();
@@ -543,6 +611,71 @@ fn spawn_debug_menu_ui(
                     ));
                 });
         }
+
+        for slider in sliders_for_page(debug_state, page) {
+            let percent = ((slider.value - slider.min) / (slider.max - slider.min)).clamp(0.0, 1.0);
+            parent
+                .spawn((
+                    Node {
+                        width: Val::Percent(100.0),
+                        height: Val::Px(34.0),
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::SpaceBetween,
+                        ..Default::default()
+                    },
+                    DebugMenuUiTag,
+                ))
+                .with_children(|row| {
+                    row.spawn((
+                        Text::new(format!("{}: {:.2}", slider.label, slider.value)),
+                        TextFont {
+                            font: default_font(asset_server),
+                            font_size: 14.0,
+                            ..Default::default()
+                        },
+                        TextColor(Color::WHITE),
+                        DebugMenuSliderLabel {
+                            kind: slider.kind,
+                            label: slider.label,
+                        },
+                        DebugMenuUiTag,
+                    ));
+
+                    let mut fill_entity = None;
+                    let mut bar = row.spawn((
+                        Button,
+                        Node {
+                            width: Val::Px(180.0),
+                            height: Val::Px(12.0),
+                            ..Default::default()
+                        },
+                        BackgroundColor(Color::srgba(0.2, 0.2, 0.2, 0.9)),
+                        DebugMenuUiTag,
+                    ));
+                    bar.with_children(|bar_builder| {
+                        let fill = bar_builder
+                            .spawn((
+                                Node {
+                                    width: Val::Percent(percent * 100.0),
+                                    height: Val::Percent(100.0),
+                                    ..Default::default()
+                                },
+                                BackgroundColor(Color::srgba(0.7, 0.7, 0.7, 0.9)),
+                                DebugMenuUiTag,
+                            ))
+                            .id();
+                        fill_entity = Some(fill);
+                    });
+                    if let Some(fill) = fill_entity {
+                        bar.insert(DebugMenuSlider {
+                            kind: slider.kind,
+                            min: slider.min,
+                            max: slider.max,
+                            fill,
+                        });
+                    }
+                });
+        }
     });
 }
 
@@ -573,68 +706,80 @@ fn entries_for_page(state: &DebugMenuState, page: DebugMenuPage) -> Vec<DebugMen
         }
         DebugMenuPage::Camera => {
             entries.push(DebugMenuEntry {
-                label: format!("FOV: {:.1}", state.settings.fov_degrees),
-                action: DebugMenuAction::Noop,
-            });
-            entries.push(DebugMenuEntry {
-                label: "FOV +5".to_string(),
-                action: DebugMenuAction::AdjustFov(5.0),
-            });
-            entries.push(DebugMenuEntry {
-                label: "FOV -5".to_string(),
-                action: DebugMenuAction::AdjustFov(-5.0),
-            });
-            entries.push(DebugMenuEntry {
                 label: "Back".to_string(),
                 action: DebugMenuAction::Back,
             });
         }
         DebugMenuPage::Render => {
             entries.push(DebugMenuEntry {
+                label: "Bloom...".to_string(),
+                action: DebugMenuAction::Open(DebugMenuPage::RenderBloom),
+            });
+            entries.push(DebugMenuEntry {
+                label: "Fog...".to_string(),
+                action: DebugMenuAction::Open(DebugMenuPage::RenderFog),
+            });
+            entries.push(DebugMenuEntry {
+                label: "DLSS...".to_string(),
+                action: DebugMenuAction::Open(DebugMenuPage::RenderDlss),
+            });
+            entries.push(DebugMenuEntry {
+                label: "Ray Tracing...".to_string(),
+                action: DebugMenuAction::Open(DebugMenuPage::RenderRayTracing),
+            });
+            entries.push(DebugMenuEntry {
+                label: "Back".to_string(),
+                action: DebugMenuAction::Back,
+            });
+        }
+        DebugMenuPage::RenderDlss => {
+            entries.push(DebugMenuEntry {
+                label: format!("DLSS: {}", on_off(state.settings.dlss_enabled)),
+                action: DebugMenuAction::ToggleDlss,
+            });
+            entries.push(DebugMenuEntry {
+                label: format!("Mode: {}", state.settings.dlss_mode),
+                action: DebugMenuAction::CycleDlssMode,
+            });
+            entries.push(DebugMenuEntry {
+                label: "Back".to_string(),
+                action: DebugMenuAction::Back,
+            });
+        }
+        DebugMenuPage::RenderBloom => {
+            entries.push(DebugMenuEntry {
                 label: format!("Bloom: {}", on_off(state.settings.bloom_enabled)),
                 action: DebugMenuAction::ToggleBloom,
             });
+            entries.push(DebugMenuEntry {
+                label: "Back".to_string(),
+                action: DebugMenuAction::Back,
+            });
+        }
+        DebugMenuPage::RenderFog => {
             entries.push(DebugMenuEntry {
                 label: format!("Fog: {}", on_off(state.settings.fog_enabled)),
                 action: DebugMenuAction::ToggleFog,
             });
             entries.push(DebugMenuEntry {
-                label: format!(
-                    "DLSS: {} ({})",
-                    on_off(state.settings.dlss_enabled),
-                    state.settings.dlss_mode
-                ),
-                action: DebugMenuAction::ToggleDlss,
+                label: format!("Mode: {}", state.settings.fog_mode),
+                action: DebugMenuAction::CycleFogMode,
             });
             entries.push(DebugMenuEntry {
-                label: "DLSS Mode: cycle".to_string(),
-                action: DebugMenuAction::CycleDlssMode,
+                label: "Back".to_string(),
+                action: DebugMenuAction::Back,
             });
+        }
+        DebugMenuPage::RenderRayTracing => {
             entries.push(DebugMenuEntry {
                 label: format!(
-                    "DLSS Sharpness: {:.2}",
-                    state.settings.dlss_sharpness
-                ),
-                action: DebugMenuAction::Noop,
-            });
-            entries.push(DebugMenuEntry {
-                label: "DLSS Sharpness +0.1".to_string(),
-                action: DebugMenuAction::AdjustDlssSharpness(0.1),
-            });
-            entries.push(DebugMenuEntry {
-                label: "DLSS Sharpness -0.1".to_string(),
-                action: DebugMenuAction::AdjustDlssSharpness(-0.1),
-            });
-            entries.push(DebugMenuEntry {
-                label: format!(
-                    "Ray Tracing: {} ({})",
-                    on_off(state.settings.ray_tracing_enabled),
-                    state.settings.ray_tracing_mode
+                    "Ray Tracing: {}",
+                    on_off(state.settings.ray_tracing_enabled)
                 ),
                 action: DebugMenuAction::ToggleRayTracing,
             });
             entries.push(DebugMenuEntry {
-                label: "Ray Tracing Mode: cycle".to_string(),
+                label: format!("Mode: {}", state.settings.ray_tracing_mode),
                 action: DebugMenuAction::CycleRayTracingMode,
             });
             entries.push(DebugMenuEntry {
@@ -643,18 +788,6 @@ fn entries_for_page(state: &DebugMenuState, page: DebugMenuPage) -> Vec<DebugMen
             });
         }
         DebugMenuPage::Physics => {
-            entries.push(DebugMenuEntry {
-                label: format!("Gravity Y: {:.2}", state.settings.gravity.y),
-                action: DebugMenuAction::Noop,
-            });
-            entries.push(DebugMenuEntry {
-                label: "Gravity +1".to_string(),
-                action: DebugMenuAction::AdjustGravity(1.0),
-            });
-            entries.push(DebugMenuEntry {
-                label: "Gravity -1".to_string(),
-                action: DebugMenuAction::AdjustGravity(-1.0),
-            });
             entries.push(DebugMenuEntry {
                 label: format!("Physics: {}", on_off(state.settings.physics_enabled)),
                 action: DebugMenuAction::TogglePhysics,
@@ -666,18 +799,6 @@ fn entries_for_page(state: &DebugMenuState, page: DebugMenuPage) -> Vec<DebugMen
         }
         DebugMenuPage::Sun => {
             if state.settings.sun_present {
-                entries.push(DebugMenuEntry {
-                    label: format!("Brightness: {:.0}", state.settings.sun_brightness),
-                    action: DebugMenuAction::Noop,
-                });
-                entries.push(DebugMenuEntry {
-                    label: "Brightness +500".to_string(),
-                    action: DebugMenuAction::AdjustSunBrightness(500.0),
-                });
-                entries.push(DebugMenuEntry {
-                    label: "Brightness -500".to_string(),
-                    action: DebugMenuAction::AdjustSunBrightness(-500.0),
-                });
                 entries.push(DebugMenuEntry {
                     label: format!("Shadows: {}", on_off(state.settings.sun_shadows)),
                     action: DebugMenuAction::ToggleSunShadows,
@@ -702,6 +823,10 @@ fn page_title(page: DebugMenuPage) -> &'static str {
         DebugMenuPage::Root => "Root",
         DebugMenuPage::Camera => "Camera",
         DebugMenuPage::Render => "Render",
+        DebugMenuPage::RenderDlss => "DLSS",
+        DebugMenuPage::RenderBloom => "Bloom",
+        DebugMenuPage::RenderFog => "Fog",
+        DebugMenuPage::RenderRayTracing => "Ray Tracing",
         DebugMenuPage::Physics => "Physics",
         DebugMenuPage::Sun => "Sun",
     }
@@ -716,6 +841,288 @@ fn next_quality_mode(current: &str) -> String {
         "performance" => "balanced".to_string(),
         "balanced" => "quality".to_string(),
         _ => "performance".to_string(),
+    }
+}
+
+fn next_fog_mode(current: &str) -> String {
+    match current.trim().to_ascii_lowercase().as_str() {
+        "exponential" => "exponential_squared".to_string(),
+        "exponential_squared" => "linear".to_string(),
+        _ => "exponential".to_string(),
+    }
+}
+
+struct DebugMenuSliderConfig {
+    label: String,
+    kind: DebugMenuSliderKind,
+    min: f32,
+    max: f32,
+    value: f32,
+}
+
+impl DebugMenuSliderConfig {
+    fn new(label: &str, kind: DebugMenuSliderKind, min: f32, max: f32, value: f32) -> Self {
+        Self {
+            label: label.to_string(),
+            kind,
+            min,
+            max,
+            value,
+        }
+    }
+}
+
+fn sliders_for_page(
+    state: &DebugMenuState,
+    page: DebugMenuPage,
+) -> Vec<DebugMenuSliderConfig> {
+    let mut sliders = Vec::new();
+    match page {
+        DebugMenuPage::Camera => {
+            sliders.push(DebugMenuSliderConfig::new(
+                "FOV",
+                DebugMenuSliderKind::Fov,
+                30.0,
+                160.0,
+                state.settings.fov_degrees,
+            ));
+        }
+        DebugMenuPage::Physics => {
+            sliders.push(DebugMenuSliderConfig::new(
+                "Gravity Y",
+                DebugMenuSliderKind::GravityY,
+                -30.0,
+                10.0,
+                state.settings.gravity.y,
+            ));
+        }
+        DebugMenuPage::Sun => {
+            if state.settings.sun_present {
+                sliders.push(DebugMenuSliderConfig::new(
+                    "Brightness",
+                    DebugMenuSliderKind::SunBrightness,
+                    0.0,
+                    20000.0,
+                    state.settings.sun_brightness,
+                ));
+            }
+        }
+        DebugMenuPage::RenderDlss => {
+            sliders.push(DebugMenuSliderConfig::new(
+                "Sharpness",
+                DebugMenuSliderKind::DlssSharpness,
+                0.0,
+                1.0,
+                state.settings.dlss_sharpness,
+            ));
+        }
+        DebugMenuPage::RenderBloom => {
+            sliders.push(DebugMenuSliderConfig::new(
+                "Intensity",
+                DebugMenuSliderKind::BloomIntensity,
+                0.0,
+                1.0,
+                state.settings.bloom_intensity,
+            ));
+            sliders.push(DebugMenuSliderConfig::new(
+                "Threshold",
+                DebugMenuSliderKind::BloomThreshold,
+                0.0,
+                2.0,
+                state.settings.bloom_threshold,
+            ));
+            sliders.push(DebugMenuSliderConfig::new(
+                "Softness",
+                DebugMenuSliderKind::BloomThresholdSoftness,
+                0.0,
+                1.0,
+                state.settings.bloom_threshold_softness,
+            ));
+        }
+        DebugMenuPage::RenderFog => {
+            sliders.push(DebugMenuSliderConfig::new(
+                "Alpha",
+                DebugMenuSliderKind::FogAlpha,
+                0.0,
+                1.0,
+                state.settings.fog_alpha,
+            ));
+            sliders.push(DebugMenuSliderConfig::new(
+                "Density",
+                DebugMenuSliderKind::FogDensity,
+                0.0,
+                0.2,
+                state.settings.fog_density,
+            ));
+            sliders.push(DebugMenuSliderConfig::new(
+                "Start",
+                DebugMenuSliderKind::FogLinearStart,
+                0.0,
+                50.0,
+                state.settings.fog_linear_start,
+            ));
+            sliders.push(DebugMenuSliderConfig::new(
+                "End",
+                DebugMenuSliderKind::FogLinearEnd,
+                10.0,
+                200.0,
+                state.settings.fog_linear_end,
+            ));
+        }
+        _ => {}
+    }
+    sliders
+}
+
+fn handle_slider_input(
+    mouse_buttons: &ButtonInput<MouseButton>,
+    windows: &Query<&Window, With<PrimaryWindow>>,
+    debug_state: &mut DebugMenuState,
+    slider_params: &mut ParamSet<(
+        Query<(Entity, &Interaction, &DebugMenuSlider, &ComputedNode, &GlobalTransform)>,
+        Query<&mut Node>,
+        Query<(&mut Text, &DebugMenuSliderLabel)>,
+    )>,
+    commands: &mut Commands,
+    projections: &mut Query<&mut Projection, With<SceneCamera>>,
+    zoom_state: &mut Option<ResMut<ZoomState>>,
+    camera_entities: &Query<Entity, With<SceneCamera>>,
+    rapier_config: &mut Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
+    sun: &mut Query<&mut DirectionalLight, With<SunLight>>,
+) {
+    let Ok(window) = windows.single() else {
+        return;
+    };
+    let Some(cursor) = window.cursor_position() else {
+        return;
+    };
+
+    if mouse_buttons.just_released(MouseButton::Left) {
+        debug_state.active_slider = None;
+    }
+
+    let mut updates = Vec::new();
+    {
+        let mut sliders = slider_params.p0();
+        for (entity, interaction, slider, computed, transform) in sliders.iter_mut() {
+            if mouse_buttons.just_pressed(MouseButton::Left) && *interaction == Interaction::Hovered {
+                debug_state.active_slider = Some(entity);
+            }
+
+            if debug_state.active_slider != Some(entity) {
+                continue;
+            }
+
+            let size = computed.size;
+            let center = transform.translation().truncate();
+            let left = center.x - size.x / 2.0;
+            let ratio = ((cursor.x - left) / size.x).clamp(0.0, 1.0);
+            let value = slider.min + (slider.max - slider.min) * ratio;
+
+            apply_slider_value(
+                slider.kind.clone(),
+                value,
+                debug_state,
+                commands,
+                projections,
+                zoom_state,
+                camera_entities,
+                rapier_config,
+                sun,
+            );
+            updates.push((slider.fill, slider.kind, ratio, value));
+        }
+    }
+
+    if updates.is_empty() {
+        return;
+    }
+
+    {
+        let mut slider_fills = slider_params.p1();
+        for (fill_entity, _kind, ratio, _value) in &updates {
+            if let Ok(mut fill) = slider_fills.get_mut(*fill_entity) {
+                fill.width = Val::Percent(ratio * 100.0);
+            }
+        }
+    }
+
+    {
+        let mut slider_labels = slider_params.p2();
+        for (_fill_entity, kind, _ratio, value) in updates {
+            update_slider_label(&mut slider_labels, kind, value);
+        }
+    }
+}
+
+fn update_slider_label(
+    slider_labels: &mut Query<(&mut Text, &DebugMenuSliderLabel)>,
+    kind: DebugMenuSliderKind,
+    value: f32,
+) {
+    for (mut text, label) in slider_labels.iter_mut() {
+        if label.kind == kind {
+            text.0 = format!("{}: {:.2}", label.label, value);
+            return;
+        }
+    }
+}
+
+fn apply_slider_value(
+    kind: DebugMenuSliderKind,
+    value: f32,
+    debug_state: &mut DebugMenuState,
+    commands: &mut Commands,
+    projections: &mut Query<&mut Projection, With<SceneCamera>>,
+    zoom_state: &mut Option<ResMut<ZoomState>>,
+    camera_entities: &Query<Entity, With<SceneCamera>>,
+    rapier_config: &mut Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
+    sun: &mut Query<&mut DirectionalLight, With<SunLight>>,
+) {
+    match kind {
+        DebugMenuSliderKind::Fov => {
+            debug_state.settings.fov_degrees = value;
+            apply_fov(debug_state, projections, zoom_state);
+        }
+        DebugMenuSliderKind::GravityY => {
+            debug_state.settings.gravity.y = value;
+            apply_gravity(debug_state, rapier_config);
+        }
+        DebugMenuSliderKind::SunBrightness => {
+            debug_state.settings.sun_brightness = value;
+            apply_sun(debug_state, sun);
+        }
+        DebugMenuSliderKind::DlssSharpness => {
+            debug_state.settings.dlss_sharpness = value;
+        }
+        DebugMenuSliderKind::BloomIntensity => {
+            debug_state.settings.bloom_intensity = value;
+            apply_bloom_settings(debug_state, commands, camera_entities);
+        }
+        DebugMenuSliderKind::BloomThreshold => {
+            debug_state.settings.bloom_threshold = value;
+            apply_bloom_settings(debug_state, commands, camera_entities);
+        }
+        DebugMenuSliderKind::BloomThresholdSoftness => {
+            debug_state.settings.bloom_threshold_softness = value;
+            apply_bloom_settings(debug_state, commands, camera_entities);
+        }
+        DebugMenuSliderKind::FogAlpha => {
+            debug_state.settings.fog_alpha = value;
+            apply_fog_settings(debug_state, commands, camera_entities);
+        }
+        DebugMenuSliderKind::FogDensity => {
+            debug_state.settings.fog_density = value;
+            apply_fog_settings(debug_state, commands, camera_entities);
+        }
+        DebugMenuSliderKind::FogLinearStart => {
+            debug_state.settings.fog_linear_start = value;
+            apply_fog_settings(debug_state, commands, camera_entities);
+        }
+        DebugMenuSliderKind::FogLinearEnd => {
+            debug_state.settings.fog_linear_end = value;
+            apply_fog_settings(debug_state, commands, camera_entities);
+        }
     }
 }
 
