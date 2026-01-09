@@ -4,7 +4,7 @@ startup_scene = "menu"
 [camera]
 name = "main_camera"
 [camera.transform]
-position = { x = -2.5, y = 4.5, z = 9.0 }
+position = { x = 20.5, y = 4.5, z = 9.0 }
 look_at = { x = -70.0, y = 200.0, z = 0.0 }
 up = { x = 0.0, y = 1.0, z = 0.0 }
 
