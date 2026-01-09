@@ -367,6 +367,7 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_mesh",
  "bevy_rapier3d",
+ "bevy_shader",
  "bevy_winit",
  "bincode",
  "clap",
