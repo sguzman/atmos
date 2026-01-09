@@ -1,0 +1,21 @@
+name = "brown_leather_cube"
+
+[shape]
+kind = "box"
+[shape.dimensions]
+width = 1.0
+height = 1.0
+depth = 1.0
+
+[material]
+preset = "brown_leather"
+base_color_texture = "textures/1k/brown_leather/TH_Brown_Leather_baseColor.png"
+normal_map = "textures/1k/brown_leather/TH_Brown_Leather_normal.png"
+metallic_roughness_texture = "textures/1k/brown_leather/TH_Brown_Leather_roughness.png"
+
+[physics]
+enabled = true
+body_type = "dynamic"
+mass = 1.8
+restitution = 0.2
+friction = 0.7

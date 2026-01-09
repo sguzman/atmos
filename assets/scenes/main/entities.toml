@@ -191,3 +191,15 @@ template = "entities/large_red_bricks_cube.3D.toml"
 name_override = "large_red_bricks_cube"
 [entities.transform]
 position = { x = 10.0, y = 1.0, z = -6.0 }
+
+[[entities]]
+template = "entities/brown_leather_cube.3D.toml"
+name_override = "brown_leather_cube"
+[entities.transform]
+position = { x = 12.0, y = 1.0, z = -6.0 }
+
+[[entities]]
+template = "entities/denim_fabric_cube.3D.toml"
+name_override = "denim_fabric_cube"
+[entities.transform]
+position = { x = 14.0, y = 1.0, z = -6.0 }

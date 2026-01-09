@@ -1,0 +1,21 @@
+name = "denim_fabric_cube"
+
+[shape]
+kind = "box"
+[shape.dimensions]
+width = 1.0
+height = 1.0
+depth = 1.0
+
+[material]
+preset = "denim_fabric"
+base_color_texture = "textures/1k/denim_fabric/TH_Denim_Fabric_baseColor.png"
+normal_map = "textures/1k/denim_fabric/TH_Denim_Fabric_normal.png"
+metallic_roughness_texture = "textures/1k/denim_fabric/TH_Denim_Fabric_roughness.png"
+
+[physics]
+enabled = true
+body_type = "dynamic"
+mass = 1.6
+restitution = 0.2
+friction = 0.6
