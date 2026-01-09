@@ -155,9 +155,9 @@ pub fn update_debug_menu_ui(
     }
 
     if debug_state.needs_refresh {
-    for entity in &ui_nodes {
-        commands.entity(entity).despawn();
-    }
+        for entity in &ui_nodes {
+            safe_despawn(&mut commands, entity);
+        }
         spawn_debug_menu_ui(
             &mut commands,
             &asset_server,
@@ -221,7 +221,7 @@ fn close_debug_menu(
     debug_state.needs_refresh = false;
 
     for entity in ui_nodes {
-        commands.entity(entity).despawn();
+        safe_despawn(commands, entity);
     }
 
     if let Ok(mut cursor) = windows.single_mut() {
@@ -665,4 +665,10 @@ fn on_off(value: bool) -> &'static str {
 fn default_font(asset_server: &AssetServer) -> Handle<Font> {
     let _ = asset_server;
     Handle::<Font>::default()
+}
+
+fn safe_despawn(commands: &mut Commands, entity: Entity) {
+    if let Ok(mut target) = commands.get_entity(entity) {
+        target.despawn();
+    }
 }

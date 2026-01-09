@@ -72,7 +72,9 @@ pub(crate) fn cleanup_main_scene_inner(
         commands.entity(entity).despawn();
     }
     for entity in debug_menu_ui {
-        commands.entity(entity).despawn();
+        if let Ok(mut target) = commands.get_entity(entity) {
+            target.despawn();
+        }
     }
 
     commands.remove_resource::<SceneInputConfig>();
