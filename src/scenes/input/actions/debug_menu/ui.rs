@@ -4,8 +4,8 @@ use bevy::ui::FocusPolicy;
 use crate::scenes::input::{DebugMenuPage, DebugMenuState};
 
 use super::types::{
-    DebugMenuAction, DebugMenuButton, DebugMenuEntry, DebugMenuSlider, DebugMenuSliderConfig,
-    DebugMenuSliderKind, DebugMenuSliderLabel, DebugMenuUiTag,
+    DebugMenuAction, DebugMenuAdjustStep, DebugMenuButton, DebugMenuEntry, DebugMenuSliderConfig,
+    DebugMenuSliderKind, DebugMenuUiTag,
 };
 
 pub(crate) fn spawn_debug_menu_ui(
@@ -107,12 +107,11 @@ pub(crate) fn spawn_debug_menu_ui(
         }
 
         for slider in sliders_for_page(debug_state, page) {
-            let percent = ((slider.value - slider.min) / (slider.max - slider.min)).clamp(0.0, 1.0);
             parent
                 .spawn((
                     Node {
                         width: Val::Percent(100.0),
-                        height: Val::Px(34.0),
+                        height: Val::Px(40.0),
                         align_items: AlignItems::Center,
                         justify_content: JustifyContent::SpaceBetween,
                         ..Default::default()
@@ -128,65 +127,67 @@ pub(crate) fn spawn_debug_menu_ui(
                             ..Default::default()
                         },
                         TextColor(Color::WHITE),
-                        DebugMenuSliderLabel {
-                            kind: slider.kind,
-                            label: slider.label,
-                        },
                         DebugMenuUiTag,
                     ));
 
-                    let mut fill_entity = None;
-                    let mut bar = row.spawn((
-                        Button,
-                        Interaction::default(),
-                        FocusPolicy::Block,
+                    row.spawn((
                         Node {
-                            width: Val::Px(180.0),
-                            height: Val::Px(12.0),
+                            width: Val::Px(260.0),
+                            height: Val::Px(28.0),
+                            align_items: AlignItems::Center,
+                            justify_content: JustifyContent::SpaceBetween,
                             ..Default::default()
                         },
-                        BackgroundColor(Color::srgba(0.2, 0.2, 0.2, 0.9)),
                         DebugMenuUiTag,
-                    ));
-                    bar.with_children(|bar_builder| {
-                        let fill = bar_builder
-                            .spawn((
-                                Node {
-                                    width: Val::Percent(percent * 100.0),
-                                    height: Val::Percent(100.0),
-                                    ..Default::default()
-                                },
-                                BackgroundColor(Color::srgba(0.7, 0.7, 0.7, 0.9)),
-                                DebugMenuUiTag,
-                            ))
-                            .id();
-                        fill_entity = Some(fill);
+                    ))
+                    .with_children(|buttons| {
+                        let mut add_button = |label: &str, step: DebugMenuAdjustStep| {
+                            buttons
+                                .spawn((
+                                    Button,
+                                    Interaction::default(),
+                                    FocusPolicy::Block,
+                                    Node {
+                                        width: Val::Px(58.0),
+                                        height: Val::Px(24.0),
+                                        align_items: AlignItems::Center,
+                                        justify_content: JustifyContent::Center,
+                                        ..Default::default()
+                                    },
+                                    BackgroundColor(Color::srgba(0.1, 0.1, 0.1, 0.85)),
+                                    DebugMenuButton {
+                                        action: DebugMenuAction::AdjustSlider {
+                                            kind: slider.kind,
+                                            min: slider.min,
+                                            max: slider.max,
+                                            step,
+                                        },
+                                    },
+                                    DebugMenuUiTag,
+                                ))
+                                .with_children(|button| {
+                                    button.spawn((
+                                        Text::new(label),
+                                        TextFont {
+                                            font: default_font(asset_server),
+                                            font_size: 12.0,
+                                            ..Default::default()
+                                        },
+                                        TextColor(Color::WHITE),
+                                        DebugMenuUiTag,
+                                    ));
+                                });
+                        };
+
+                        add_button("min", DebugMenuAdjustStep::Min);
+                        add_button("-10%", DebugMenuAdjustStep::Minus);
+                        add_button("+10%", DebugMenuAdjustStep::Plus);
+                        add_button("max", DebugMenuAdjustStep::Max);
                     });
-                    if let Some(fill) = fill_entity {
-                        bar.insert(DebugMenuSlider {
-                            kind: slider.kind,
-                            min: slider.min,
-                            max: slider.max,
-                            fill,
-                        });
-                    }
                 });
         }
             });
     });
-}
-
-pub(crate) fn update_slider_label(
-    slider_labels: &mut Query<(&mut Text, &DebugMenuSliderLabel)>,
-    kind: DebugMenuSliderKind,
-    value: f32,
-) {
-    for (mut text, label) in slider_labels.iter_mut() {
-        if label.kind == kind {
-            text.0 = format!("{}: {:.2}", label.label, value);
-            return;
-        }
-    }
 }
 
 fn current_page(state: &DebugMenuState) -> DebugMenuPage {

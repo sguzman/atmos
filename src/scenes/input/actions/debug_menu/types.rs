@@ -10,20 +10,6 @@ pub(crate) struct DebugMenuButton {
     pub(crate) action: DebugMenuAction,
 }
 
-#[derive(Component, Clone)]
-pub(crate) struct DebugMenuSlider {
-    pub(crate) kind: DebugMenuSliderKind,
-    pub(crate) min: f32,
-    pub(crate) max: f32,
-    pub(crate) fill: Entity,
-}
-
-#[derive(Component, Clone)]
-pub(crate) struct DebugMenuSliderLabel {
-    pub(crate) kind: DebugMenuSliderKind,
-    pub(crate) label: String,
-}
-
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(crate) enum DebugMenuSliderKind {
     Fov,
@@ -37,6 +23,14 @@ pub(crate) enum DebugMenuSliderKind {
     FogDensity,
     FogLinearStart,
     FogLinearEnd,
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum DebugMenuAdjustStep {
+    Min,
+    Minus,
+    Plus,
+    Max,
 }
 
 #[derive(Clone)]
@@ -53,6 +47,12 @@ pub(crate) enum DebugMenuAction {
     CycleRayTracingMode,
     TogglePhysics,
     ToggleSunShadows,
+    AdjustSlider {
+        kind: DebugMenuSliderKind,
+        min: f32,
+        max: f32,
+        step: DebugMenuAdjustStep,
+    },
 }
 
 pub(crate) struct DebugMenuEntry {

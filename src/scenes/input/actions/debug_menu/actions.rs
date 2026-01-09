@@ -6,12 +6,14 @@ use bevy_rapier3d::prelude::{DefaultRapierContext, RapierConfiguration};
 use crate::scenes::input::{DebugMenuState, SceneCamera, ZoomState};
 use crate::scenes::spawn::SunLight;
 
-use super::types::{DebugMenuAction, DebugMenuSliderKind};
+use super::types::{DebugMenuAction, DebugMenuAdjustStep, DebugMenuSliderKind};
 
 pub(crate) fn apply_debug_menu_action(
     action: &DebugMenuAction,
     debug_state: &mut DebugMenuState,
     commands: &mut Commands,
+    projections: &mut Query<&mut Projection, With<SceneCamera>>,
+    zoom_state: &mut Option<ResMut<ZoomState>>,
     camera_entities: &Query<Entity, With<SceneCamera>>,
     rapier_config: &mut Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
     sun: &mut Query<&mut DirectionalLight, With<SunLight>>,
@@ -72,6 +74,28 @@ pub(crate) fn apply_debug_menu_action(
                 debug_state.needs_refresh = true;
             }
         }
+        DebugMenuAction::AdjustSlider { kind, min, max, step } => {
+            let current = current_slider_value(*kind, debug_state);
+            let delta = (max - min) * 0.1;
+            let next = match step {
+                DebugMenuAdjustStep::Min => *min,
+                DebugMenuAdjustStep::Max => *max,
+                DebugMenuAdjustStep::Minus => (current - delta).clamp(*min, *max),
+                DebugMenuAdjustStep::Plus => (current + delta).clamp(*min, *max),
+            };
+            apply_slider_value(
+                *kind,
+                next,
+                debug_state,
+                commands,
+                projections,
+                zoom_state,
+                camera_entities,
+                rapier_config,
+                sun,
+            );
+            debug_state.needs_refresh = true;
+        }
     }
 }
 
@@ -130,6 +154,22 @@ pub(crate) fn apply_slider_value(
             debug_state.settings.fog_linear_end = value;
             apply_fog_settings(debug_state, commands, camera_entities);
         }
+    }
+}
+
+fn current_slider_value(kind: DebugMenuSliderKind, debug_state: &DebugMenuState) -> f32 {
+    match kind {
+        DebugMenuSliderKind::Fov => debug_state.settings.fov_degrees,
+        DebugMenuSliderKind::GravityY => debug_state.settings.gravity.y,
+        DebugMenuSliderKind::SunBrightness => debug_state.settings.sun_brightness,
+        DebugMenuSliderKind::DlssSharpness => debug_state.settings.dlss_sharpness,
+        DebugMenuSliderKind::BloomIntensity => debug_state.settings.bloom_intensity,
+        DebugMenuSliderKind::BloomThreshold => debug_state.settings.bloom_threshold,
+        DebugMenuSliderKind::BloomThresholdSoftness => debug_state.settings.bloom_threshold_softness,
+        DebugMenuSliderKind::FogAlpha => debug_state.settings.fog_alpha,
+        DebugMenuSliderKind::FogDensity => debug_state.settings.fog_density,
+        DebugMenuSliderKind::FogLinearStart => debug_state.settings.fog_linear_start,
+        DebugMenuSliderKind::FogLinearEnd => debug_state.settings.fog_linear_end,
     }
 }
 
