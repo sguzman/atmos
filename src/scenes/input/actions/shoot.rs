@@ -6,6 +6,7 @@ use bevy_rapier3d::prelude::{
 };
 
 use crate::scenes::bounds::DespawnOutsideBounds;
+use crate::scenes::spawn::SceneEntityTag;
 
 use super::super::types::{ActionStates, SceneCamera, SceneShootConfig};
 
@@ -57,6 +58,7 @@ pub fn apply_shoot_action(
             bevy::prelude::Mesh3d(config.mesh.clone()),
             bevy::prelude::MeshMaterial3d(config.material.clone()),
             Transform::from_translation(spawn_pos),
+            SceneEntityTag,
             DespawnOutsideBounds,
             Velocity {
                 linvel: forward * config.action.velocity,

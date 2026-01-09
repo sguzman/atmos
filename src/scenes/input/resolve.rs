@@ -140,6 +140,20 @@ fn resolve_key(key: &str) -> Option<KeyCode> {
         "8" => Some(KeyCode::Digit8),
         "9" => Some(KeyCode::Digit9),
 
+        // Function keys
+        "f1" => Some(KeyCode::F1),
+        "f2" => Some(KeyCode::F2),
+        "f3" => Some(KeyCode::F3),
+        "f4" => Some(KeyCode::F4),
+        "f5" => Some(KeyCode::F5),
+        "f6" => Some(KeyCode::F6),
+        "f7" => Some(KeyCode::F7),
+        "f8" => Some(KeyCode::F8),
+        "f9" => Some(KeyCode::F9),
+        "f10" => Some(KeyCode::F10),
+        "f11" => Some(KeyCode::F11),
+        "f12" => Some(KeyCode::F12),
+
         // Punctuation by name
         "space" => Some(KeyCode::Space),
         "enter" | "return" => Some(KeyCode::Enter),
