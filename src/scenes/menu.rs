@@ -186,16 +186,12 @@ fn setup_menu(
     });
     commands.insert_resource(ActionStates::default());
 
-    let use_2d = input_config
+    let _use_2d = input_config
         .camera
         .mode
         .trim()
         .eq_ignore_ascii_case("2d");
-    if use_2d {
-        commands.spawn((Camera2d::default(), MenuCamera));
-    } else {
-        commands.spawn((Camera3d::default(), MenuCamera));
-    }
+    commands.spawn((Camera3d::default(), MenuCamera));
 
     setup_state.done = true;
 }
