@@ -191,7 +191,11 @@ fn clouds_compute(@builtin(global_invocation_id) id: vec3<u32>) {
     var out_color = color;
     var out_alpha = alpha;
     if (params.debug_view != 0u) {
-        out_color = vec3<f32>(alpha);
+        if (alpha <= 0.0001) {
+            out_color = vec3<f32>(0.0, 1.0, 1.0);
+        } else {
+            out_color = vec3<f32>(alpha);
+        }
         out_alpha = 1.0;
     }
     textureStore(clouds_output, vec2<i32>(id.xy), vec4<f32>(out_color, out_alpha));
