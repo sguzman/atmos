@@ -1,0 +1,22 @@
+name = "blue_marble_cube"
+
+[shape]
+kind = "box"
+[shape.dimensions]
+width = 1.0
+height = 1.0
+depth = 1.0
+
+[material]
+preset = "blue_marble"
+base_color_texture = "textures/blue_dune_marble/Blue_Dune_Marble_baseColor.png"
+normal_map = "textures/blue_dune_marble/Blue_Dune_Marble_normal.png"
+metallic_roughness_texture = "textures/blue_dune_marble/Blue_Dune_Marble_mask.png"
+occlusion_texture = "textures/blue_dune_marble/Blue_Dune_Marble_mask.png"
+
+[physics]
+enabled = true
+body_type = "dynamic"
+mass = 1.5
+restitution = 0.15
+friction = 0.5

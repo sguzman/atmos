@@ -44,6 +44,7 @@ fn resolve_material_from_config(
         Some("wood") | Some("wooden") => preset_wood(),
         Some("metal") | Some("metallic") => preset_metal(),
         Some("marble") => preset_marble(),
+        Some("blue_marble") => preset_blue_marble(),
         Some("stone") => preset_stone(),
         Some("glass") => preset_glass(),
         _ => StandardMaterial::default(),
@@ -188,6 +189,16 @@ fn preset_marble() -> StandardMaterial {
         metallic: 0.0,
         perceptual_roughness: 0.25,
         reflectance: 0.6,
+        ..default()
+    }
+}
+
+fn preset_blue_marble() -> StandardMaterial {
+    StandardMaterial {
+        base_color: Color::srgb_u8(150, 170, 185),
+        metallic: 0.0,
+        perceptual_roughness: 0.35,
+        reflectance: 0.55,
         ..default()
     }
 }
