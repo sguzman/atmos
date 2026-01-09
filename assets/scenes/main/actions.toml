@@ -54,7 +54,7 @@ type = "jump"
 
 [actions.params]
 name = "jump"
-velocity = 6.5
+velocity = 13.0
 cooldown = 0.15
 ground_check_distance = 1.2
 
