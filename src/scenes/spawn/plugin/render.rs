@@ -12,7 +12,7 @@ use crate::scenes::config::{
 
 pub(crate) fn apply_render_settings(camera: &mut EntityCommands, render: &RenderConfig) {
     let bloom_enabled = render.bloom.as_ref().is_some_and(|bloom| bloom.enabled);
-    let wants_hdr = render.hdr.unwrap_or(false) || bloom_enabled;
+    let wants_hdr = render.wants_hdr();
     if wants_hdr {
         camera.insert(Hdr);
         if render.tonemapping.is_none() {

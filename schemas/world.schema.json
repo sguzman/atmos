@@ -181,7 +181,10 @@
       "additionalProperties": false,
       "properties": {
         "enabled": { "type": "boolean" },
-        "mode": { "type": "string" },
+        "mode": {
+          "type": "string",
+          "enum": ["quality", "balanced", "performance", "ultra_performance"]
+        },
         "sharpness": { "type": "number" }
       }
     },
@@ -190,7 +193,10 @@
       "additionalProperties": false,
       "properties": {
         "enabled": { "type": "boolean" },
-        "mode": { "type": "string" }
+        "mode": {
+          "type": "string",
+          "enum": ["quality", "balanced", "performance", "ultra_performance"]
+        }
       }
     },
     "render": {

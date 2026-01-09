@@ -22,6 +22,20 @@ pub struct RenderConfig {
     pub ray_tracing: Option<RayTracingConfig>,
 }
 
+impl RenderConfig {
+    pub fn wants_hdr(&self) -> bool {
+        let bloom_enabled = self
+            .bloom
+            .as_ref()
+            .is_some_and(|bloom| bloom.enabled);
+        self.hdr.unwrap_or(false)
+            || bloom_enabled
+            || self.tonemapping.is_some()
+            || self.exposure_ev100.is_some()
+            || self.deband_dither.is_some()
+    }
+}
+
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct BloomConfig {
     #[serde(default)]

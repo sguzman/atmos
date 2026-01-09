@@ -44,6 +44,8 @@ size = 30.0
 [render]
 hdr = false
 tonemapping = "reinhard_luminance"
+exposure_ev100 = 10.0
+deband_dither = true
 
 [render.bloom]
 enabled = true
