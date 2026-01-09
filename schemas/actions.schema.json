@@ -159,7 +159,11 @@
       "additionalProperties": false,
       "properties": {
         "name": { "type": "string" },
-        "dialogue": { "type": "string" }
+        "dialogue": { "type": "string" },
+        "option_keys": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
       }
     },
     "fovParams": {

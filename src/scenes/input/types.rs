@@ -137,6 +137,8 @@ pub struct SceneDialogueConfig {
     pub interact_action_id: String,
     pub prompt_overlay: String,
     pub dialogue: String,
+    pub option_keys: Vec<KeyCode>,
+    pub option_labels: Vec<String>,
 }
 
 #[derive(Resource, Default)]

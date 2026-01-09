@@ -88,7 +88,7 @@ pub fn apply_dialogue_action(
     };
 
     if !node_options.is_empty() {
-        if let Some(index) = resolve_option_index(&keys) {
+        if let Some(index) = resolve_option_index(&keys, &config.option_keys) {
             if index < node_options.len() {
                 let option = &node_options[index];
                 if option.once && dialogue_state.visited.contains(&option.id) {
@@ -124,6 +124,7 @@ pub fn apply_dialogue_action(
         &asset_server,
         &node_text,
         &node_options,
+        &config.option_labels,
         dialogue_state.visited.clone(),
     );
 }
@@ -135,21 +136,13 @@ fn find_node<'a>(
     dialogue.nodes.iter().find(|node| node.id == id)
 }
 
-fn resolve_option_index(keys: &ButtonInput<KeyCode>) -> Option<usize> {
-    let mapping = [
-        (KeyCode::F1, 0),
-        (KeyCode::F2, 1),
-        (KeyCode::F3, 2),
-        (KeyCode::F4, 3),
-        (KeyCode::F5, 4),
-        (KeyCode::F6, 5),
-        (KeyCode::F7, 6),
-        (KeyCode::F8, 7),
-        (KeyCode::F9, 8),
-    ];
-    for (key, index) in mapping.iter() {
+fn resolve_option_index(
+    keys: &ButtonInput<KeyCode>,
+    option_keys: &[KeyCode],
+) -> Option<usize> {
+    for (index, key) in option_keys.iter().enumerate() {
         if keys.just_pressed(*key) {
-            return Some(*index);
+            return Some(index);
         }
     }
     None
@@ -160,24 +153,17 @@ fn spawn_dialogue_ui(
     asset_server: &bevy::prelude::AssetServer,
     node_text: &str,
     node_options: &[crate::scenes::config::DialogueOption],
+    option_labels: &[String],
     visited: std::collections::HashSet<String>,
 ) {
     let mut body = String::new();
     body.push_str(node_text);
     body.push_str("\n\n");
     for (idx, option) in node_options.iter().enumerate() {
-        let key_label = match idx {
-            0 => "F1",
-            1 => "F2",
-            2 => "F3",
-            3 => "F4",
-            4 => "F5",
-            5 => "F6",
-            6 => "F7",
-            7 => "F8",
-            8 => "F9",
-            _ => "?",
-        };
+        let key_label = option_labels
+            .get(idx)
+            .map(|label| label.as_str())
+            .unwrap_or("?");
         let done = if visited.contains(&option.id) {
             " (done)"
         } else {

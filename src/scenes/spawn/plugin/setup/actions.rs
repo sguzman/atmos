@@ -236,11 +236,23 @@ pub(crate) fn setup_actions(
     if let (Some((prompt_id, prompt_params)), Some((interact_id, interact_params))) =
         (dialogue_prompt, dialogue_interact)
     {
+        let mut option_keys = Vec::new();
+        let mut option_labels = Vec::new();
+        for key in &interact_params.option_keys {
+            if let Some(code) =
+                crate::scenes::input::resolve_key_or_warn(key, "dialogue option key")
+            {
+                option_keys.push(code);
+                option_labels.push(key.clone());
+            }
+        }
         commands.insert_resource(SceneDialogueConfig {
             prompt_action_id: prompt_id,
             interact_action_id: interact_id,
             prompt_overlay: prompt_params.overlay,
             dialogue: interact_params.dialogue,
+            option_keys,
+            option_labels,
         });
         commands.insert_resource(DialogueState::default());
     }

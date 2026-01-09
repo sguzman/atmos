@@ -123,6 +123,7 @@ type = "dialogue"
 [actions.params]
 name = "dialogue_interact"
 dialogue = "intro"
+option_keys = ["F1", "F2", "F3"]
 
 [[actions]]
 id = "fov_1"

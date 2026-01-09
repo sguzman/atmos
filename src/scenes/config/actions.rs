@@ -309,6 +309,7 @@ impl Default for DialoguePromptActionConfig {
 pub struct DialogueActionConfig {
     pub name: String,
     pub dialogue: String,
+    pub option_keys: Vec<String>,
 }
 
 impl Default for DialogueActionConfig {
@@ -316,6 +317,17 @@ impl Default for DialogueActionConfig {
         Self {
             name: "dialogue".to_string(),
             dialogue: "intro".to_string(),
+            option_keys: vec![
+                "F1".to_string(),
+                "F2".to_string(),
+                "F3".to_string(),
+                "F4".to_string(),
+                "F5".to_string(),
+                "F6".to_string(),
+                "F7".to_string(),
+                "F8".to_string(),
+                "F9".to_string(),
+            ],
         }
     }
 }
