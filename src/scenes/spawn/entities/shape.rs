@@ -131,7 +131,6 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
                     shape: shape.clone(),
                     physics: physics.cloned(),
                     material: material_handle.clone(),
-                    mesh: mesh_handle.clone(),
                 });
             }
             entity.id()

@@ -17,7 +17,7 @@ Atmos is a Bevy-powered playground where every scene and interaction is driven b
 - `src/` – everything that runs at runtime:
   - `main.rs` and `app_config.rs` parse the CLI, load `assets/config.toml`, register plugins, and bootstrap the `Menu` ↔ `Main` app states.
   - `scenes/` contains the domain logic: TOML loaders, mesh cache helpers, bounds/despawn systems, input/action wiring, and the `spawn` tree that instantiates entities, overlays, lights, and the cutting workflow.
-  - `scenes/spawn/cut.rs` implements the modal cutting system: it looks for `ShapeConfig` entries marked `cuttable`, highlights them while you hold the cut key, shows the rotatable preview plane, and uses the plane-slicing utilities described in `tmp/cut.md` to split cubes into two cached halves.
+- `scenes/spawn/cut.rs` implements the modal cutting system: it looks for `ShapeConfig` entries marked `cuttable`, selects them while you hold the cut key via the preview plane, and uses the plane-slicing utilities described in `tmp/cut.md` to split cubes into two cached halves.
 
 ## TOML-driven behavior
 
@@ -27,7 +27,7 @@ Atmos is a Bevy-powered playground where every scene and interaction is driven b
 
 ## Cutting workflow
 
-1. **Selection** – Hold the cut action key (or flip `mode = "toggle"` to keep it latched). While in that mode, every `CuttableShape` under a dynamic rigid body is raycasted; whichever cube your cursor hits is outlined with a colored mesh highlight so you can tell which object will be sliced (the same highlight color is derived from `actions.params.preview_color` and is shared with the cutting plane).
+1. **Selection** – Hold the cut action key (or flip `mode = "toggle"` to keep it latched). While in that mode, every `CuttableShape` under a dynamic rigid body is raycasted so the preview plane appears on the cube you're pointing at (the plane uses the color configured via `actions.params.preview_color`).
 2. **Preview** – Once an entity is selected, a transparent 2D preview (plane) spawns at the center and rotates about its vertical axis according to your mouse motion (and scroll-wheel rolls, which also advance via `wheel_rotation_sensitivity`). The angle snaps to the configuration’s resolution (`angle_step_degrees`), so you get crisp cuts without fighting continuous rotation.
 3. **Slice** – Press the configured confirmation button (default `right` click) once the plane is aligned to invoke the slicing routine. The cutter:
    - Transforms the plane into the object’s local space.

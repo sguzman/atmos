@@ -7,16 +7,17 @@ use bevy::{
     log::warn,
     math::Vec3,
     prelude::{
-        AlphaMode, Assets, ChildOf,
+        AlphaMode, Assets, ButtonInput,
+        ChildOf,
         Color, Commands, Component,
         Entity, GlobalTransform,
         Handle, InheritedVisibility,
-        ButtonInput, Mesh, Mesh3d,
-        MeshMaterial3d, MessageReader,
-        Name, Quat, Query, Res,
-        ResMut, Resource, StandardMaterial,
-        Transform, ViewVisibility,
-        Visibility, With, default,
+        Mesh, Mesh3d, MeshMaterial3d,
+        MessageReader, Name, Quat,
+        Query, Res, ResMut, Resource,
+        StandardMaterial, Transform,
+        ViewVisibility, Visibility,
+        With, default,
     },
     render::render_resource::PrimitiveTopology,
 };
@@ -49,23 +50,18 @@ use crate::scenes::{
 #[derive(Component)]
 pub struct CutPlanePreview;
 
-#[derive(Component)]
-pub struct CutHighlight;
-
 #[derive(Component, Clone)]
 pub struct CuttableShape {
     pub shape: ShapeConfig,
     pub physics: Option<PhysicsConfig>,
     pub material:
         Handle<StandardMaterial>,
-    pub mesh: Handle<Mesh>,
 }
 
 #[derive(Resource, Default)]
 pub struct CutState {
     pub preview: Option<Entity>,
     pub hovered: Option<Entity>,
-    pub highlight: Option<Entity>,
     pub angle_index: i32,
 }
 
@@ -112,9 +108,6 @@ impl CutState {
 pub struct CutPreviewAssets {
     pub mesh: Option<Handle<Mesh>>,
     pub material: Option<
-        Handle<StandardMaterial>,
-    >,
-    pub highlight_material: Option<
         Handle<StandardMaterial>,
     >,
 }
@@ -215,112 +208,6 @@ fn create_preview_plane(
     meshes.add(mesh)
 }
 
-fn update_cut_highlight(
-    target: Entity,
-    cuttable: &CuttableShape,
-    commands: &mut Commands,
-    cut_state: &mut CutState,
-    config: &SceneCutConfig,
-    assets: &mut CutPreviewAssets,
-    materials: &mut Assets<
-        StandardMaterial,
-    >,
-) {
-    if let Some(existing) =
-        cut_state.highlight.take()
-    {
-        commands
-            .entity(existing)
-            .despawn();
-    }
-
-    let material =
-        ensure_cut_highlight_material(
-            config, assets, materials,
-        );
-
-    let mut highlight_entity = None;
-    commands.entity(target).with_children(|parent| {
-        highlight_entity =
-            Some(
-                parent
-                    .spawn((
-                        Mesh3d(
-                            cuttable
-                                .mesh
-                                .clone(),
-                        ),
-                        MeshMaterial3d(
-                            material.clone(),
-                        ),
-                        Transform::from_scale(
-                            Vec3::splat(
-                                1.02,
-                            ),
-                        ),
-                        Visibility::default(),
-                        InheritedVisibility::default(),
-                        ViewVisibility::default(),
-                        CutHighlight,
-                    ))
-                    .id(),
-            );
-    });
-
-    if let Some(entity) =
-        highlight_entity
-    {
-        cut_state.highlight =
-            Some(entity);
-    }
-}
-
-fn ensure_cut_highlight_material(
-    config: &SceneCutConfig,
-    assets: &mut CutPreviewAssets,
-    materials: &mut Assets<
-        StandardMaterial,
-    >,
-) -> Handle<StandardMaterial> {
-    if assets
-        .highlight_material
-        .is_none()
-    {
-        let rgb = parse_color(
-            &config
-                .action
-                .preview_color,
-        )
-        .unwrap_or([255, 0, 255]);
-        let alpha = (0.45_f32 * 255.0)
-            .clamp(0.0, 255.0)
-            as u8;
-        let color = Color::srgba_u8(
-            rgb[0], rgb[1], rgb[2],
-            alpha,
-        );
-        let mat = materials.add(
-            StandardMaterial {
-                base_color: color,
-                emissive: color
-                    .to_linear(),
-                unlit: true,
-                alpha_mode:
-                    AlphaMode::Blend,
-                cull_mode: None,
-                ..default()
-            },
-        );
-        assets.highlight_material =
-            Some(mat);
-    }
-    assets
-        .highlight_material
-        .as_ref()
-        .unwrap()
-        .clone()
-}
-
 pub fn update_cut_hover(
     cut_config: Option<
         Res<SceneCutConfig>,
@@ -349,10 +236,6 @@ pub fn update_cut_hover(
         cut_hover.entity = None;
         return;
     };
-    if !states.get(&config.id).pressed {
-        cut_hover.entity = None;
-        return;
-    }
 
     let Ok(camera) = cameras.single()
     else {
@@ -522,19 +405,6 @@ pub fn update_cut_preview(
         cut_state.hovered =
             Some(target);
         cut_state.angle_index = 0;
-        if let Ok(cuttable) =
-            cuttables.get(target)
-        {
-            update_cut_highlight(
-                target,
-                cuttable,
-                &mut commands,
-                &mut cut_state,
-                &config,
-                &mut preview_assets,
-                &mut materials,
-            );
-        }
     }
 
     apply_mouse_rotation(
@@ -686,13 +556,6 @@ fn clear_cut_preview(
     commands: &mut Commands,
     cut_state: &mut CutState,
 ) {
-    if let Some(highlight) =
-        cut_state.highlight.take()
-    {
-        commands
-            .entity(highlight)
-            .despawn();
-    }
     if let Some(preview) =
         cut_state.preview.take()
     {
@@ -1225,8 +1088,11 @@ fn build_mesh_data(
     let mut uvs = Vec::new();
     let mut next_index = 0u32;
     for tri in triangles {
-        let edge1 = tri[1] - tri[0];
-        let edge2 = tri[2] - tri[0];
+        let mut tri_vertices = *tri;
+        let mut edge1 =
+            tri_vertices[1] - tri_vertices[0];
+        let mut edge2 =
+            tri_vertices[2] - tri_vertices[0];
         let mut normal =
             edge1.cross(edge2);
         if normal.length_squared()
@@ -1234,8 +1100,28 @@ fn build_mesh_data(
         {
             continue;
         }
+        let center =
+            (tri_vertices[0]
+                + tri_vertices[1]
+                + tri_vertices[2])
+                / 3.0;
+        if center.length_squared()
+            > 1e-6
+            && normal
+                .dot(center)
+                < 0.0
+        {
+            tri_vertices.swap(1, 2);
+            edge1 =
+                tri_vertices[1]
+                    - tri_vertices[0];
+            edge2 =
+                tri_vertices[2]
+                    - tri_vertices[0];
+            normal = edge1.cross(edge2);
+        }
         normal = normal.normalize();
-        for vertex in tri {
+        for vertex in tri_vertices.iter() {
             positions.push([
                 vertex.x, vertex.y,
                 vertex.z,
