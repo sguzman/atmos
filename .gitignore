@@ -2,3 +2,4 @@
 *.zip
 reference
 tmp
+assets/.cache
