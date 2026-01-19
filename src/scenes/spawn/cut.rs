@@ -1,22 +1,21 @@
-use bevy::input::Input;
 use bevy::input::mouse::{
     MouseButton, MouseMotion,
 };
 use bevy::{
     asset::RenderAssetUsages,
     log::warn,
-    math::{Vec2, Vec3},
+    math::Vec3,
     prelude::{
         AlphaMode, Assets, ChildOf,
         Color, Commands, Component,
         Entity, GlobalTransform,
         Handle, InheritedVisibility,
-        Mesh, Mesh3d, MeshMaterial3d,
-        MessageReader, Name, Quat,
-        Query, Res, ResMut, Resource,
-        StandardMaterial, Transform,
-        ViewVisibility, Visibility,
-        With, default,
+        ButtonInput, Mesh, Mesh3d,
+        MeshMaterial3d, MessageReader,
+        Name, Quat, Query, Res,
+        ResMut, Resource, StandardMaterial,
+        Transform, ViewVisibility,
+        Visibility, With, default,
     },
     render::render_resource::PrimitiveTopology,
 };
@@ -70,13 +69,6 @@ pub struct CutState {
 }
 
 impl CutState {
-    fn reset(&mut self) {
-        self.preview = None;
-        self.hovered = None;
-        self.highlight = None;
-        self.angle_index = 0;
-    }
-
     fn step_count(
         &self,
         config: &SceneCutConfig,
@@ -94,8 +86,6 @@ impl CutState {
         &self,
         config: &SceneCutConfig,
     ) -> f32 {
-        let steps =
-            self.step_count(config);
         let angle_deg =
             (self.angle_index as f32)
                 * config
@@ -444,7 +434,7 @@ pub fn update_cut_preview(
         MouseMotion,
     >,
     mouse_input: Res<
-        Input<MouseButton>,
+        ButtonInput<MouseButton>,
     >,
     transforms: Query<
         &GlobalTransform,
@@ -501,7 +491,7 @@ pub fn update_cut_preview(
                 cuttable,
                 &mut commands,
                 &mut cut_state,
-                config,
+                &config,
                 &mut preview_assets,
                 &mut materials,
             );
@@ -625,7 +615,7 @@ fn apply_mouse_rotation(
     let step_count =
         cut_state.step_count(config);
     let mut delta_steps = 0;
-    for motion in motion_events.iter() {
+    for motion in motion_events.read() {
         delta_steps += (motion.delta.x
             * steps_per_pixel)
             .round()

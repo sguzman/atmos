@@ -6,7 +6,7 @@ use crate::scenes::{
     bounds::despawn_out_of_bounds,
     config::ActiveScene,
     input::{
-        CutHover, SceneCutConfig,
+        CutHover,
         apply_camera_input,
         apply_debug_menu_toggle,
         apply_dialogue_action,
