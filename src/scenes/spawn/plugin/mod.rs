@@ -29,9 +29,8 @@ use crate::scenes::{
 };
 
 use super::cut::{
-    CutPreviewAssets, CutState,
-    cleanup_cut_state,
-    update_cut_hover,
+    CutActivationState, CutPreviewAssets, CutState,
+    cleanup_cut_state, update_cut_hover,
     update_cut_preview,
 };
 use super::logging::{
@@ -77,6 +76,7 @@ impl Plugin for ScenePlugin {
         app.init_resource::<super::logging::SceneLogState>();
         app.init_resource::<CutState>();
         app.init_resource::<CutPreviewAssets>();
+        app.init_resource::<CutActivationState>();
         app.init_resource::<CutHover>();
         app.add_systems(OnEnter(AppState::Main), setup::reset_scene_setup_state);
         app.add_systems(

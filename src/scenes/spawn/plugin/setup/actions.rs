@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::input::mouse::MouseButton;
 
 use std::collections::HashMap;
 
@@ -37,6 +38,7 @@ use crate::scenes::{
         VolumeShapeKind as InputVolumeShapeKind,
         VolumeTriggerMode as InputVolumeTriggerMode,
         ZoomState,
+        resolve_mouse_button_or_warn,
     },
     loaders::{
         ConfigLoad, TomlCache,
@@ -231,9 +233,15 @@ pub(crate) fn setup_actions(
                 commands.insert_resource(GrabHover::default());
             }
             ActionConfig::Cut { id, params } => {
+                let confirm_button = resolve_mouse_button_or_warn(
+                    &params.confirm_button,
+                    "cut confirmation button",
+                )
+                .unwrap_or(MouseButton::Right);
                 commands.insert_resource(SceneCutConfig {
                     id: id.clone(),
                     action: params.clone(),
+                    confirm_button,
                 });
             }
             ActionConfig::Reload { id, .. } => {

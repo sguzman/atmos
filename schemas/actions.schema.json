@@ -139,7 +139,13 @@
         "rotation_sensitivity": { "type": "number" },
         "preview_size": { "type": "number" },
         "preview_thickness": { "type": "number" },
-        "preview_color": { "type": "string" }
+        "preview_color": { "type": "string" },
+        "mode": {
+          "type": "string",
+          "enum": ["hold", "toggle"]
+        },
+        "wheel_rotation_sensitivity": { "type": "number" },
+        "confirm_button": { "type": "string" }
       }
     },
     "reloadParams": {

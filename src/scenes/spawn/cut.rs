@@ -1,5 +1,6 @@
 use bevy::input::mouse::{
     MouseButton, MouseMotion,
+    MouseWheel,
 };
 use bevy::{
     asset::RenderAssetUsages,
@@ -31,8 +32,8 @@ use crate::scenes::{
     MeshCacheSettings,
     bounds::DespawnOutsideBounds,
     config::{
-        PhysicsConfig, ShapeConfig,
-        parse_color,
+        CutActivationMode, PhysicsConfig,
+        ShapeConfig, parse_color,
     },
     input::{
         ActionStates, CutHover,
@@ -116,6 +117,11 @@ pub struct CutPreviewAssets {
     pub highlight_material: Option<
         Handle<StandardMaterial>,
     >,
+}
+
+#[derive(Resource, Default)]
+pub struct CutActivationState {
+    pub active: bool,
 }
 
 fn ensure_preview_assets(
@@ -332,6 +338,7 @@ pub fn update_cut_hover(
     parents: Query<&ChildOf>,
     bodies: Query<&RigidBody>,
     mut cut_hover: ResMut<CutHover>,
+    mut activation_state: ResMut<CutActivationState>,
     cuttables: Query<&CuttableShape>,
 ) {
     let Some(config) = cut_config
@@ -356,6 +363,25 @@ pub fn update_cut_hover(
     else {
         return;
     };
+
+    let action_state = states.get(&config.id);
+    let mut action_active =
+        action_state.pressed;
+    if config.action.mode
+        == CutActivationMode::Toggle
+    {
+        if action_state.just_pressed {
+            activation_state.active =
+                !activation_state
+                    .active;
+        }
+        action_active =
+            activation_state.active;
+    }
+    if !action_active {
+        cut_hover.entity = None;
+        return;
+    }
 
     let player_body =
         player.single().ok();
@@ -433,9 +459,13 @@ pub fn update_cut_preview(
     mut motion_events: MessageReader<
         MouseMotion,
     >,
+    mut wheel_events: MessageReader<
+        MouseWheel,
+    >,
     mouse_input: Res<
         ButtonInput<MouseButton>,
     >,
+    cut_activation: Res<CutActivationState>,
     transforms: Query<
         &GlobalTransform,
         With<CuttableShape>,
@@ -457,7 +487,16 @@ pub fn update_cut_preview(
 
     let action_state =
         states.get(&config.id);
-    if !action_state.pressed {
+    let action_active = if config
+        .action
+        .mode
+        == CutActivationMode::Toggle
+    {
+        cut_activation.active
+    } else {
+        action_state.pressed
+    };
+    if !action_active {
         clear_cut_preview(
             &mut commands,
             &mut cut_state,
@@ -502,6 +541,7 @@ pub fn update_cut_preview(
         &mut cut_state,
         &config,
         &mut motion_events,
+        &mut wheel_events,
     );
 
     let (mesh_handle, material_handle) =
@@ -566,7 +606,7 @@ pub fn update_cut_preview(
     }
 
     if mouse_input
-        .just_pressed(MouseButton::Left)
+        .just_pressed(config.confirm_button)
     {
         if let Ok(cuttable) =
             cuttables.get(target)
@@ -605,6 +645,9 @@ fn apply_mouse_rotation(
     motion_events: &mut MessageReader<
         MouseMotion,
     >,
+    wheel_events: &mut MessageReader<
+        MouseWheel,
+    >,
 ) {
     let steps_per_pixel = config
         .action
@@ -618,6 +661,14 @@ fn apply_mouse_rotation(
     for motion in motion_events.read() {
         delta_steps += (motion.delta.x
             * steps_per_pixel)
+            .round()
+            as i32;
+    }
+    for wheel in wheel_events.read() {
+        delta_steps += (wheel.y
+            * config
+                .action
+                .wheel_rotation_sensitivity)
             .round()
             as i32;
     }
@@ -656,11 +707,15 @@ fn clear_cut_preview(
 pub fn cleanup_cut_state(
     mut commands: Commands,
     mut cut_state: ResMut<CutState>,
+    mut activation_state:
+        ResMut<CutActivationState>,
 ) {
     clear_cut_preview(
         &mut commands,
         &mut cut_state,
     );
+    activation_state.active =
+        false;
 }
 
 fn perform_cut(
@@ -778,6 +833,11 @@ fn perform_cut(
         "{base_key}_a{angle_key}_neg"
     );
 
+    let max_dim = half_extents
+        .x
+        .max(half_extents.y)
+        .max(half_extents.z)
+        .max(1e-4);
     let (
         pos_handle,
         pos_positions,
@@ -787,6 +847,7 @@ fn perform_cut(
         meshes,
         &positive_tris,
         &pos_key,
+        max_dim,
     );
     let (
         neg_handle,
@@ -797,6 +858,7 @@ fn perform_cut(
         meshes,
         &negative_tris,
         &neg_key,
+        max_dim,
     );
 
     let pos_collider = Collider::trimesh(
@@ -1110,6 +1172,7 @@ fn ensure_cached_mesh(
     meshes: &mut Assets<Mesh>,
     triangles: &[[Vec3; 3]],
     key: &str,
+    max_dim: f32,
 ) -> (
     Handle<Mesh>,
     Vec<[f32; 3]>,
@@ -1134,7 +1197,7 @@ fn ensure_cached_mesh(
         );
     }
     let (mesh, positions, indices, _) =
-        build_mesh_data(triangles);
+        build_mesh_data(triangles, max_dim);
     if let Err(err) =
         cache_mesh(settings, key, &mesh)
     {
@@ -1148,6 +1211,7 @@ fn ensure_cached_mesh(
 
 fn build_mesh_data(
     triangles: &[[Vec3; 3]],
+    max_dim: f32,
 ) -> (
     Mesh,
     Vec<[f32; 3]>,
@@ -1158,6 +1222,7 @@ fn build_mesh_data(
     let mut normals = Vec::new();
     let mut tri_indices = Vec::new();
     let mut flat_indices = Vec::new();
+    let mut uvs = Vec::new();
     let mut next_index = 0u32;
     for tri in triangles {
         let edge1 = tri[1] - tri[0];
@@ -1179,6 +1244,11 @@ fn build_mesh_data(
                 normal.x, normal.y,
                 normal.z,
             ]);
+            uvs.push(project_uv(
+                normal,
+                *vertex,
+                max_dim,
+            ));
         }
         tri_indices.push([
             next_index,
@@ -1203,6 +1273,10 @@ fn build_mesh_data(
     mesh.insert_attribute(
         Mesh::ATTRIBUTE_NORMAL,
         normals,
+    );
+    mesh.insert_attribute(
+        Mesh::ATTRIBUTE_UV_0,
+        uvs.clone(),
     );
     mesh.insert_indices(Indices::U32(
         flat_indices.clone(),
@@ -1240,6 +1314,30 @@ fn positions_to_points(
             Vec3::new(p[0], p[1], p[2])
         })
         .collect()
+}
+
+fn project_uv(
+    normal: Vec3,
+    vertex: Vec3,
+    max_dim: f32,
+) -> [f32; 2] {
+    let abs = Vec3::new(
+        normal.x.abs(),
+        normal.y.abs(),
+        normal.z.abs(),
+    );
+    let coords = if abs.x >= abs.y && abs.x >= abs.z {
+        [vertex.z, vertex.y]
+    } else if abs.y >= abs.z {
+        [vertex.x, vertex.z]
+    } else {
+        [vertex.x, vertex.y]
+    };
+    let denom = (max_dim * 2.0).max(1e-6);
+    [
+        coords[0] / denom + 0.5,
+        coords[1] / denom + 0.5,
+    ]
 }
 
 fn spawn_half_entity(

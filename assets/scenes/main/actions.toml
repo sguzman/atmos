@@ -103,6 +103,9 @@ rotation_sensitivity = 0.01
 preview_size = 1.6
 preview_thickness = 0.02
 preview_color = "hotpink"
+mode = "hold"
+wheel_rotation_sensitivity = 1.0
+confirm_button = "right"
 
 [[actions]]
 id = "reload"

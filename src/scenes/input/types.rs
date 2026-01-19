@@ -136,6 +136,7 @@ pub struct SceneGrabConfig {
 pub struct SceneCutConfig {
     pub id: String,
     pub action: CutActionConfig,
+    pub confirm_button: MouseButton,
 }
 
 #[derive(Resource, Clone)]

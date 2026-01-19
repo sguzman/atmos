@@ -267,6 +267,12 @@ pub struct CutActionConfig {
     pub preview_size: f32,
     pub preview_thickness: f32,
     pub preview_color: String,
+    #[serde(default = "default_cut_activation_mode")]
+    pub mode: CutActivationMode,
+    #[serde(default = "default_cut_wheel_sensitivity")]
+    pub wheel_rotation_sensitivity: f32,
+    #[serde(default = "default_cut_confirm_button")]
+    pub confirm_button: String,
 }
 
 impl Default for CutActionConfig {
@@ -279,7 +285,35 @@ impl Default for CutActionConfig {
             preview_thickness: 0.01,
             preview_color: "hotpink"
                 .to_string(),
+            mode: default_cut_activation_mode(),
+            wheel_rotation_sensitivity: default_cut_wheel_sensitivity(),
+            confirm_button: default_cut_confirm_button(),
         }
+    }
+}
+
+fn default_cut_activation_mode() -> CutActivationMode {
+    CutActivationMode::Hold
+}
+
+fn default_cut_wheel_sensitivity() -> f32 {
+    1.0
+}
+
+fn default_cut_confirm_button() -> String {
+    "right".to_string()
+}
+
+#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum CutActivationMode {
+    Hold,
+    Toggle,
+}
+
+impl Default for CutActivationMode {
+    fn default() -> Self {
+        CutActivationMode::Hold
     }
 }
 

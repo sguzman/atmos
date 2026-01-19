@@ -22,14 +22,14 @@ Atmos is a Bevy-powered playground where every scene and interaction is driven b
 ## TOML-driven behavior
 
 - **Entities** – Each template under `assets/scenes/<scene>/entities/` defines a `name`, `transform`, `shape`, `material`, and `physics`. Set `shape.cuttable = true` (only box shapes currently) to let the slicer target that object. Templates blend overrides from `entities.toml` and spawn tables that reuse material assets while obeying physics overrides.
-- **Actions & Triggers** – Actions (see `schemas/actions.schema.json`) describe rates, ranges, and colors for gestures like `grab`, `shoot`, and `cut`. Triggers map keys/mouse/volumes to those action IDs. The cut system uses the `cut` action, whose `angle_step_degrees`, `rotation_sensitivity`, `preview_size`, `preview_thickness`, and `preview_color` come straight from TOML.
+- **Actions & Triggers** – Actions (see `schemas/actions.schema.json`) describe rates, ranges, and colors for gestures like `grab`, `shoot`, and `cut`. Triggers map keys/mouse/volumes to those action IDs. The cut system uses the `cut` action, whose `angle_step_degrees`, `rotation_sensitivity`, `preview_size`, `preview_thickness`, and `preview_color` come straight from TOML. You can also switch the action `mode` between `hold` (default) and `toggle`, control how scroll-wheel ticks advance the preview via `wheel_rotation_sensitivity`, and set the confirmation button through `confirm_button` (defaults to `right` click) so the slicer never shares a binding with shooting.
 - **Input** – The camera and system overlays are configured in `input.toml`; overlays toggle on demand while the cut system relies on the `c` key (or whatever trigger points at the cut action) as a hold-mode entry point.
 
 ## Cutting workflow
 
-1. **Selection** – Hold the cut action key. While in that mode, every `CuttableShape` under a dynamic rigid body is raycasted; whichever cube your cursor hits is outlined with a colored mesh highlight so you can tell which object will be sliced (the same highlight color is derived from `actions.params.preview_color` and is shared with the cutting plane).
-2. **Preview** – Once an entity is selected, a transparent 2D preview (plane) spawns at the center and rotates about its vertical axis according to your mouse motion. The angle snaps to the configuration’s resolution (`angle_step_degrees`), so you get crisp cuts without fighting continuous rotation.
-3. **Slice** – Left-click the preview to invoke the slicing routine. The cutter:
+1. **Selection** – Hold the cut action key (or flip `mode = "toggle"` to keep it latched). While in that mode, every `CuttableShape` under a dynamic rigid body is raycasted; whichever cube your cursor hits is outlined with a colored mesh highlight so you can tell which object will be sliced (the same highlight color is derived from `actions.params.preview_color` and is shared with the cutting plane).
+2. **Preview** – Once an entity is selected, a transparent 2D preview (plane) spawns at the center and rotates about its vertical axis according to your mouse motion (and scroll-wheel rolls, which also advance via `wheel_rotation_sensitivity`). The angle snaps to the configuration’s resolution (`angle_step_degrees`), so you get crisp cuts without fighting continuous rotation.
+3. **Slice** – Press the configured confirmation button (default `right` click) once the plane is aligned to invoke the slicing routine. The cutter:
    - Transforms the plane into the object’s local space.
    - Clips the cube’s triangles into two halves.
    - Caps the exposed boundary to keep the volumes manifold.
