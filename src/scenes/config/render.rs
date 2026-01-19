@@ -1,8 +1,12 @@
 use serde::Deserialize;
 
-use super::transforms::{Vec2Config, Vec3Config};
+use super::transforms::{
+    Vec2Config, Vec3Config,
+};
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct RenderConfig {
     #[serde(default)]
     pub tonemapping: Option<String>,
@@ -19,7 +23,8 @@ pub struct RenderConfig {
     #[serde(default)]
     pub dlss: Option<DlssConfig>,
     #[serde(default)]
-    pub ray_tracing: Option<RayTracingConfig>,
+    pub ray_tracing:
+        Option<RayTracingConfig>,
 }
 
 impl RenderConfig {
@@ -27,16 +32,26 @@ impl RenderConfig {
         let bloom_enabled = self
             .bloom
             .as_ref()
-            .is_some_and(|bloom| bloom.enabled);
+            .is_some_and(|bloom| {
+                bloom.enabled
+            });
         self.hdr.unwrap_or(false)
             || bloom_enabled
-            || self.tonemapping.is_some()
-            || self.exposure_ev100.is_some()
-            || self.deband_dither.is_some()
+            || self
+                .tonemapping
+                .is_some()
+            || self
+                .exposure_ev100
+                .is_some()
+            || self
+                .deband_dither
+                .is_some()
     }
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct BloomConfig {
     #[serde(default)]
     pub enabled: bool,
@@ -45,13 +60,17 @@ pub struct BloomConfig {
     #[serde(default)]
     pub intensity: Option<f32>,
     #[serde(default)]
-    pub low_frequency_boost: Option<f32>,
+    pub low_frequency_boost:
+        Option<f32>,
     #[serde(default)]
-    pub low_frequency_boost_curvature: Option<f32>,
+    pub low_frequency_boost_curvature:
+        Option<f32>,
     #[serde(default)]
-    pub high_pass_frequency: Option<f32>,
+    pub high_pass_frequency:
+        Option<f32>,
     #[serde(default)]
-    pub prefilter: Option<BloomPrefilterConfig>,
+    pub prefilter:
+        Option<BloomPrefilterConfig>,
     #[serde(default)]
     pub composite_mode: Option<String>,
     #[serde(default)]
@@ -60,7 +79,9 @@ pub struct BloomConfig {
     pub scale: Option<Vec2Config>,
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct BloomPrefilterConfig {
     #[serde(default)]
     pub threshold: f32,
@@ -68,7 +89,9 @@ pub struct BloomPrefilterConfig {
     pub threshold_softness: f32,
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct FogConfig {
     #[serde(default)]
     pub enabled: bool,
@@ -77,25 +100,44 @@ pub struct FogConfig {
     #[serde(default)]
     pub alpha: Option<f32>,
     #[serde(default)]
-    pub directional_light_color: Option<String>,
+    pub directional_light_color:
+        Option<String>,
     #[serde(default)]
-    pub directional_light_alpha: Option<f32>,
+    pub directional_light_alpha:
+        Option<f32>,
     #[serde(default)]
-    pub directional_light_exponent: Option<f32>,
+    pub directional_light_exponent:
+        Option<f32>,
     #[serde(default)]
-    pub falloff: Option<FogFalloffConfig>,
+    pub falloff:
+        Option<FogFalloffConfig>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(
+    tag = "kind",
+    rename_all = "snake_case"
+)]
 pub enum FogFalloffConfig {
-    Linear { start: f32, end: f32 },
-    Exponential { density: f32 },
-    ExponentialSquared { density: f32 },
-    Atmospheric { extinction: Vec3Config, inscattering: Vec3Config },
+    Linear {
+        start: f32,
+        end: f32,
+    },
+    Exponential {
+        density: f32,
+    },
+    ExponentialSquared {
+        density: f32,
+    },
+    Atmospheric {
+        extinction: Vec3Config,
+        inscattering: Vec3Config,
+    },
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct DlssConfig {
     #[serde(default)]
     pub enabled: bool,
@@ -105,7 +147,9 @@ pub struct DlssConfig {
     pub sharpness: Option<f32>,
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct RayTracingConfig {
     #[serde(default)]
     pub enabled: bool,

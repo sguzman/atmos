@@ -5,23 +5,52 @@ use bevy_rapier3d::prelude::TimestepMode;
 
 use crate::scenes::bounds::SceneBounds;
 use crate::scenes::input::{
-    ActionStates, CameraLookState, DebugMenuState, DebugMenuUiTag, DialogueState, DialogueUiTag,
-    GrabHover, GrabState, NoclipState, PauseState, PlayerSpawn, SceneActionTriggers,
-    SceneDialogueConfig, SceneFovConfig, SceneGrabConfig, SceneGrenadeConfig, SceneInputConfig,
-    SceneJumpConfig, SceneNoclipConfig, ScenePauseConfig, SceneReloadConfig, SceneShootConfig,
-    SceneSprintConfig, SceneZoomConfig, SprintState, ZoomState,
+    ActionStates, CameraLookState,
+    DebugMenuState, DebugMenuUiTag,
+    DialogueState, DialogueUiTag,
+    GrabHover, GrabState, NoclipState,
+    PauseState, PlayerSpawn,
+    SceneActionTriggers,
+    SceneDialogueConfig,
+    SceneFovConfig, SceneGrabConfig,
+    SceneGrenadeConfig,
+    SceneInputConfig, SceneJumpConfig,
+    SceneNoclipConfig,
+    ScenePauseConfig,
+    SceneReloadConfig,
+    SceneShootConfig,
+    SceneSprintConfig, SceneZoomConfig,
+    SprintState, ZoomState,
 };
-use crate::scenes::spawn::{OverlayTag, SceneEntityTag};
+use crate::scenes::spawn::{
+    OverlayTag, SceneEntityTag,
+};
 
 pub(crate) fn cleanup_main_scene(
     mut commands: Commands,
-    scene_entities: Query<Entity, With<SceneEntityTag>>,
-    overlays: Query<Entity, With<OverlayTag>>,
-    dialogue_ui: Query<Entity, With<DialogueUiTag>>,
-    debug_menu_ui: Query<Entity, With<DebugMenuUiTag>>,
+    scene_entities: Query<
+        Entity,
+        With<SceneEntityTag>,
+    >,
+    overlays: Query<
+        Entity,
+        With<OverlayTag>,
+    >,
+    dialogue_ui: Query<
+        Entity,
+        With<DialogueUiTag>,
+    >,
+    debug_menu_ui: Query<
+        Entity,
+        With<DebugMenuUiTag>,
+    >,
     time: Option<ResMut<Time<Virtual>>>,
-    timestep: Option<ResMut<TimestepMode>>,
-    pause_state: Option<Res<PauseState>>,
+    timestep: Option<
+        ResMut<TimestepMode>,
+    >,
+    pause_state: Option<
+        Res<PauseState>,
+    >,
 ) {
     cleanup_main_scene_inner(
         &mut commands,
@@ -37,20 +66,44 @@ pub(crate) fn cleanup_main_scene(
 
 pub(crate) fn cleanup_main_scene_inner(
     commands: &mut Commands,
-    scene_entities: &Query<Entity, With<SceneEntityTag>>,
-    overlays: &Query<Entity, With<OverlayTag>>,
-    dialogue_ui: &Query<Entity, With<DialogueUiTag>>,
-    debug_menu_ui: &Query<Entity, With<DebugMenuUiTag>>,
-    mut time: Option<ResMut<Time<Virtual>>>,
-    mut timestep: Option<ResMut<TimestepMode>>,
-    pause_state: Option<Res<PauseState>>,
+    scene_entities: &Query<
+        Entity,
+        With<SceneEntityTag>,
+    >,
+    overlays: &Query<
+        Entity,
+        With<OverlayTag>,
+    >,
+    dialogue_ui: &Query<
+        Entity,
+        With<DialogueUiTag>,
+    >,
+    debug_menu_ui: &Query<
+        Entity,
+        With<DebugMenuUiTag>,
+    >,
+    mut time: Option<
+        ResMut<Time<Virtual>>,
+    >,
+    mut timestep: Option<
+        ResMut<TimestepMode>,
+    >,
+    pause_state: Option<
+        Res<PauseState>,
+    >,
 ) {
-    if let Some(pause_state) = pause_state {
+    if let Some(pause_state) =
+        pause_state
+    {
         if pause_state.pause_scene {
-            if let Some(mut time) = time.take() {
+            if let Some(mut time) =
+                time.take()
+            {
                 time.unpause();
             }
-            if let Some(mut timestep) = timestep.take() {
+            if let Some(mut timestep) =
+                timestep.take()
+            {
                 if let TimestepMode::Variable { time_scale, .. } = &mut *timestep {
                     let restore = if pause_state.stored_time_scale > 0.0 {
                         pause_state.stored_time_scale
@@ -66,22 +119,34 @@ pub(crate) fn cleanup_main_scene_inner(
     for entity in scene_entities {
         commands
             .entity(entity)
-            .queue_silenced(entity_command::despawn());
+            .queue_silenced(
+                entity_command::despawn(
+                ),
+            );
     }
     for entity in overlays {
         commands
             .entity(entity)
-            .queue_silenced(entity_command::despawn());
+            .queue_silenced(
+                entity_command::despawn(
+                ),
+            );
     }
     for entity in dialogue_ui {
         commands
             .entity(entity)
-            .queue_silenced(entity_command::despawn());
+            .queue_silenced(
+                entity_command::despawn(
+                ),
+            );
     }
     for entity in debug_menu_ui {
         commands
             .entity(entity)
-            .queue_silenced(entity_command::despawn());
+            .queue_silenced(
+                entity_command::despawn(
+                ),
+            );
     }
 
     commands.remove_resource::<SceneInputConfig>();
@@ -98,16 +163,29 @@ pub(crate) fn cleanup_main_scene_inner(
     commands.remove_resource::<ScenePauseConfig>();
     commands.remove_resource::<SceneDialogueConfig>();
     commands.remove_resource::<SceneFovConfig>();
-    commands.remove_resource::<SprintState>();
-    commands.remove_resource::<ZoomState>();
-    commands.remove_resource::<NoclipState>();
-    commands.remove_resource::<GrabState>();
-    commands.remove_resource::<GrabHover>();
-    commands.remove_resource::<PauseState>();
+    commands
+        .remove_resource::<SprintState>(
+        );
+    commands
+        .remove_resource::<ZoomState>();
+    commands
+        .remove_resource::<NoclipState>(
+        );
+    commands
+        .remove_resource::<GrabState>();
+    commands
+        .remove_resource::<GrabHover>();
+    commands
+        .remove_resource::<PauseState>(
+        );
     commands.remove_resource::<DialogueState>();
     commands.remove_resource::<DebugMenuState>();
-    commands.remove_resource::<PlayerSpawn>();
+    commands
+        .remove_resource::<PlayerSpawn>(
+        );
     commands.remove_resource::<CameraLookState>();
-    commands.remove_resource::<SceneBounds>();
+    commands
+        .remove_resource::<SceneBounds>(
+        );
     commands.remove_resource::<AmbientLight>();
 }

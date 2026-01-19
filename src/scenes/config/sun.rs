@@ -4,17 +4,29 @@ use super::colors::default_color_name;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct SunConfig {
-    #[serde(default = "default_sun_time")]
+    #[serde(
+        default = "default_sun_time"
+    )]
     pub time: f32, // hours 0-24
-    #[serde(default = "default_color_name")]
+    #[serde(
+        default = "default_color_name"
+    )]
     pub color: String,
-    #[serde(default = "default_sun_brightness")]
+    #[serde(
+        default = "default_sun_brightness"
+    )]
     pub brightness: f32,
-    #[serde(default = "default_sun_shadows")]
+    #[serde(
+        default = "default_sun_shadows"
+    )]
     pub shadows: bool,
-    #[serde(default = "default_sun_distance")]
+    #[serde(
+        default = "default_sun_distance"
+    )]
     pub distance: f32,
-    #[serde(default = "default_sun_size")]
+    #[serde(
+        default = "default_sun_size"
+    )]
     pub size: f32,
 }
 
@@ -23,9 +35,12 @@ impl Default for SunConfig {
         Self {
             time: default_sun_time(),
             color: default_color_name(),
-            brightness: default_sun_brightness(),
-            shadows: default_sun_shadows(),
-            distance: default_sun_distance(),
+            brightness:
+                default_sun_brightness(),
+            shadows:
+                default_sun_shadows(),
+            distance:
+                default_sun_distance(),
             size: default_sun_size(),
         }
     }

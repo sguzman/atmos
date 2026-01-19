@@ -3,20 +3,27 @@ use bevy::{
     prelude::*,
 };
 use bevy_rapier3d::prelude::{
-    AdditionalMassProperties, Collider, Friction, Restitution, RigidBody,
+    AdditionalMassProperties, Collider,
+    Friction, Restitution, RigidBody,
 };
 
+use crate::scenes::MeshCacheSettings;
 use crate::scenes::bounds::DespawnOutsideBounds;
 use crate::scenes::config::{
-    default_circle_color_name, default_circle_rgb, default_color_name, default_color_rgb,
-    parse_color, ActiveScene, EntityTransformConfig, MaterialConfig, PhysicsConfig, ShapeConfig,
-    ShapeKind,
+    ActiveScene, EntityTransformConfig,
+    MaterialConfig, PhysicsConfig,
+    ShapeConfig, ShapeKind,
+    default_circle_color_name,
+    default_circle_rgb,
+    default_color_name,
+    default_color_rgb, parse_color,
 };
-use crate::scenes::MeshCacheSettings;
 use crate::scenes::load_or_generate_mesh_handle;
 
 use super::material::resolve_material;
-use crate::scenes::spawn::SceneEntityTag;
+use crate::scenes::spawn::{
+    CuttableShape, SceneEntityTag,
+};
 
 pub(in crate::scenes::spawn) fn spawn_shape_instance(
     name: &str,
@@ -27,33 +34,53 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
     mesh_cache: &MeshCacheSettings,
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
+    materials: &mut Assets<
+        StandardMaterial,
+    >,
     asset_server: &AssetServer,
     active_scene: &ActiveScene,
 ) -> Entity {
     let rotation = Quat::from_euler(
         EulerRot::XYZ,
-        transform.rotation.roll.to_radians(),
-        transform.rotation.pitch.to_radians(),
-        transform.rotation.yaw.to_radians(),
+        transform
+            .rotation
+            .roll
+            .to_radians(),
+        transform
+            .rotation
+            .pitch
+            .to_radians(),
+        transform
+            .rotation
+            .yaw
+            .to_radians(),
     );
 
-    let material_handle = resolve_material(
-        shape,
-        material,
-        materials,
-        asset_server,
-        active_scene,
-    );
+    let material_handle =
+        resolve_material(
+            shape,
+            material,
+            materials,
+            asset_server,
+            active_scene,
+        );
 
     let entity_id = match shape.kind {
         ShapeKind::Box => {
-            let dimensions = shape.dimensions.as_ref().cloned().unwrap_or_default();
-            let half_extents = Vec3::new(
-                dimensions.width * 0.5,
-                dimensions.height * 0.5,
-                dimensions.depth * 0.5,
-            );
+            let dimensions = shape
+                .dimensions
+                .as_ref()
+                .cloned()
+                .unwrap_or_default();
+            let half_extents =
+                Vec3::new(
+                    dimensions.width
+                        * 0.5,
+                    dimensions.height
+                        * 0.5,
+                    dimensions.depth
+                        * 0.5,
+                );
             let mesh_handle = load_or_generate_mesh_handle(
                 mesh_cache,
                 shape,
@@ -63,7 +90,7 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
             let mut entity = commands.spawn((
                 Name::new(name.to_string()),
                 SceneEntityTag,
-                Mesh3d(mesh_handle),
+                Mesh3d(mesh_handle.clone()),
                 MeshMaterial3d(material_handle.clone()),
                 Transform::from_xyz(
                     transform.position.x,
@@ -77,7 +104,9 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
                 ViewVisibility::default(),
             ));
 
-            if let Some(physics) = physics {
+            if let Some(physics) =
+                physics
+            {
                 if physics.enabled {
                     let rigid_body = resolve_rigid_body(&physics.body_type);
                     entity.insert((
@@ -92,10 +121,25 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
                     }
                 }
             }
+            if shape.cuttable
+                && matches!(
+                    shape.kind,
+                    ShapeKind::Box
+                )
+            {
+                entity.insert(CuttableShape {
+                    shape: shape.clone(),
+                    physics: physics.cloned(),
+                    material: material_handle.clone(),
+                    mesh: mesh_handle.clone(),
+                });
+            }
             entity.id()
         }
         ShapeKind::Sphere => {
-            let radius = shape.radius.unwrap_or(0.5);
+            let radius = shape
+                .radius
+                .unwrap_or(0.5);
             let mesh_handle = load_or_generate_mesh_handle(
                 mesh_cache,
                 shape,
@@ -119,7 +163,9 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
                 ViewVisibility::default(),
             ));
 
-            if let Some(physics) = physics {
+            if let Some(physics) =
+                physics
+            {
                 if physics.enabled {
                     let rigid_body = resolve_rigid_body(&physics.body_type);
                     entity.insert((
@@ -137,8 +183,11 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
             entity.id()
         }
         ShapeKind::Circle => {
-            let radius = shape.radius.unwrap_or(4.0);
-            let collider_thickness = 0.2;
+            let radius = shape
+                .radius
+                .unwrap_or(4.0);
+            let collider_thickness =
+                0.2;
             let mesh_handle = load_or_generate_mesh_handle(
                 mesh_cache,
                 shape,
@@ -162,7 +211,9 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
                 ViewVisibility::default(),
             ));
 
-            if let Some(physics) = physics {
+            if let Some(physics) =
+                physics
+            {
                 if physics.enabled {
                     let rigid_body = resolve_rigid_body(&physics.body_type);
                     entity.insert((rigid_body, DespawnOutsideBounds));
@@ -170,7 +221,9 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
                         entity.insert(AdditionalMassProperties::Mass(physics.mass));
                     }
 
-                    let collider_rotation = rotation.inverse();
+                    let collider_rotation =
+                        rotation
+                            .inverse();
                     entity.with_children(|parent| {
                         parent.spawn((
                             SceneEntityTag,
@@ -187,7 +240,10 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
     };
 
     if physics.is_none() {
-        info!("Spawned shape '{}' in scene '{}'.", name, active_scene.name);
+        info!(
+            "Spawned shape '{}' in scene '{}'.",
+            name, active_scene.name
+        );
     }
 
     entity_id
@@ -198,12 +254,26 @@ pub(in crate::scenes::spawn) fn resolve_shape_color(
     active_scene: &ActiveScene,
 ) -> [u8; 3] {
     match shape.color.as_deref() {
-        Some(color) => parse_color(color).unwrap_or_else(|| fallback_color(shape.kind, active_scene)),
-        None => fallback_color(shape.kind, active_scene),
+        Some(color) => {
+            parse_color(color)
+                .unwrap_or_else(|| {
+                    fallback_color(
+                        shape.kind,
+                        active_scene,
+                    )
+                })
+        }
+        None => fallback_color(
+            shape.kind,
+            active_scene,
+        ),
     }
 }
 
-fn fallback_color(kind: ShapeKind, active_scene: &ActiveScene) -> [u8; 3] {
+fn fallback_color(
+    kind: ShapeKind,
+    active_scene: &ActiveScene,
+) -> [u8; 3] {
     match kind {
         ShapeKind::Circle => {
             warn!(
@@ -213,7 +283,9 @@ fn fallback_color(kind: ShapeKind, active_scene: &ActiveScene) -> [u8; 3] {
             );
             default_circle_rgb()
         }
-        ShapeKind::Sphere => [255, 165, 0],
+        ShapeKind::Sphere => {
+            [255, 165, 0]
+        }
         ShapeKind::Box => {
             warn!(
                 "Falling back to default color '{}' for box in scene '{}'.",
@@ -225,7 +297,9 @@ fn fallback_color(kind: ShapeKind, active_scene: &ActiveScene) -> [u8; 3] {
     }
 }
 
-fn resolve_rigid_body(body_type: &str) -> RigidBody {
+fn resolve_rigid_body(
+    body_type: &str,
+) -> RigidBody {
     match body_type.trim().to_ascii_lowercase().as_str() {
         "fixed" | "static" => RigidBody::Fixed,
         "kinematic_position" | "kinematic_position_based" => {

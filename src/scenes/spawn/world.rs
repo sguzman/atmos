@@ -1,13 +1,17 @@
-use bevy::{
-    log::warn,
-    prelude::*,
-};
+use bevy::{log::warn, prelude::*};
 
 use crate::scenes::{
-    config::{ActiveScene, ComboTemplate, EntityTemplate},
-    entities::EntitiesConfig,
-    loaders::{load_combo_template_from_path, load_entity_template_from_path, ConfigLoad, TomlCache},
     MeshCacheSettings, TomlAsset,
+    config::{
+        ActiveScene, ComboTemplate,
+        EntityTemplate,
+    },
+    entities::EntitiesConfig,
+    loaders::{
+        ConfigLoad, TomlCache,
+        load_combo_template_from_path,
+        load_entity_template_from_path,
+    },
 };
 
 use super::combo::spawn_combo_template;
@@ -17,7 +21,9 @@ pub(super) fn spawn_world_entities(
     entities: &EntitiesConfig,
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
+    materials: &mut Assets<
+        StandardMaterial,
+    >,
     asset_server: &AssetServer,
     active_scene: &ActiveScene,
     mesh_cache: &MeshCacheSettings,
@@ -28,8 +34,14 @@ pub(super) fn spawn_world_entities(
     let mut resolved = Vec::new();
 
     for entity in &entities.entities {
-        let is_combo = entity.template.starts_with("combo/")
-            || entity.template.ends_with(".combo.toml");
+        let is_combo = entity
+            .template
+            .starts_with("combo/")
+            || entity
+                .template
+                .ends_with(
+                    ".combo.toml",
+                );
         if is_combo {
             match load_combo_template_from_path(
                 &active_scene.name,
@@ -75,7 +87,13 @@ pub(super) fn spawn_world_entities(
         return ConfigLoad::Pending;
     }
 
-    if combos_need_assets(&resolved, active_scene, toml_assets, asset_server, toml_cache) {
+    if combos_need_assets(
+        &resolved,
+        active_scene,
+        toml_assets,
+        asset_server,
+        toml_cache,
+    ) {
         return ConfigLoad::Pending;
     }
 
@@ -132,8 +150,12 @@ fn combos_need_assets(
     asset_server: &AssetServer,
     toml_cache: &mut TomlCache,
 ) -> bool {
-    for (_entity, template) in resolved {
-        let ResolvedTemplate::Combo(combo) = template else {
+    for (_entity, template) in resolved
+    {
+        let ResolvedTemplate::Combo(
+            combo,
+        ) = template
+        else {
             continue;
         };
         for part in &combo.parts {

@@ -4,6 +4,7 @@ name = "cube"
 kind = "box"
 color = "red"
 dimensions = { width = 1.0, height = 1.0, depth = 1.0 }
+cuttable = true
 
 [physics]
 enabled = true

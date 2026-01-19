@@ -3,7 +3,10 @@ use serde::Deserialize;
 use super::light::LightKind;
 use super::material::MaterialConfig;
 use super::physics::PhysicsConfig;
-use super::transforms::{CubeRotationConfig, DimensionsConfig, PositionConfig};
+use super::transforms::{
+    CubeRotationConfig,
+    DimensionsConfig, PositionConfig,
+};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct EntityTemplate {
@@ -13,21 +16,26 @@ pub struct EntityTemplate {
     #[serde(default)]
     pub shape: Option<ShapeConfig>,
     #[serde(default)]
-    pub material: Option<MaterialConfig>,
+    pub material:
+        Option<MaterialConfig>,
     #[serde(default)]
     pub physics: Option<PhysicsConfig>,
     #[serde(default)]
     pub light: Option<LightComponent>,
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct EntityOverrides {
     #[serde(default)]
     pub shape: Option<ShapeOverrides>,
     #[serde(default)]
-    pub physics: Option<PhysicsOverrides>,
+    pub physics:
+        Option<PhysicsOverrides>,
     #[serde(default)]
-    pub light: Option<LightOverridesConfig>,
+    pub light:
+        Option<LightOverridesConfig>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -36,7 +44,9 @@ pub struct TransformConfig {
     pub position: PositionConfig,
     #[serde(default)]
     pub rotation: CubeRotationConfig,
-    #[serde(default = "default_unit_scale")]
+    #[serde(
+        default = "default_unit_scale"
+    )]
     pub scale: f32,
 }
 
@@ -50,17 +60,28 @@ impl Default for TransformConfig {
     }
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct TransformOverrides {
     #[serde(default)]
-    pub position: Option<PositionConfig>,
+    pub position:
+        Option<PositionConfig>,
     #[serde(default)]
-    pub rotation: Option<CubeRotationConfig>,
+    pub rotation:
+        Option<CubeRotationConfig>,
     #[serde(default)]
     pub scale: Option<f32>,
 }
 
-#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    Debug,
+    Deserialize,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum ShapeKind {
     Box,
@@ -74,22 +95,32 @@ pub struct ShapeConfig {
     #[serde(default)]
     pub color: Option<String>,
     #[serde(default)]
-    pub dimensions: Option<DimensionsConfig>,
+    pub dimensions:
+        Option<DimensionsConfig>,
     #[serde(default)]
     pub radius: Option<f32>,
+    #[serde(default)]
+    pub cuttable: bool,
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct ShapeOverrides {
     #[serde(default)]
     pub color: Option<String>,
     #[serde(default)]
-    pub dimensions: Option<DimensionsConfig>,
+    pub dimensions:
+        Option<DimensionsConfig>,
     #[serde(default)]
     pub radius: Option<f32>,
+    #[serde(default)]
+    pub cuttable: Option<bool>,
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct PhysicsOverrides {
     #[serde(default)]
     pub enabled: Option<bool>,
@@ -103,7 +134,9 @@ pub struct PhysicsOverrides {
     pub friction: Option<f32>,
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct LightComponent {
     #[serde(default)]
     pub kind: Option<LightKind>,
@@ -121,7 +154,9 @@ pub struct LightComponent {
     pub offset: Option<PositionConfig>,
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct LightOverridesConfig {
     #[serde(default)]
     pub kind: Option<LightKind>,

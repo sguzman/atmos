@@ -130,6 +130,18 @@
         "outline": { "$ref": "#/$defs/grabOutline" }
       }
     },
+    "cutParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "angle_step_degrees": { "type": "number" },
+        "rotation_sensitivity": { "type": "number" },
+        "preview_size": { "type": "number" },
+        "preview_thickness": { "type": "number" },
+        "preview_color": { "type": "string" }
+      }
+    },
     "reloadParams": {
       "type": "object",
       "additionalProperties": false,
@@ -259,6 +271,16 @@
             "id": { "type": "string" },
             "type": { "const": "grab" },
             "params": { "$ref": "#/$defs/grabParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "cut" },
+            "params": { "$ref": "#/$defs/cutParams" }
           }
         },
         {

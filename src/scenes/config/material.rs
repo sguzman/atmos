@@ -1,13 +1,16 @@
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct MaterialConfig {
     #[serde(default)]
     pub preset: Option<String>,
     #[serde(default)]
     pub base_color: Option<String>,
     #[serde(default)]
-    pub base_color_texture: Option<String>,
+    pub base_color_texture:
+        Option<String>,
     #[serde(default)]
     pub opacity: Option<f32>,
     #[serde(default)]
@@ -23,15 +26,18 @@ pub struct MaterialConfig {
     #[serde(default)]
     pub emissive_intensity: Option<f32>,
     #[serde(default)]
-    pub emissive_texture: Option<String>,
+    pub emissive_texture:
+        Option<String>,
     #[serde(default)]
     pub normal_map: Option<String>,
     #[serde(default)]
     pub flip_normal_map_y: Option<bool>,
     #[serde(default)]
-    pub metallic_roughness_texture: Option<String>,
+    pub metallic_roughness_texture:
+        Option<String>,
     #[serde(default)]
-    pub occlusion_texture: Option<String>,
+    pub occlusion_texture:
+        Option<String>,
     #[serde(default)]
     pub alpha_mode: Option<String>,
     #[serde(default)]
@@ -43,17 +49,22 @@ pub struct MaterialConfig {
     #[serde(default)]
     pub clearcoat: Option<f32>,
     #[serde(default)]
-    pub clearcoat_roughness: Option<f32>,
+    pub clearcoat_roughness:
+        Option<f32>,
     #[serde(default)]
     pub ior: Option<f32>,
     #[serde(default)]
-    pub specular_transmission: Option<f32>,
+    pub specular_transmission:
+        Option<f32>,
     #[serde(default)]
-    pub diffuse_transmission: Option<f32>,
+    pub diffuse_transmission:
+        Option<f32>,
     #[serde(default)]
     pub thickness: Option<f32>,
     #[serde(default)]
-    pub attenuation_color: Option<String>,
+    pub attenuation_color:
+        Option<String>,
     #[serde(default)]
-    pub attenuation_distance: Option<f32>,
+    pub attenuation_distance:
+        Option<f32>,
 }

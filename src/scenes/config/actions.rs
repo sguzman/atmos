@@ -1,6 +1,9 @@
 use serde::Deserialize;
 
-use super::transforms::{DimensionsConfig, PositionConfig, Vec3Config};
+use super::transforms::{
+    DimensionsConfig, PositionConfig,
+    Vec3Config,
+};
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(default)]
@@ -18,7 +21,8 @@ pub struct ShootActionConfig {
 impl Default for ShootActionConfig {
     fn default() -> Self {
         Self {
-            name: "shoot_balls".to_string(),
+            name: "shoot_balls"
+                .to_string(),
             rate: 8.0,
             start_delay: 0.0,
             velocity: 18.0,
@@ -169,9 +173,11 @@ impl Default for NoclipActionConfig {
             speed: 8.0,
             fast_speed: 14.0,
             speed_toggle: true,
-            speed_toggle_key: "Shift".to_string(),
+            speed_toggle_key: "Shift"
+                .to_string(),
             up_key: "Space".to_string(),
-            down_key: "lctrl".to_string(),
+            down_key: "lctrl"
+                .to_string(),
             acceleration: 20.0,
             damping: 8.0,
         }
@@ -185,11 +191,15 @@ pub struct SceneTransitionActionConfig {
     pub target_scene: String,
 }
 
-impl Default for SceneTransitionActionConfig {
+impl Default
+    for SceneTransitionActionConfig
+{
     fn default() -> Self {
         Self {
-            name: "scene_transition".to_string(),
-            target_scene: "main".to_string(),
+            name: "scene_transition"
+                .to_string(),
+            target_scene: "main"
+                .to_string(),
         }
     }
 }
@@ -248,6 +258,31 @@ impl Default for GrabActionConfig {
     }
 }
 
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct CutActionConfig {
+    pub name: String,
+    pub angle_step_degrees: f32,
+    pub rotation_sensitivity: f32,
+    pub preview_size: f32,
+    pub preview_thickness: f32,
+    pub preview_color: String,
+}
+
+impl Default for CutActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "cut".to_string(),
+            angle_step_degrees: 15.0,
+            rotation_sensitivity: 0.01,
+            preview_size: 1.5,
+            preview_thickness: 0.01,
+            preview_color: "hotpink"
+                .to_string(),
+        }
+    }
+}
+
 impl Default for QuitActionConfig {
     fn default() -> Self {
         Self {
@@ -282,7 +317,8 @@ impl Default for PauseActionConfig {
     fn default() -> Self {
         Self {
             name: "pause".to_string(),
-            overlay: "pause".to_string(),
+            overlay: "pause"
+                .to_string(),
             pause_scene: true,
         }
     }
@@ -295,11 +331,15 @@ pub struct DialoguePromptActionConfig {
     pub overlay: String,
 }
 
-impl Default for DialoguePromptActionConfig {
+impl Default
+    for DialoguePromptActionConfig
+{
     fn default() -> Self {
         Self {
-            name: "dialogue_prompt".to_string(),
-            overlay: "dialogue_prompt".to_string(),
+            name: "dialogue_prompt"
+                .to_string(),
+            overlay: "dialogue_prompt"
+                .to_string(),
         }
     }
 }
@@ -315,8 +355,10 @@ pub struct DialogueActionConfig {
 impl Default for DialogueActionConfig {
     fn default() -> Self {
         Self {
-            name: "dialogue".to_string(),
-            dialogue: "intro".to_string(),
+            name: "dialogue"
+                .to_string(),
+            dialogue: "intro"
+                .to_string(),
             option_keys: vec![
                 "F1".to_string(),
                 "F2".to_string(),
@@ -332,7 +374,9 @@ impl Default for DialogueActionConfig {
     }
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(
+    Debug, Deserialize, Clone, Default,
+)]
 pub struct ActionsConfig {
     #[serde(default)]
     #[allow(dead_code)]
@@ -340,29 +384,75 @@ pub struct ActionsConfig {
     #[serde(default)]
     pub actions: Vec<ActionConfig>,
     #[serde(default)]
-    pub triggers: Vec<ActionTriggerConfig>,
+    pub triggers:
+        Vec<ActionTriggerConfig>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(
+    tag = "type",
+    rename_all = "snake_case"
+)]
 pub enum ActionConfig {
-    Shoot { id: String, params: ShootActionConfig },
-    Grenade { id: String, params: GrenadeActionConfig },
-    Sprint { id: String, params: SprintActionConfig },
-    Zoom { id: String, params: ZoomActionConfig },
-    Jump { id: String, params: JumpActionConfig },
-    Noclip { id: String, params: NoclipActionConfig },
-    Grab { id: String, params: GrabActionConfig },
+    Shoot {
+        id: String,
+        params: ShootActionConfig,
+    },
+    Grenade {
+        id: String,
+        params: GrenadeActionConfig,
+    },
+    Sprint {
+        id: String,
+        params: SprintActionConfig,
+    },
+    Zoom {
+        id: String,
+        params: ZoomActionConfig,
+    },
+    Jump {
+        id: String,
+        params: JumpActionConfig,
+    },
+    Noclip {
+        id: String,
+        params: NoclipActionConfig,
+    },
+    Grab {
+        id: String,
+        params: GrabActionConfig,
+    },
+    Cut {
+        id: String,
+        params: CutActionConfig,
+    },
     Reload {
         id: String,
         #[allow(dead_code)]
         params: ReloadActionConfig,
     },
-    Pause { id: String, params: PauseActionConfig },
-    DialoguePrompt { id: String, params: DialoguePromptActionConfig },
-    Dialogue { id: String, params: DialogueActionConfig },
-    Fov { id: String, params: FovActionConfig },
-    SceneTransition { id: String, params: SceneTransitionActionConfig },
+    Pause {
+        id: String,
+        params: PauseActionConfig,
+    },
+    DialoguePrompt {
+        id: String,
+        params:
+            DialoguePromptActionConfig,
+    },
+    Dialogue {
+        id: String,
+        params: DialogueActionConfig,
+    },
+    Fov {
+        id: String,
+        params: FovActionConfig,
+    },
+    SceneTransition {
+        id: String,
+        params:
+            SceneTransitionActionConfig,
+    },
     Quit {
         id: String,
         #[allow(dead_code)]
@@ -380,6 +470,7 @@ impl ActionConfig {
             | ActionConfig::Jump { id, .. }
             | ActionConfig::Noclip { id, .. }
             | ActionConfig::Grab { id, .. }
+            | ActionConfig::Cut { id, .. }
             | ActionConfig::Reload { id, .. }
             | ActionConfig::Pause { id, .. }
             | ActionConfig::DialoguePrompt { id, .. }
@@ -391,7 +482,9 @@ impl ActionConfig {
     }
 }
 
-#[derive(Debug, Deserialize, Clone, Copy)]
+#[derive(
+    Debug, Deserialize, Clone, Copy,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum TriggerMode {
     Press,
@@ -404,7 +497,9 @@ impl Default for TriggerMode {
     }
 }
 
-#[derive(Debug, Deserialize, Clone, Copy)]
+#[derive(
+    Debug, Deserialize, Clone, Copy,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum VolumeTriggerMode {
     Enter,
@@ -418,7 +513,9 @@ impl Default for VolumeTriggerMode {
     }
 }
 
-#[derive(Debug, Deserialize, Clone, Copy)]
+#[derive(
+    Debug, Deserialize, Clone, Copy,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum VolumeShapeKind {
     Box,
@@ -435,7 +532,10 @@ pub struct VolumeShapeConfig {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(
+    tag = "type",
+    rename_all = "snake_case"
+)]
 pub enum ActionTriggerConfig {
     Key {
         #[allow(dead_code)]

@@ -4,10 +4,16 @@ use bevy::{
     log::warn,
 };
 
-use crate::scenes::config::{CameraRotationConfig, MovementConfig, OverlayInputConfig};
+use crate::scenes::config::{
+    CameraRotationConfig,
+    MovementConfig, OverlayInputConfig,
+};
 
 use super::types::{
-    CameraControl, ResolvedCameraInputConfig, ResolvedMovementConfig, ResolvedOverlayToggle,
+    CameraControl,
+    ResolvedCameraInputConfig,
+    ResolvedMovementConfig,
+    ResolvedOverlayToggle,
     ResolvedRotationConfig,
 };
 
@@ -34,7 +40,9 @@ pub fn resolve_camera_input_config(
     }
 }
 
-pub fn resolve_overlay_toggles(overlays: &[OverlayInputConfig]) -> Vec<ResolvedOverlayToggle> {
+pub fn resolve_overlay_toggles(
+    overlays: &[OverlayInputConfig],
+) -> Vec<ResolvedOverlayToggle> {
     overlays
         .iter()
         .map(|ovr| ResolvedOverlayToggle {
@@ -44,50 +52,73 @@ pub fn resolve_overlay_toggles(overlays: &[OverlayInputConfig]) -> Vec<ResolvedO
         .collect()
 }
 
-pub fn resolve_key_or_warn(key: &str, action: &str) -> Option<KeyCode> {
+pub fn resolve_key_or_warn(
+    key: &str,
+    action: &str,
+) -> Option<KeyCode> {
     if key.trim().is_empty() {
         return None;
     }
     match resolve_key(key) {
         Some(code) => Some(code),
         None => {
-            warn!("Unrecognized key '{key}' for {action}; binding disabled.");
+            warn!(
+                "Unrecognized key '{key}' for {action}; binding disabled."
+            );
             None
         }
     }
 }
 
-fn resolve_control_or_warn(control: &str, action: &str) -> CameraControl {
-    let normalized = control.trim().to_ascii_lowercase();
+fn resolve_control_or_warn(
+    control: &str,
+    action: &str,
+) -> CameraControl {
+    let normalized = control
+        .trim()
+        .to_ascii_lowercase();
     match normalized.as_str() {
         "mouse" => CameraControl::Mouse,
-        "keyboard" => CameraControl::Keyboard,
+        "keyboard" => {
+            CameraControl::Keyboard
+        }
         "" => CameraControl::Mouse,
         _ => {
-            warn!("Unrecognized control '{control}' for {action}; defaulting to mouse.");
+            warn!(
+                "Unrecognized control '{control}' for {action}; defaulting to mouse."
+            );
             CameraControl::Mouse
         }
     }
 }
 
-pub fn resolve_mouse_button_or_warn(button: &str, action: &str) -> Option<MouseButton> {
+pub fn resolve_mouse_button_or_warn(
+    button: &str,
+    action: &str,
+) -> Option<MouseButton> {
     if button.trim().is_empty() {
         return None;
     }
     match resolve_mouse_button(button) {
         Some(button) => Some(button),
         None => {
-            warn!("Unrecognized mouse button '{button}' for {action}; binding disabled.");
+            warn!(
+                "Unrecognized mouse button '{button}' for {action}; binding disabled."
+            );
             None
         }
     }
 }
 
-fn resolve_key(key: &str) -> Option<KeyCode> {
-    let normalized = key.trim().to_ascii_lowercase();
+fn resolve_key(
+    key: &str,
+) -> Option<KeyCode> {
+    let normalized =
+        key.trim().to_ascii_lowercase();
     // Letters
     if normalized.len() == 1 {
-        let c = normalized.as_bytes()[0] as char;
+        let c = normalized.as_bytes()[0]
+            as char;
         if ('a'..='z').contains(&c) {
             return Some(match c {
                 'a' => KeyCode::KeyA,
@@ -123,10 +154,18 @@ fn resolve_key(key: &str) -> Option<KeyCode> {
 
     match normalized.as_str() {
         // Arrow keys
-        "left" | "arrowleft" => Some(KeyCode::ArrowLeft),
-        "right" | "arrowright" => Some(KeyCode::ArrowRight),
-        "up" | "arrowup" => Some(KeyCode::ArrowUp),
-        "down" | "arrowdown" => Some(KeyCode::ArrowDown),
+        "left" | "arrowleft" => {
+            Some(KeyCode::ArrowLeft)
+        }
+        "right" | "arrowright" => {
+            Some(KeyCode::ArrowRight)
+        }
+        "up" | "arrowup" => {
+            Some(KeyCode::ArrowUp)
+        }
+        "down" | "arrowdown" => {
+            Some(KeyCode::ArrowDown)
+        }
 
         // Digits
         "0" => Some(KeyCode::Digit0),
@@ -156,41 +195,97 @@ fn resolve_key(key: &str) -> Option<KeyCode> {
 
         // Punctuation by name
         "space" => Some(KeyCode::Space),
-        "enter" | "return" => Some(KeyCode::Enter),
-        "escape" | "esc" => Some(KeyCode::Escape),
+        "enter" | "return" => {
+            Some(KeyCode::Enter)
+        }
+        "escape" | "esc" => {
+            Some(KeyCode::Escape)
+        }
         "tab" => Some(KeyCode::Tab),
-        "backspace" => Some(KeyCode::Backspace),
-        "minus" | "dash" | "hyphen" => Some(KeyCode::Minus),
-        "equal" | "equals" | "plus" => Some(KeyCode::Equal),
-        "lbracket" | "leftbracket" => Some(KeyCode::BracketLeft),
-        "rbracket" | "rightbracket" => Some(KeyCode::BracketRight),
-        "backslash" => Some(KeyCode::Backslash),
-        "semicolon" => Some(KeyCode::Semicolon),
-        "quote" | "apostrophe" => Some(KeyCode::Quote),
+        "backspace" => {
+            Some(KeyCode::Backspace)
+        }
+        "minus" | "dash" | "hyphen" => {
+            Some(KeyCode::Minus)
+        }
+        "equal" | "equals" | "plus" => {
+            Some(KeyCode::Equal)
+        }
+        "lbracket" | "leftbracket" => {
+            Some(KeyCode::BracketLeft)
+        }
+        "rbracket" | "rightbracket" => {
+            Some(KeyCode::BracketRight)
+        }
+        "backslash" => {
+            Some(KeyCode::Backslash)
+        }
+        "semicolon" => {
+            Some(KeyCode::Semicolon)
+        }
+        "quote" | "apostrophe" => {
+            Some(KeyCode::Quote)
+        }
         "comma" => Some(KeyCode::Comma),
-        "period" | "dot" => Some(KeyCode::Period),
-        "slash" | "forwardslash" => Some(KeyCode::Slash),
-        "grave" | "backtick" => Some(KeyCode::Backquote),
+        "period" | "dot" => {
+            Some(KeyCode::Period)
+        }
+        "slash" | "forwardslash" => {
+            Some(KeyCode::Slash)
+        }
+        "grave" | "backtick" => {
+            Some(KeyCode::Backquote)
+        }
 
         // Modifiers and common specials
-        "shift" | "lshift" => Some(KeyCode::ShiftLeft),
-        "rshift" => Some(KeyCode::ShiftRight),
-        "ctrl" | "control" | "lctrl" => Some(KeyCode::ControlLeft),
-        "rctrl" => Some(KeyCode::ControlRight),
-        "alt" | "lalt" => Some(KeyCode::AltLeft),
-        "ralt" => Some(KeyCode::AltRight),
-        "meta" | "lmeta" | "super" | "lsuper" | "win" | "lwin" => Some(KeyCode::SuperLeft),
-        "rmeta" | "rsuper" | "rwin" => Some(KeyCode::SuperRight),
+        "shift" | "lshift" => {
+            Some(KeyCode::ShiftLeft)
+        }
+        "rshift" => {
+            Some(KeyCode::ShiftRight)
+        }
+        "ctrl" | "control"
+        | "lctrl" => {
+            Some(KeyCode::ControlLeft)
+        }
+        "rctrl" => {
+            Some(KeyCode::ControlRight)
+        }
+        "alt" | "lalt" => {
+            Some(KeyCode::AltLeft)
+        }
+        "ralt" => {
+            Some(KeyCode::AltRight)
+        }
+        "meta" | "lmeta" | "super"
+        | "lsuper" | "win" | "lwin" => {
+            Some(KeyCode::SuperLeft)
+        }
+        "rmeta" | "rsuper" | "rwin" => {
+            Some(KeyCode::SuperRight)
+        }
 
         _ => None,
     }
 }
 
-fn resolve_mouse_button(button: &str) -> Option<MouseButton> {
-    match button.trim().to_ascii_lowercase().as_str() {
-        "left" | "lmb" => Some(MouseButton::Left),
-        "right" | "rmb" => Some(MouseButton::Right),
-        "middle" | "mmb" => Some(MouseButton::Middle),
+fn resolve_mouse_button(
+    button: &str,
+) -> Option<MouseButton> {
+    match button
+        .trim()
+        .to_ascii_lowercase()
+        .as_str()
+    {
+        "left" | "lmb" => {
+            Some(MouseButton::Left)
+        }
+        "right" | "rmb" => {
+            Some(MouseButton::Right)
+        }
+        "middle" | "mmb" => {
+            Some(MouseButton::Middle)
+        }
         _ => None,
     }
 }

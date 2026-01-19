@@ -52,12 +52,13 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["kind"],
-      "properties": {
-        "kind": { "type": "string", "enum": ["box", "sphere"] },
-        "color": { "type": "string" },
-        "dimensions": { "$ref": "#/$defs/dimensions" },
-        "radius": { "type": "number", "exclusiveMinimum": 0 }
-      },
+        "properties": {
+          "kind": { "type": "string", "enum": ["box", "sphere"] },
+          "color": { "type": "string" },
+          "dimensions": { "$ref": "#/$defs/dimensions" },
+          "radius": { "type": "number", "exclusiveMinimum": 0 },
+          "cuttable": { "type": "boolean" }
+        },
       "allOf": [
         {
           "if": { "properties": { "kind": { "const": "box" } } },

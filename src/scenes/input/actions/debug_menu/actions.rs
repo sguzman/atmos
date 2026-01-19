@@ -1,22 +1,48 @@
-use bevy::prelude::*;
+use bevy::pbr::{
+    DistanceFog, FogFalloff,
+};
 use bevy::post_process::bloom::Bloom;
-use bevy::pbr::{DistanceFog, FogFalloff};
-use bevy_rapier3d::prelude::{DefaultRapierContext, RapierConfiguration};
+use bevy::prelude::*;
+use bevy_rapier3d::prelude::{
+    DefaultRapierContext,
+    RapierConfiguration,
+};
 
-use crate::scenes::input::{DebugMenuState, SceneCamera, ZoomState};
+use crate::scenes::input::{
+    DebugMenuState, SceneCamera,
+    ZoomState,
+};
 use crate::scenes::spawn::SunLight;
 
-use super::types::{DebugMenuAction, DebugMenuAdjustStep, DebugMenuSliderKind};
+use super::types::{
+    DebugMenuAction,
+    DebugMenuAdjustStep,
+    DebugMenuSliderKind,
+};
 
 pub(crate) fn apply_debug_menu_action(
     action: &DebugMenuAction,
     debug_state: &mut DebugMenuState,
     commands: &mut Commands,
-    projections: &mut Query<&mut Projection, With<SceneCamera>>,
-    zoom_state: &mut Option<ResMut<ZoomState>>,
-    camera_entities: &Query<Entity, With<SceneCamera>>,
-    rapier_config: &mut Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
-    sun: &mut Query<&mut DirectionalLight, With<SunLight>>,
+    projections: &mut Query<
+        &mut Projection,
+        With<SceneCamera>,
+    >,
+    zoom_state: &mut Option<
+        ResMut<ZoomState>,
+    >,
+    camera_entities: &Query<
+        Entity,
+        With<SceneCamera>,
+    >,
+    rapier_config: &mut Query<
+        &mut RapierConfiguration,
+        With<DefaultRapierContext>,
+    >,
+    sun: &mut Query<
+        &mut DirectionalLight,
+        With<SunLight>,
+    >,
 ) {
     match action {
         DebugMenuAction::Noop => {}
@@ -104,11 +130,25 @@ pub(crate) fn apply_slider_value(
     value: f32,
     debug_state: &mut DebugMenuState,
     commands: &mut Commands,
-    projections: &mut Query<&mut Projection, With<SceneCamera>>,
-    zoom_state: &mut Option<ResMut<ZoomState>>,
-    camera_entities: &Query<Entity, With<SceneCamera>>,
-    rapier_config: &mut Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
-    sun: &mut Query<&mut DirectionalLight, With<SunLight>>,
+    projections: &mut Query<
+        &mut Projection,
+        With<SceneCamera>,
+    >,
+    zoom_state: &mut Option<
+        ResMut<ZoomState>,
+    >,
+    camera_entities: &Query<
+        Entity,
+        With<SceneCamera>,
+    >,
+    rapier_config: &mut Query<
+        &mut RapierConfiguration,
+        With<DefaultRapierContext>,
+    >,
+    sun: &mut Query<
+        &mut DirectionalLight,
+        With<SunLight>,
+    >,
 ) {
     match kind {
         DebugMenuSliderKind::Fov => {
@@ -157,7 +197,10 @@ pub(crate) fn apply_slider_value(
     }
 }
 
-fn current_slider_value(kind: DebugMenuSliderKind, debug_state: &DebugMenuState) -> f32 {
+fn current_slider_value(
+    kind: DebugMenuSliderKind,
+    debug_state: &DebugMenuState,
+) -> f32 {
     match kind {
         DebugMenuSliderKind::Fov => debug_state.settings.fov_degrees,
         DebugMenuSliderKind::GravityY => debug_state.settings.gravity.y,
@@ -175,19 +218,36 @@ fn current_slider_value(kind: DebugMenuSliderKind, debug_state: &DebugMenuState)
 
 fn apply_fov(
     debug_state: &DebugMenuState,
-    projections: &mut Query<&mut Projection, With<SceneCamera>>,
-    zoom_state: &mut Option<ResMut<ZoomState>>,
+    projections: &mut Query<
+        &mut Projection,
+        With<SceneCamera>,
+    >,
+    zoom_state: &mut Option<
+        ResMut<ZoomState>,
+    >,
 ) {
-    let fov_radians = debug_state.settings.fov_degrees.to_radians();
-    if let Some(zoom_state) = zoom_state.as_mut() {
-        zoom_state.base_fov = Some(fov_radians);
+    let fov_radians = debug_state
+        .settings
+        .fov_degrees
+        .to_radians();
+    if let Some(zoom_state) =
+        zoom_state.as_mut()
+    {
+        zoom_state.base_fov =
+            Some(fov_radians);
         if zoom_state.active {
             return;
         }
     }
-    for mut projection in projections.iter_mut() {
-        if let Projection::Perspective(ref mut perspective) = *projection {
-            perspective.fov = fov_radians;
+    for mut projection in
+        projections.iter_mut()
+    {
+        if let Projection::Perspective(
+            ref mut perspective,
+        ) = *projection
+        {
+            perspective.fov =
+                fov_radians;
         }
     }
 }
@@ -195,41 +255,69 @@ fn apply_fov(
 fn apply_bloom_settings(
     debug_state: &DebugMenuState,
     commands: &mut Commands,
-    cameras: &Query<Entity, With<SceneCamera>>,
+    cameras: &Query<
+        Entity,
+        With<SceneCamera>,
+    >,
 ) {
-    let Ok(camera) = cameras.single() else {
+    let Ok(camera) = cameras.single()
+    else {
         return;
     };
-    if debug_state.settings.bloom_enabled {
+    if debug_state
+        .settings
+        .bloom_enabled
+    {
         let mut bloom = debug_state
             .settings
             .bloom
             .clone()
-            .unwrap_or_else(Bloom::default);
-        bloom.intensity = debug_state.settings.bloom_intensity;
-        bloom.prefilter.threshold = debug_state.settings.bloom_threshold;
+            .unwrap_or_else(
+                Bloom::default,
+            );
+        bloom.intensity = debug_state
+            .settings
+            .bloom_intensity;
+        bloom.prefilter.threshold =
+            debug_state
+                .settings
+                .bloom_threshold;
         bloom.prefilter.threshold_softness = debug_state.settings.bloom_threshold_softness;
-        commands.entity(camera).insert(bloom);
+        commands
+            .entity(camera)
+            .insert(bloom);
     } else {
-        commands.entity(camera).remove::<Bloom>();
+        commands
+            .entity(camera)
+            .remove::<Bloom>();
     }
 }
 
 fn apply_fog_settings(
     debug_state: &DebugMenuState,
     commands: &mut Commands,
-    cameras: &Query<Entity, With<SceneCamera>>,
+    cameras: &Query<
+        Entity,
+        With<SceneCamera>,
+    >,
 ) {
-    let Ok(camera) = cameras.single() else {
+    let Ok(camera) = cameras.single()
+    else {
         return;
     };
-    if debug_state.settings.fog_enabled {
+    if debug_state.settings.fog_enabled
+    {
         let mut fog = debug_state
             .settings
             .fog
             .clone()
-            .unwrap_or_else(DistanceFog::default);
-        let alpha = debug_state.settings.fog_alpha.clamp(0.0, 1.0);
+            .unwrap_or_else(
+                DistanceFog::default,
+            );
+        let alpha = debug_state
+            .settings
+            .fog_alpha
+            .clamp(0.0, 1.0);
         fog.color.set_alpha(alpha);
         fog.falloff = match debug_state.settings.fog_mode.as_str() {
             "exponential" => FogFalloff::Exponential {
@@ -243,49 +331,103 @@ fn apply_fog_settings(
                 end: debug_state.settings.fog_linear_end,
             },
         };
-        commands.entity(camera).insert(fog);
+        commands
+            .entity(camera)
+            .insert(fog);
     } else {
-        commands.entity(camera).remove::<DistanceFog>();
+        commands
+            .entity(camera)
+            .remove::<DistanceFog>();
     }
 }
 
 fn apply_gravity(
     debug_state: &DebugMenuState,
-    rapier_config: &mut Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
+    rapier_config: &mut Query<
+        &mut RapierConfiguration,
+        With<DefaultRapierContext>,
+    >,
 ) {
-    if let Ok(mut config) = rapier_config.single_mut() {
-        config.gravity = debug_state.settings.gravity;
+    if let Ok(mut config) =
+        rapier_config.single_mut()
+    {
+        config.gravity = debug_state
+            .settings
+            .gravity;
     }
 }
 
 fn apply_physics_toggle(
     debug_state: &DebugMenuState,
-    rapier_config: &mut Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
+    rapier_config: &mut Query<
+        &mut RapierConfiguration,
+        With<DefaultRapierContext>,
+    >,
 ) {
-    if let Ok(mut config) = rapier_config.single_mut() {
-        config.physics_pipeline_active = debug_state.settings.physics_enabled;
+    if let Ok(mut config) =
+        rapier_config.single_mut()
+    {
+        config
+            .physics_pipeline_active =
+            debug_state
+                .settings
+                .physics_enabled;
     }
 }
 
-fn apply_sun(debug_state: &DebugMenuState, sun: &mut Query<&mut DirectionalLight, With<SunLight>>) {
-    if let Ok(mut light) = sun.single_mut() {
-        light.illuminance = debug_state.settings.sun_brightness;
-        light.shadows_enabled = debug_state.settings.sun_shadows;
+fn apply_sun(
+    debug_state: &DebugMenuState,
+    sun: &mut Query<
+        &mut DirectionalLight,
+        With<SunLight>,
+    >,
+) {
+    if let Ok(mut light) =
+        sun.single_mut()
+    {
+        light.illuminance = debug_state
+            .settings
+            .sun_brightness;
+        light.shadows_enabled =
+            debug_state
+                .settings
+                .sun_shadows;
     }
 }
 
-fn next_quality_mode(current: &str) -> String {
-    match current.trim().to_ascii_lowercase().as_str() {
-        "performance" => "balanced".to_string(),
-        "balanced" => "quality".to_string(),
+fn next_quality_mode(
+    current: &str,
+) -> String {
+    match current
+        .trim()
+        .to_ascii_lowercase()
+        .as_str()
+    {
+        "performance" => {
+            "balanced".to_string()
+        }
+        "balanced" => {
+            "quality".to_string()
+        }
         _ => "performance".to_string(),
     }
 }
 
-fn next_fog_mode(current: &str) -> String {
-    match current.trim().to_ascii_lowercase().as_str() {
-        "exponential" => "exponential_squared".to_string(),
-        "exponential_squared" => "linear".to_string(),
+fn next_fog_mode(
+    current: &str,
+) -> String {
+    match current
+        .trim()
+        .to_ascii_lowercase()
+        .as_str()
+    {
+        "exponential" => {
+            "exponential_squared"
+                .to_string()
+        }
+        "exponential_squared" => {
+            "linear".to_string()
+        }
         _ => "exponential".to_string(),
     }
 }

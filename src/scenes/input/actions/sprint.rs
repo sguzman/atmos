@@ -1,9 +1,14 @@
 use bevy::prelude::{Res, ResMut};
 
-use super::super::types::{ActionStates, SceneSprintConfig, SprintState};
+use super::super::types::{
+    ActionStates, SceneSprintConfig,
+    SprintState,
+};
 
 pub fn apply_sprint_toggle(
-    config: Option<Res<SceneSprintConfig>>,
+    config: Option<
+        Res<SceneSprintConfig>,
+    >,
     states: Option<Res<ActionStates>>,
     state: Option<ResMut<SprintState>>,
 ) {
@@ -16,7 +21,11 @@ pub fn apply_sprint_toggle(
     let Some(mut state) = state else {
         return;
     };
-    if config.action.toggle && states.get(&config.id).just_pressed {
+    if config.action.toggle
+        && states
+            .get(&config.id)
+            .just_pressed
+    {
         state.active = !state.active;
     }
 }

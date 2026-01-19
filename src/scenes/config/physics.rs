@@ -1,20 +1,28 @@
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, Default, Clone)]
+#[derive(
+    Debug, Deserialize, Default, Clone,
+)]
 pub struct PhysicsConfig {
     #[serde(default)]
     pub enabled: bool,
-    #[serde(default = "default_body_type")]
+    #[serde(
+        default = "default_body_type"
+    )]
     pub body_type: String,
     #[serde(default = "default_mass")]
     pub mass: f32,
     #[serde(default)]
     pub restitution: f32,
-    #[serde(default = "default_friction")]
+    #[serde(
+        default = "default_friction"
+    )]
     pub friction: f32,
 }
 
-#[derive(Debug, Deserialize, Default, Clone)]
+#[derive(
+    Debug, Deserialize, Default, Clone,
+)]
 pub struct WorldPhysicsConfig {
     #[serde(default)]
     pub substeps: Option<u32>,

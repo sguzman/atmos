@@ -5,7 +5,8 @@ pub struct InputConfig {
     #[serde(default)]
     pub camera: CameraInputConfig,
     #[serde(default)]
-    pub overlays: Vec<OverlayInputConfig>,
+    pub overlays:
+        Vec<OverlayInputConfig>,
 }
 
 impl Default for InputConfig {
@@ -45,27 +46,42 @@ pub struct OverlayInputConfig {
 
 #[derive(Debug, Deserialize)]
 pub struct MovementConfig {
-    #[serde(default = "default_camera_control")]
+    #[serde(
+        default = "default_camera_control"
+    )]
     pub control: String,
-    #[serde(default = "default_move_speed")]
+    #[serde(
+        default = "default_move_speed"
+    )]
     pub speed: f32,
-    #[serde(default = "default_forward_key")]
+    #[serde(
+        default = "default_forward_key"
+    )]
     pub forward: String,
-    #[serde(default = "default_backward_key")]
+    #[serde(
+        default = "default_backward_key"
+    )]
     pub backward: String,
-    #[serde(default = "default_left_key")]
+    #[serde(
+        default = "default_left_key"
+    )]
     pub left: String,
-    #[serde(default = "default_right_key")]
+    #[serde(
+        default = "default_right_key"
+    )]
     pub right: String,
 }
 
 impl Default for MovementConfig {
     fn default() -> Self {
         Self {
-            control: default_camera_control(),
+            control:
+                default_camera_control(),
             speed: default_move_speed(),
-            forward: default_forward_key(),
-            backward: default_backward_key(),
+            forward:
+                default_forward_key(),
+            backward:
+                default_backward_key(),
             left: default_left_key(),
             right: default_right_key(),
         }
@@ -74,26 +90,41 @@ impl Default for MovementConfig {
 
 #[derive(Debug, Deserialize)]
 pub struct CameraRotationConfig {
-    #[serde(default = "default_rotation_speed")]
+    #[serde(
+        default = "default_rotation_speed"
+    )]
     pub degrees_per_second: f32,
-    #[serde(default = "default_yaw_left_key")]
+    #[serde(
+        default = "default_yaw_left_key"
+    )]
     pub yaw_left: String,
-    #[serde(default = "default_yaw_right_key")]
+    #[serde(
+        default = "default_yaw_right_key"
+    )]
     pub yaw_right: String,
-    #[serde(default = "default_pitch_up_key")]
+    #[serde(
+        default = "default_pitch_up_key"
+    )]
     pub pitch_up: String,
-    #[serde(default = "default_pitch_down_key")]
+    #[serde(
+        default = "default_pitch_down_key"
+    )]
     pub pitch_down: String,
 }
 
 impl Default for CameraRotationConfig {
     fn default() -> Self {
         Self {
-            degrees_per_second: default_rotation_speed(),
-            yaw_left: default_yaw_left_key(),
-            yaw_right: default_yaw_right_key(),
-            pitch_up: default_pitch_up_key(),
-            pitch_down: default_pitch_down_key(),
+            degrees_per_second:
+                default_rotation_speed(),
+            yaw_left:
+                default_yaw_left_key(),
+            yaw_right:
+                default_yaw_right_key(),
+            pitch_up:
+                default_pitch_up_key(),
+            pitch_down:
+                default_pitch_down_key(),
         }
     }
 }

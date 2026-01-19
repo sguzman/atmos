@@ -93,6 +93,18 @@ thickness = 0.04
 opacity = 1.0
 
 [[actions]]
+id = "cut"
+type = "cut"
+
+[actions.params]
+name = "cut"
+angle_step_degrees = 15.0
+rotation_sensitivity = 0.01
+preview_size = 1.6
+preview_thickness = 0.02
+preview_color = "hotpink"
+
+[[actions]]
 id = "reload"
 type = "reload"
 
@@ -268,6 +280,13 @@ action = "grab"
 type = "key"
 key = "g"
 mode = "press"
+
+[[triggers]]
+id = "cut_mode"
+action = "cut"
+type = "key"
+key = "c"
+mode = "hold"
 
 [[triggers]]
 id = "reload_r"

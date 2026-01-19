@@ -2,14 +2,19 @@
 
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(
+    Debug, Deserialize, Default,
+)]
 pub struct OverlayConfig {
     #[serde(default)]
     pub elements: Vec<OverlayElement>,
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(
+    tag = "kind",
+    rename_all = "snake_case"
+)]
 pub enum OverlayElement {
     Text(TextOverlay),
     Image(ImageOverlay),
@@ -17,7 +22,9 @@ pub enum OverlayElement {
 
 impl Default for OverlayElement {
     fn default() -> Self {
-        OverlayElement::Text(TextOverlay::default())
+        OverlayElement::Text(
+            TextOverlay::default(),
+        )
     }
 }
 
@@ -26,11 +33,17 @@ pub struct TextOverlay {
     #[serde(flatten)]
     pub common: OverlayCommon,
     pub content: String,
-    #[serde(default = "default_text_color")]
+    #[serde(
+        default = "default_text_color"
+    )]
     pub color: String,
-    #[serde(default = "default_font_size")]
+    #[serde(
+        default = "default_font_size"
+    )]
     pub font_size: f32,
-    #[serde(default = "default_font_family")]
+    #[serde(
+        default = "default_font_family"
+    )]
     pub font_family: String,
     #[serde(default)]
     pub font_weight: Option<String>,
@@ -39,11 +52,14 @@ pub struct TextOverlay {
 impl Default for TextOverlay {
     fn default() -> Self {
         Self {
-            common: OverlayCommon::default(),
+            common:
+                OverlayCommon::default(),
             content: String::new(),
             color: default_text_color(),
-            font_size: default_font_size(),
-            font_family: default_font_family(),
+            font_size:
+                default_font_size(),
+            font_family:
+                default_font_family(),
             font_weight: None,
         }
     }
@@ -65,7 +81,8 @@ pub struct ImageOverlay {
 impl Default for ImageOverlay {
     fn default() -> Self {
         Self {
-            common: OverlayCommon::default(),
+            common:
+                OverlayCommon::default(),
             source: String::new(),
             width: None,
             height: None,
@@ -74,11 +91,17 @@ impl Default for ImageOverlay {
     }
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(
+    Debug, Deserialize, Default,
+)]
 pub struct OverlayCommon {
-    #[serde(default = "default_visible")]
+    #[serde(
+        default = "default_visible"
+    )]
     pub visible: bool,
-    #[serde(default = "default_opacity")]
+    #[serde(
+        default = "default_opacity"
+    )]
     pub opacity: f32,
     #[serde(default)]
     pub anchor: OverlayAnchor,

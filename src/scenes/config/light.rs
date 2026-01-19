@@ -3,7 +3,14 @@ use serde::Deserialize;
 use super::colors::default_color_name;
 use super::transforms::PositionConfig;
 
-#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    Debug,
+    Deserialize,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum LightKind {
     Point,
@@ -21,19 +28,27 @@ impl Default for LightKind {
 pub struct LightEntry {
     #[serde(default)]
     pub kind: LightKind,
-    #[serde(default = "default_color_name")]
+    #[serde(
+        default = "default_color_name"
+    )]
     pub color: String,
-    #[serde(default = "default_light_intensity")]
+    #[serde(
+        default = "default_light_intensity"
+    )]
     pub intensity: f32,
     #[serde(default)]
     pub range: Option<f32>,
-    #[serde(default = "default_light_shadows")]
+    #[serde(
+        default = "default_light_shadows"
+    )]
     pub shadows: bool,
     #[serde(default)]
     pub position: PositionConfig,
     #[serde(default)]
     pub look_at: Option<PositionConfig>,
-    #[serde(default = "default_light_brightness")]
+    #[serde(
+        default = "default_light_brightness"
+    )]
     pub brightness: f32, // used for ambient
     #[serde(default)]
     pub radius: Option<f32>,
@@ -46,7 +61,9 @@ impl LightEntry {
         Self {
             kind: LightKind::Point,
             color: default_color_name(),
-            intensity: default_light_intensity(),
+            intensity:
+                default_light_intensity(
+                ),
             range: None,
             shadows: true,
             position: PositionConfig {
@@ -54,14 +71,20 @@ impl LightEntry {
                 y: 8.0,
                 z: 4.0,
             },
-            look_at: Some(PositionConfig {
-                x: 0.0,
-                y: 0.5,
-                z: 0.0,
-            }),
-            brightness: default_light_brightness(),
+            look_at: Some(
+                PositionConfig {
+                    x: 0.0,
+                    y: 0.5,
+                    z: 0.0,
+                },
+            ),
+            brightness:
+                default_light_brightness(
+                ),
             radius: None,
-            offset: PositionConfig::default(),
+            offset:
+                PositionConfig::default(
+                ),
         }
     }
 }

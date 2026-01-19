@@ -9,12 +9,24 @@ pub struct SceneBounds {
     pub max: Vec3,
 }
 
-impl From<BoundingBoxConfig> for SceneBounds {
-    fn from(config: BoundingBoxConfig) -> Self {
+impl From<BoundingBoxConfig>
+    for SceneBounds
+{
+    fn from(
+        config: BoundingBoxConfig,
+    ) -> Self {
         Self {
             shape: config.shape,
-            min: Vec3::new(config.x.min, config.y.min, config.z.min),
-            max: Vec3::new(config.x.max, config.y.max, config.z.max),
+            min: Vec3::new(
+                config.x.min,
+                config.y.min,
+                config.z.min,
+            ),
+            max: Vec3::new(
+                config.x.max,
+                config.y.max,
+                config.z.max,
+            ),
         }
     }
 }
@@ -25,12 +37,20 @@ pub struct DespawnOutsideBounds;
 pub fn despawn_out_of_bounds(
     bounds: Option<Res<SceneBounds>>,
     mut commands: Commands,
-    query: Query<(Entity, &Transform), With<DespawnOutsideBounds>>,
+    query: Query<
+        (Entity, &Transform),
+        With<DespawnOutsideBounds>,
+    >,
 ) {
     let Some(bounds) = bounds else {
         return;
     };
-    if bounds.shape.trim().to_ascii_lowercase() != "rectangle" {
+    if bounds
+        .shape
+        .trim()
+        .to_ascii_lowercase()
+        != "rectangle"
+    {
         return;
     }
     for (entity, transform) in &query {

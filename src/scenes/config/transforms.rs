@@ -54,7 +54,9 @@ impl Default for CubeRotationConfig {
     }
 }
 
-#[derive(Debug, Deserialize, Default, Clone)]
+#[derive(
+    Debug, Deserialize, Default, Clone,
+)]
 pub struct PositionConfig {
     #[serde(default)]
     pub x: f32,

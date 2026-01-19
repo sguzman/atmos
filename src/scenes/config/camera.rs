@@ -5,7 +5,9 @@ use super::transforms::Vec3Config;
 #[derive(Debug, Deserialize)]
 pub struct CameraConfig {
     pub name: String,
-    #[serde(default = "default_camera_fov")]
+    #[serde(
+        default = "default_camera_fov"
+    )]
     pub fov: f32,
     #[serde(default)]
     pub transform: TransformConfig,
@@ -14,34 +16,47 @@ pub struct CameraConfig {
 impl Default for CameraConfig {
     fn default() -> Self {
         Self {
-            name: "main_camera".to_string(),
+            name: "main_camera"
+                .to_string(),
             fov: default_camera_fov(),
-            transform: TransformConfig::default(),
+            transform:
+                TransformConfig::default(
+                ),
         }
     }
 }
 
 #[derive(Debug, Deserialize)]
 pub struct TransformConfig {
-    #[serde(default = "default_camera_position")]
+    #[serde(
+        default = "default_camera_position"
+    )]
     pub position: Vec3Config,
-    #[serde(default = "default_camera_look_at")]
+    #[serde(
+        default = "default_camera_look_at"
+    )]
     pub look_at: Vec3Config,
-    #[serde(default = "default_camera_up")]
+    #[serde(
+        default = "default_camera_up"
+    )]
     pub up: Vec3Config,
 }
 
 impl Default for TransformConfig {
     fn default() -> Self {
         Self {
-            position: default_camera_position(),
-            look_at: default_camera_look_at(),
+            position:
+                default_camera_position(
+                ),
+            look_at:
+                default_camera_look_at(),
             up: default_camera_up(),
         }
     }
 }
 
-fn default_camera_position() -> Vec3Config {
+fn default_camera_position()
+-> Vec3Config {
     Vec3Config {
         x: -2.5,
         y: 4.5,
@@ -49,7 +64,8 @@ fn default_camera_position() -> Vec3Config {
     }
 }
 
-fn default_camera_look_at() -> Vec3Config {
+fn default_camera_look_at() -> Vec3Config
+{
     Vec3Config {
         x: 0.0,
         y: 0.0,

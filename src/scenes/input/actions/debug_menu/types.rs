@@ -10,7 +10,9 @@ pub(crate) struct DebugMenuButton {
     pub(crate) action: DebugMenuAction,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(
+    Clone, Copy, PartialEq, Eq,
+)]
 pub(crate) enum DebugMenuSliderKind {
     Fov,
     GravityY,
@@ -60,9 +62,11 @@ pub(crate) struct DebugMenuEntry {
     pub(crate) action: DebugMenuAction,
 }
 
-pub(crate) struct DebugMenuSliderConfig {
+pub(crate) struct DebugMenuSliderConfig
+{
     pub(crate) label: String,
-    pub(crate) kind: DebugMenuSliderKind,
+    pub(crate) kind:
+        DebugMenuSliderKind,
     pub(crate) min: f32,
     pub(crate) max: f32,
     pub(crate) value: f32,

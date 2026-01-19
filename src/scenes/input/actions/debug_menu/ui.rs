@@ -1,11 +1,17 @@
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 
-use crate::scenes::input::{DebugMenuPage, DebugMenuState};
+use crate::scenes::input::{
+    DebugMenuPage, DebugMenuState,
+};
 
 use super::types::{
-    DebugMenuAction, DebugMenuAdjustStep, DebugMenuButton, DebugMenuEntry, DebugMenuSliderConfig,
-    DebugMenuSliderKind, DebugMenuUiTag,
+    DebugMenuAction,
+    DebugMenuAdjustStep,
+    DebugMenuButton, DebugMenuEntry,
+    DebugMenuSliderConfig,
+    DebugMenuSliderKind,
+    DebugMenuUiTag,
 };
 
 pub(crate) fn spawn_debug_menu_ui(
@@ -13,8 +19,12 @@ pub(crate) fn spawn_debug_menu_ui(
     asset_server: &AssetServer,
     debug_state: &DebugMenuState,
 ) {
-    let page = current_page(debug_state);
-    let entries = entries_for_page(debug_state, page);
+    let page =
+        current_page(debug_state);
+    let entries = entries_for_page(
+        debug_state,
+        page,
+    );
 
     let container = commands
         .spawn((
@@ -190,11 +200,20 @@ pub(crate) fn spawn_debug_menu_ui(
     });
 }
 
-fn current_page(state: &DebugMenuState) -> DebugMenuPage {
-    state.stack.last().copied().unwrap_or(DebugMenuPage::Root)
+fn current_page(
+    state: &DebugMenuState,
+) -> DebugMenuPage {
+    state
+        .stack
+        .last()
+        .copied()
+        .unwrap_or(DebugMenuPage::Root)
 }
 
-fn entries_for_page(state: &DebugMenuState, page: DebugMenuPage) -> Vec<DebugMenuEntry> {
+fn entries_for_page(
+    state: &DebugMenuState,
+    page: DebugMenuPage,
+) -> Vec<DebugMenuEntry> {
     let mut entries = Vec::new();
     match page {
         DebugMenuPage::Root => {
@@ -326,7 +345,9 @@ fn entries_for_page(state: &DebugMenuState, page: DebugMenuPage) -> Vec<DebugMen
     entries
 }
 
-fn page_title(page: DebugMenuPage) -> &'static str {
+fn page_title(
+    page: DebugMenuPage,
+) -> &'static str {
     match page {
         DebugMenuPage::Root => "Root",
         DebugMenuPage::Camera => "Camera",
@@ -344,7 +365,10 @@ fn on_off(value: bool) -> &'static str {
     if value { "On" } else { "Off" }
 }
 
-fn sliders_for_page(state: &DebugMenuState, page: DebugMenuPage) -> Vec<DebugMenuSliderConfig> {
+fn sliders_for_page(
+    state: &DebugMenuState,
+    page: DebugMenuPage,
+) -> Vec<DebugMenuSliderConfig> {
     let mut sliders = Vec::new();
     match page {
         DebugMenuPage::Camera => {
@@ -366,7 +390,10 @@ fn sliders_for_page(state: &DebugMenuState, page: DebugMenuPage) -> Vec<DebugMen
             ));
         }
         DebugMenuPage::Sun => {
-            if state.settings.sun_present {
+            if state
+                .settings
+                .sun_present
+            {
                 sliders.push(DebugMenuSliderConfig::new(
                     "Brightness",
                     DebugMenuSliderKind::SunBrightness,
@@ -443,7 +470,9 @@ fn sliders_for_page(state: &DebugMenuState, page: DebugMenuPage) -> Vec<DebugMen
     sliders
 }
 
-fn default_font(asset_server: &AssetServer) -> Handle<Font> {
+fn default_font(
+    asset_server: &AssetServer,
+) -> Handle<Font> {
     let _ = asset_server;
     Handle::<Font>::default()
 }
