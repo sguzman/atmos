@@ -141,7 +141,9 @@ fn ensure_preview_assets(
                 .preview_color,
         )
         .unwrap_or([255, 0, 255]);
-        let alpha = (0.35_f32
+        let alpha = (config
+            .action
+            .preview_opacity
             * 255.0_f32)
             .clamp(0.0_f32, 255.0_f32)
             as u8;
@@ -711,6 +713,7 @@ fn perform_cut(
         &positive_tris,
         &pos_key,
         max_dim,
+        plane_normal,
     );
     let (
         neg_handle,
@@ -722,6 +725,7 @@ fn perform_cut(
         &negative_tris,
         &neg_key,
         max_dim,
+        -plane_normal,
     );
 
     let pos_collider = Collider::trimesh(
@@ -1036,6 +1040,7 @@ fn ensure_cached_mesh(
     triangles: &[[Vec3; 3]],
     key: &str,
     max_dim: f32,
+    outward_hint: Vec3,
 ) -> (
     Handle<Mesh>,
     Vec<[f32; 3]>,
@@ -1060,7 +1065,7 @@ fn ensure_cached_mesh(
         );
     }
     let (mesh, positions, indices, _) =
-        build_mesh_data(triangles, max_dim);
+        build_mesh_data(triangles, max_dim, outward_hint);
     if let Err(err) =
         cache_mesh(settings, key, &mesh)
     {
@@ -1075,6 +1080,7 @@ fn ensure_cached_mesh(
 fn build_mesh_data(
     triangles: &[[Vec3; 3]],
     max_dim: f32,
+    outward_hint: Vec3,
 ) -> (
     Mesh,
     Vec<[f32; 3]>,
@@ -1089,10 +1095,30 @@ fn build_mesh_data(
     let mut next_index = 0u32;
     for tri in triangles {
         let mut tri_vertices = *tri;
+        let center =
+            (tri_vertices[0]
+                + tri_vertices[1]
+                + tri_vertices[2])
+                / 3.0;
+        let mut reference = if center
+            .length_squared()
+            > 1e-6
+        {
+            center
+        } else {
+            outward_hint
+        };
+        if reference.length_squared()
+            < 1e-6
+        {
+            reference = Vec3::Y;
+        }
         let mut edge1 =
-            tri_vertices[1] - tri_vertices[0];
+            tri_vertices[1]
+                - tri_vertices[0];
         let mut edge2 =
-            tri_vertices[2] - tri_vertices[0];
+            tri_vertices[2]
+                - tri_vertices[0];
         let mut normal =
             edge1.cross(edge2);
         if normal.length_squared()
@@ -1100,16 +1126,9 @@ fn build_mesh_data(
         {
             continue;
         }
-        let center =
-            (tri_vertices[0]
-                + tri_vertices[1]
-                + tri_vertices[2])
-                / 3.0;
-        if center.length_squared()
-            > 1e-6
-            && normal
-                .dot(center)
-                < 0.0
+        normal = normal.normalize();
+        if normal.dot(reference)
+            < 0.0
         {
             tri_vertices.swap(1, 2);
             edge1 =
@@ -1118,9 +1137,15 @@ fn build_mesh_data(
             edge2 =
                 tri_vertices[2]
                     - tri_vertices[0];
-            normal = edge1.cross(edge2);
+            normal =
+                edge1.cross(edge2);
+            if normal.length_squared()
+                < 1e-6
+            {
+                continue;
+            }
+            normal = normal.normalize();
         }
-        normal = normal.normalize();
         for vertex in tri_vertices.iter() {
             positions.push([
                 vertex.x, vertex.y,

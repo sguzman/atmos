@@ -106,6 +106,7 @@ preview_color = "hotpink"
 mode = "hold"
 wheel_rotation_sensitivity = 1.0
 confirm_button = "right"
+preview_opacity = 0.8
 
 [[actions]]
 id = "reload"

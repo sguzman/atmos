@@ -140,6 +140,7 @@
         "preview_size": { "type": "number" },
         "preview_thickness": { "type": "number" },
         "preview_color": { "type": "string" },
+        "preview_opacity": { "type": "number" },
         "mode": {
           "type": "string",
           "enum": ["hold", "toggle"]

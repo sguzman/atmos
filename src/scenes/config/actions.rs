@@ -273,6 +273,8 @@ pub struct CutActionConfig {
     pub wheel_rotation_sensitivity: f32,
     #[serde(default = "default_cut_confirm_button")]
     pub confirm_button: String,
+    #[serde(default = "default_cut_preview_opacity")]
+    pub preview_opacity: f32,
 }
 
 impl Default for CutActionConfig {
@@ -288,6 +290,7 @@ impl Default for CutActionConfig {
             mode: default_cut_activation_mode(),
             wheel_rotation_sensitivity: default_cut_wheel_sensitivity(),
             confirm_button: default_cut_confirm_button(),
+            preview_opacity: default_cut_preview_opacity(),
         }
     }
 }
@@ -302,6 +305,10 @@ fn default_cut_wheel_sensitivity() -> f32 {
 
 fn default_cut_confirm_button() -> String {
     "right".to_string()
+}
+
+fn default_cut_preview_opacity() -> f32 {
+    0.7
 }
 
 #[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
