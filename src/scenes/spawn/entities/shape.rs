@@ -127,8 +127,12 @@ pub(in crate::scenes::spawn) fn spawn_shape_instance(
                     ShapeKind::Box
                 )
             {
+                let mut cut_shape =
+                    shape.clone();
+                cut_shape.dimensions =
+                    Some(dimensions);
                 entity.insert(CuttableShape {
-                    shape: shape.clone(),
+                    shape: cut_shape,
                     physics: physics.cloned(),
                     material: material_handle.clone(),
                 });

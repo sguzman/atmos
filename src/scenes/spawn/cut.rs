@@ -688,16 +688,11 @@ fn perform_cut(
     _config: &SceneCutConfig,
 ) -> bool {
     const CUT_CACHE_VERSION: &str = "v6";
-    let Some(dimensions) = cuttable
+    let dimensions = cuttable
         .shape
         .dimensions
-        .as_ref()
-    else {
-        warn!(
-            "Cuttable shape lacks dimensions."
-        );
-        return false;
-    };
+        .clone()
+        .unwrap_or_default();
 
     let half_extents = Vec3::new(
         dimensions.width * 0.5,
