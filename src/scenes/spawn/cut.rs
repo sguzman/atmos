@@ -163,6 +163,8 @@ fn ensure_preview_assets(
                 unlit: true,
                 alpha_mode:
                     AlphaMode::Blend,
+                // Avoid z-fighting with the grab outline / hover highlight.
+                depth_bias: 1.0,
                 cull_mode: None,
                 ..default()
             },
@@ -577,7 +579,7 @@ fn perform_cut(
     angle: f32,
     config: &SceneCutConfig,
 ) -> bool {
-    const CUT_CACHE_VERSION: &str = "v4";
+    const CUT_CACHE_VERSION: &str = "v5";
     let Some(dimensions) = cuttable
         .shape
         .dimensions
@@ -600,16 +602,14 @@ fn perform_cut(
     let cube_tris =
         build_cube_triangles(&vertices);
 
-    let world_normal = Vec3::new(
+    // The preview plane rotates in the shape's local-space (around local Y),
+    // so the actual cut plane must match that convention.
+    let local_normal = Vec3::new(
         angle.sin(),
         0.0,
         angle.cos(),
     );
-    let local_normal =
-        transform.rotation().inverse()
-            * world_normal;
-    if local_normal.length_squared()
-        < 1e-6
+    if local_normal.length_squared() < 1e-6
     {
         warn!(
             "Plane normal is degenerate; cannot cut."
