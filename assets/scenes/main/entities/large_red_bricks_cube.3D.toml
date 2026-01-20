@@ -2,6 +2,7 @@ name = "large_red_bricks_cube"
 
 [shape]
 kind = "box"
+cuttable = true
 [shape.dimensions]
 width = 1.0
 height = 1.0

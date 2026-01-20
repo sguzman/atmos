@@ -3,6 +3,7 @@ name = "billboard"
 [shape]
 kind = "box"
 color = "pink"
+cuttable = true
 [shape.dimensions]
 width = 0.1
 height = 5.0

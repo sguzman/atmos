@@ -4,6 +4,7 @@ name = "pillar_body"
 kind = "box"
 color = "darkslategray"
 dimensions = { width = 0.8, height = 4.0, depth = 0.8 }
+cuttable = true
 
 [physics]
 enabled = true
