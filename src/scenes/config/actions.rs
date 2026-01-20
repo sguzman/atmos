@@ -322,16 +322,24 @@ fn default_cut_preview_emissive() -> f32 {
 #[serde(default)]
 pub struct CutAxisActionConfig {
     pub name: String,
-    pub step_degrees: f32,
+    pub angle_step_degrees_override:
+        Option<f32>,
+    #[serde(default = "default_cut_axis_reset_angle_on_switch")]
+    pub reset_angle_on_switch: bool,
 }
 
 impl Default for CutAxisActionConfig {
     fn default() -> Self {
         Self {
             name: "cut_axis".to_string(),
-            step_degrees: 90.0,
+            angle_step_degrees_override: None,
+            reset_angle_on_switch: default_cut_axis_reset_angle_on_switch(),
         }
     }
+}
+
+fn default_cut_axis_reset_angle_on_switch() -> bool {
+    true
 }
 
 #[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]

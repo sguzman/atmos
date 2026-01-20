@@ -155,7 +155,8 @@
       "additionalProperties": false,
       "properties": {
         "name": { "type": "string" },
-        "step_degrees": { "type": "number" }
+        "angle_step_degrees_override": { "type": ["number", "null"] },
+        "reset_angle_on_switch": { "type": "boolean" }
       }
     },
     "reloadParams": {

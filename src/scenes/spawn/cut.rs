@@ -63,17 +63,28 @@ pub struct CutState {
     pub preview: Option<Entity>,
     pub hovered: Option<Entity>,
     pub angle_index: i32,
+    pub axis: CutRotationAxis,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CutRotationAxis {
+    Yaw,
+    Pitch,
+    Roll,
+}
+
+impl Default for CutRotationAxis {
+    fn default() -> Self {
+        CutRotationAxis::Yaw
+    }
 }
 
 impl CutState {
     fn step_count(
         &self,
-        config: &SceneCutConfig,
+        step_degrees: f32,
     ) -> i32 {
-        let step = config
-            .action
-            .angle_step_degrees
-            .max(1.0_f32);
+        let step = step_degrees.max(1.0_f32);
         (360.0_f32 / step)
             .round()
             .max(1.0) as i32
@@ -81,13 +92,10 @@ impl CutState {
 
     fn angle_radians(
         &self,
-        config: &SceneCutConfig,
+        step_degrees: f32,
     ) -> f32 {
         let angle_deg =
-            (self.angle_index as f32)
-                * config
-                    .action
-                    .angle_step_degrees;
+            (self.angle_index as f32) * step_degrees;
         angle_deg.to_radians()
     }
 
@@ -101,6 +109,51 @@ impl CutState {
             + total_steps)
             % total_steps;
         self.angle_index = wrapped;
+    }
+}
+
+fn cut_axis_rotations(
+    axis: CutRotationAxis,
+    angle: f32,
+) -> (Quat, Quat) {
+    let axis_rotation = match axis {
+        CutRotationAxis::Yaw => {
+            Quat::from_rotation_y(angle)
+        }
+        CutRotationAxis::Pitch => {
+            Quat::from_rotation_x(angle)
+        }
+        CutRotationAxis::Roll => {
+            Quat::from_rotation_z(angle)
+        }
+    };
+    let base_rotation = match axis {
+        // The preview mesh is a thin slab with normal along +Z.
+        // Roll mode would not change that normal, so pre-rotate
+        // the slab so its normal starts along +Y.
+        CutRotationAxis::Roll => {
+            Quat::from_rotation_x(
+                -std::f32::consts::FRAC_PI_2,
+            )
+        }
+        _ => Quat::IDENTITY,
+    };
+    (axis_rotation, base_rotation)
+}
+
+fn cut_plane_normal_local(
+    axis: CutRotationAxis,
+    angle: f32,
+) -> Vec3 {
+    let (axis_rotation, base_rotation) =
+        cut_axis_rotations(axis, angle);
+    let local =
+        (axis_rotation * base_rotation)
+            * Vec3::Z;
+    if local.length_squared() < 1e-6 {
+        Vec3::Z
+    } else {
+        local.normalize()
     }
 }
 
@@ -397,36 +450,37 @@ pub fn update_cut_preview(
         cut_state.angle_index = 0;
     }
 
+    let effective_step_degrees =
+        cut_axis_config
+            .as_ref()
+            .and_then(|axis| {
+                axis.action
+                    .angle_step_degrees_override
+            })
+            .unwrap_or(config.action.angle_step_degrees);
+
     if let Some(axis_config) =
         cut_axis_config.as_ref()
     {
         let axis_state =
             states.get(&axis_config.id);
         if axis_state.just_pressed {
-            let step_degrees = axis_config
-                .action
-                .step_degrees;
-            if step_degrees.abs() > 0.0 {
-                let step_count = cut_state
-                    .step_count(&config);
-                let delta_steps =
-                    (step_degrees
-                        / config
-                            .action
-                            .angle_step_degrees
-                            .max(1.0))
-                        .round()
-                        as i32;
-                if delta_steps != 0 {
-                    let new_index =
-                        cut_state.angle_index
-                            + delta_steps;
-                    cut_state
-                        .set_angle_by_step(
-                            new_index,
-                            step_count,
-                        );
+            cut_state.axis = match cut_state.axis {
+                CutRotationAxis::Yaw => {
+                    CutRotationAxis::Pitch
                 }
+                CutRotationAxis::Pitch => {
+                    CutRotationAxis::Roll
+                }
+                CutRotationAxis::Roll => {
+                    CutRotationAxis::Yaw
+                }
+            };
+            if axis_config
+                .action
+                .reset_angle_on_switch
+            {
+                cut_state.angle_index = 0;
             }
         }
     }
@@ -434,6 +488,7 @@ pub fn update_cut_preview(
     apply_mouse_rotation(
         &mut cut_state,
         &config,
+        effective_step_degrees,
         &mut motion_events,
         &mut wheel_events,
     );
@@ -470,8 +525,18 @@ pub fn update_cut_preview(
             transforms.get(target)
         {
             let angle = cut_state
-                .angle_radians(&config);
-            let rotation = target_transform.rotation() * Quat::from_rotation_y(angle);
+                .angle_radians(
+                    effective_step_degrees,
+                );
+            let (axis_rotation, base_rotation) =
+                cut_axis_rotations(
+                    cut_state.axis,
+                    angle,
+                );
+            let rotation = target_transform
+                .rotation()
+                * (axis_rotation
+                    * base_rotation);
             let translation =
                 target_transform
                     .translation();
@@ -515,12 +580,14 @@ pub fn update_cut_preview(
                     target,
                     cuttable,
                     transform,
+                    cut_state.axis,
                     cut_state
                         .angle_index,
                     cut_state
                         .angle_radians(
-                            &config,
+                            effective_step_degrees,
                         ),
+                    effective_step_degrees,
                     &config,
                 ) {
                     clear_cut_preview(
@@ -536,6 +603,7 @@ pub fn update_cut_preview(
 fn apply_mouse_rotation(
     cut_state: &mut CutState,
     config: &SceneCutConfig,
+    step_degrees: f32,
     motion_events: &mut MessageReader<
         MouseMotion,
     >,
@@ -550,7 +618,7 @@ fn apply_mouse_rotation(
         return;
     }
     let step_count =
-        cut_state.step_count(config);
+        cut_state.step_count(step_degrees);
     let mut delta_steps = 0;
     for motion in motion_events.read() {
         delta_steps += (motion.delta.x
@@ -589,6 +657,7 @@ fn clear_cut_preview(
     }
     cut_state.hovered = None;
     cut_state.angle_index = 0;
+    cut_state.axis = CutRotationAxis::Yaw;
 }
 
 pub fn cleanup_cut_state(
@@ -612,11 +681,13 @@ fn perform_cut(
     target: Entity,
     cuttable: &CuttableShape,
     transform: &GlobalTransform,
+    axis: CutRotationAxis,
     angle_index: i32,
     angle: f32,
-    config: &SceneCutConfig,
+    step_degrees: f32,
+    _config: &SceneCutConfig,
 ) -> bool {
-    const CUT_CACHE_VERSION: &str = "v5";
+    const CUT_CACHE_VERSION: &str = "v6";
     let Some(dimensions) = cuttable
         .shape
         .dimensions
@@ -639,22 +710,15 @@ fn perform_cut(
     let cube_tris =
         build_cube_triangles(&vertices);
 
-    // The preview plane rotates in the shape's local-space (around local Y),
-    // so the actual cut plane must match that convention.
-    let local_normal = Vec3::new(
-        angle.sin(),
-        0.0,
-        angle.cos(),
-    );
-    if local_normal.length_squared() < 1e-6
-    {
+    let local_normal =
+        cut_plane_normal_local(axis, angle);
+    if local_normal.length_squared() < 1e-6 {
         warn!(
             "Plane normal is degenerate; cannot cut."
         );
         return false;
     }
-    let plane_normal =
-        local_normal.normalize();
+    let plane_normal = local_normal;
 
     let mut positive_tris =
         clip_triangles(
@@ -701,16 +765,20 @@ fn perform_cut(
     }
 
     let base_key = format!(
-        "cut_{CUT_CACHE_VERSION}_cube_w{}_h{}_d{}",
+        "cut_{CUT_CACHE_VERSION}_cube_w{}_h{}_d{}_axis{}_step{}",
         format_key(dimensions.width),
         format_key(dimensions.height),
-        format_key(dimensions.depth)
+        format_key(dimensions.depth),
+        match axis {
+            CutRotationAxis::Yaw => "yaw",
+            CutRotationAxis::Pitch => "pitch",
+            CutRotationAxis::Roll => "roll",
+        },
+        format_key(step_degrees),
     );
     let angle_key = format_key(
         (angle_index as f32)
-            * config
-                .action
-                .angle_step_degrees,
+            * step_degrees,
     );
     let pos_key = format!(
         "{base_key}_a{angle_key}_pos"

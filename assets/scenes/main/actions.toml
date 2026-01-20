@@ -115,7 +115,8 @@ type = "cut_axis"
 
 [actions.params]
 name = "cut_axis"
-step_degrees = 90.0
+angle_step_degrees_override = 5.0
+reset_angle_on_switch = true
 
 [[actions]]
 id = "reload"
