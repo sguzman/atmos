@@ -13,7 +13,8 @@ use bevy::{
 };
 
 use crate::scenes::config::{
-    CutActionConfig, DialogueConfig,
+    CutActionConfig, CutAxisActionConfig,
+    DialogueConfig,
     GrabActionConfig,
     GrenadeActionConfig,
     JumpActionConfig,
@@ -137,6 +138,12 @@ pub struct SceneCutConfig {
     pub id: String,
     pub action: CutActionConfig,
     pub confirm_button: MouseButton,
+}
+
+#[derive(Resource, Clone)]
+pub struct SceneCutAxisConfig {
+    pub id: String,
+    pub action: CutAxisActionConfig,
 }
 
 #[derive(Resource, Clone)]

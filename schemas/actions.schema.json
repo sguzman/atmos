@@ -150,6 +150,14 @@
         "confirm_button": { "type": "string" }
       }
     },
+    "cutAxisParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "step_degrees": { "type": "number" }
+      }
+    },
     "reloadParams": {
       "type": "object",
       "additionalProperties": false,
@@ -289,6 +297,16 @@
             "id": { "type": "string" },
             "type": { "const": "cut" },
             "params": { "$ref": "#/$defs/cutParams" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "type", "params"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "cut_axis" },
+            "params": { "$ref": "#/$defs/cutAxisParams" }
           }
         },
         {

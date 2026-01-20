@@ -39,7 +39,7 @@ use crate::scenes::{
     input::{
         ActionStates, CutHover,
         PlayerBody, SceneCamera,
-        SceneCutConfig,
+        SceneCutAxisConfig, SceneCutConfig,
     },
     mesh_cache::{
         cache_mesh, load_cached_mesh,
@@ -315,6 +315,9 @@ pub fn update_cut_preview(
     cut_config: Option<
         Res<SceneCutConfig>,
     >,
+    cut_axis_config: Option<
+        Res<SceneCutAxisConfig>,
+    >,
     states: Option<Res<ActionStates>>,
     cut_hover: Option<Res<CutHover>>,
     mut cut_state: ResMut<CutState>,
@@ -392,6 +395,40 @@ pub fn update_cut_preview(
         cut_state.hovered =
             Some(target);
         cut_state.angle_index = 0;
+    }
+
+    if let Some(axis_config) =
+        cut_axis_config.as_ref()
+    {
+        let axis_state =
+            states.get(&axis_config.id);
+        if axis_state.just_pressed {
+            let step_degrees = axis_config
+                .action
+                .step_degrees;
+            if step_degrees.abs() > 0.0 {
+                let step_count = cut_state
+                    .step_count(&config);
+                let delta_steps =
+                    (step_degrees
+                        / config
+                            .action
+                            .angle_step_degrees
+                            .max(1.0))
+                        .round()
+                        as i32;
+                if delta_steps != 0 {
+                    let new_index =
+                        cut_state.angle_index
+                            + delta_steps;
+                    cut_state
+                        .set_angle_by_step(
+                            new_index,
+                            step_count,
+                        );
+                }
+            }
+        }
     }
 
     apply_mouse_rotation(

@@ -21,6 +21,7 @@ use crate::scenes::{
         ResolvedActionTrigger,
         ResolvedVolumeTrigger,
         SceneActionTriggers,
+        SceneCutAxisConfig,
         SceneCutConfig,
         SceneDialogueConfig,
         SceneFovConfig,
@@ -242,6 +243,12 @@ pub(crate) fn setup_actions(
                     id: id.clone(),
                     action: params.clone(),
                     confirm_button,
+                });
+            }
+            ActionConfig::CutAxis { id, params } => {
+                commands.insert_resource(SceneCutAxisConfig {
+                    id: id.clone(),
+                    action: params.clone(),
                 });
             }
             ActionConfig::Reload { id, .. } => {

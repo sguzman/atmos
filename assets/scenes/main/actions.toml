@@ -98,16 +98,24 @@ type = "cut"
 
 [actions.params]
 name = "cut"
-angle_step_degrees = 15.0
+angle_step_degrees = 5.0
 rotation_sensitivity = 0.01
 preview_size = 1.6
 preview_thickness = 0.02
 preview_color = "hotpink"
-mode = "hold"
+mode = "toggle"
 wheel_rotation_sensitivity = 1.0
 confirm_button = "right"
 preview_opacity = 0.8
 preview_emissive = 2.0
+
+[[actions]]
+id = "cut_axis"
+type = "cut_axis"
+
+[actions.params]
+name = "cut_axis"
+step_degrees = 90.0
 
 [[actions]]
 id = "reload"
@@ -291,7 +299,14 @@ id = "cut_mode"
 action = "cut"
 type = "key"
 key = "c"
-mode = "hold"
+mode = "press"
+
+[[triggers]]
+id = "cut_axis_middle"
+action = "cut_axis"
+type = "mouse"
+mouse = "middle"
+mode = "press"
 
 [[triggers]]
 id = "reload_r"

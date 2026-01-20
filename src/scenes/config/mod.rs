@@ -20,7 +20,7 @@ mod transforms;
 pub use actions::{
     ActionConfig, ActionTriggerConfig,
     ActionsConfig, CutActionConfig,
-    CutActivationMode,
+    CutActivationMode, CutAxisActionConfig,
     GrabActionConfig,
     GrenadeActionConfig,
     JumpActionConfig,

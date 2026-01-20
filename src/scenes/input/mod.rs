@@ -40,7 +40,7 @@ pub use types::{
     ResolvedActionTrigger,
     ResolvedVolumeTrigger,
     SceneActionTriggers, SceneCamera,
-    SceneCutConfig,
+    SceneCutAxisConfig, SceneCutConfig,
     SceneDialogueConfig,
     SceneFovConfig, SceneGrabConfig,
     SceneGrenadeConfig,

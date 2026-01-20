@@ -318,6 +318,22 @@ fn default_cut_preview_emissive() -> f32 {
     2.0
 }
 
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct CutAxisActionConfig {
+    pub name: String,
+    pub step_degrees: f32,
+}
+
+impl Default for CutAxisActionConfig {
+    fn default() -> Self {
+        Self {
+            name: "cut_axis".to_string(),
+            step_degrees: 90.0,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum CutActivationMode {
@@ -474,6 +490,10 @@ pub enum ActionConfig {
         id: String,
         params: CutActionConfig,
     },
+    CutAxis {
+        id: String,
+        params: CutAxisActionConfig,
+    },
     Reload {
         id: String,
         #[allow(dead_code)]
@@ -519,6 +539,7 @@ impl ActionConfig {
             | ActionConfig::Noclip { id, .. }
             | ActionConfig::Grab { id, .. }
             | ActionConfig::Cut { id, .. }
+            | ActionConfig::CutAxis { id, .. }
             | ActionConfig::Reload { id, .. }
             | ActionConfig::Pause { id, .. }
             | ActionConfig::DialoguePrompt { id, .. }
