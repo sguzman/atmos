@@ -107,6 +107,7 @@ mode = "hold"
 wheel_rotation_sensitivity = 1.0
 confirm_button = "right"
 preview_opacity = 0.8
+preview_emissive = 2.0
 
 [[actions]]
 id = "reload"

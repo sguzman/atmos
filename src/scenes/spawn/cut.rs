@@ -151,11 +151,15 @@ fn ensure_preview_assets(
             rgb[0], rgb[1], rgb[2],
             alpha,
         );
+        let emissive = color.to_linear()
+            * config
+                .action
+                .preview_emissive
+                .max(0.0);
         let mat = materials.add(
             StandardMaterial {
                 base_color: color,
-                emissive: color
-                    .to_linear(),
+                emissive,
                 unlit: true,
                 alpha_mode:
                     AlphaMode::Blend,
@@ -182,32 +186,11 @@ fn ensure_preview_assets(
 fn create_preview_plane(
     meshes: &mut Assets<Mesh>,
 ) -> Handle<Mesh> {
-    let mut mesh = Mesh::new(
-        PrimitiveTopology::TriangleList,
-        RenderAssetUsages::default(),
-    );
-    let positions = vec![
-        [-0.5, 0.0, -0.5],
-        [0.5, 0.0, -0.5],
-        [0.5, 0.0, 0.5],
-        [-0.5, 0.0, 0.5],
-    ];
-    let normals =
-        vec![[0.0, 1.0, 0.0]; 4];
-    let indices =
-        vec![0u32, 1, 2, 2, 3, 0];
-    mesh.insert_attribute(
-        Mesh::ATTRIBUTE_POSITION,
-        positions.clone(),
-    );
-    mesh.insert_attribute(
-        Mesh::ATTRIBUTE_NORMAL,
-        normals,
-    );
-    mesh.insert_indices(Indices::U32(
-        indices,
-    ));
-    meshes.add(mesh)
+    meshes.add(Mesh::from(
+        bevy::math::primitives::Cuboid::new(
+            1.0, 1.0, 1.0,
+        ),
+    ))
 }
 
 pub fn update_cut_hover(
@@ -594,6 +577,7 @@ fn perform_cut(
     angle: f32,
     config: &SceneCutConfig,
 ) -> bool {
+    const CUT_CACHE_VERSION: &str = "v4";
     let Some(dimensions) = cuttable
         .shape
         .dimensions
@@ -680,7 +664,7 @@ fn perform_cut(
     }
 
     let base_key = format!(
-        "cut_cube_w{}_h{}_d{}",
+        "cut_{CUT_CACHE_VERSION}_cube_w{}_h{}_d{}",
         format_key(dimensions.width),
         format_key(dimensions.height),
         format_key(dimensions.depth)
@@ -713,7 +697,7 @@ fn perform_cut(
         &positive_tris,
         &pos_key,
         max_dim,
-        plane_normal,
+        -plane_normal,
     );
     let (
         neg_handle,
@@ -725,7 +709,7 @@ fn perform_cut(
         &negative_tris,
         &neg_key,
         max_dim,
-        -plane_normal,
+        plane_normal,
     );
 
     let pos_collider = Collider::trimesh(
@@ -1100,19 +1084,6 @@ fn build_mesh_data(
                 + tri_vertices[1]
                 + tri_vertices[2])
                 / 3.0;
-        let mut reference = if center
-            .length_squared()
-            > 1e-6
-        {
-            center
-        } else {
-            outward_hint
-        };
-        if reference.length_squared()
-            < 1e-6
-        {
-            reference = Vec3::Y;
-        }
         let mut edge1 =
             tri_vertices[1]
                 - tri_vertices[0];
@@ -1127,6 +1098,21 @@ fn build_mesh_data(
             continue;
         }
         normal = normal.normalize();
+        let dot_center = normal.dot(center);
+        let mut reference = if center
+            .length_squared()
+            > 1e-6
+            && dot_center.abs() > 1e-4
+        {
+            center
+        } else {
+            outward_hint
+        };
+        if reference.length_squared()
+            < 1e-6
+        {
+            reference = Vec3::Y;
+        }
         if normal.dot(reference)
             < 0.0
         {
