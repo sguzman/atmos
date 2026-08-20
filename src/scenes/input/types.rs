@@ -5,40 +5,25 @@ use bevy::{
     input::mouse::MouseButton,
     pbr::DistanceFog,
     post_process::bloom::Bloom,
-    prelude::{
-        Color, Component, Entity,
-        Handle, Mesh, Resource,
-        StandardMaterial, Vec3,
-    },
+    prelude::{Color, Component, Entity, Handle, Mesh, Resource, StandardMaterial, Vec3},
 };
 
 use crate::scenes::config::{
-    CutActionConfig, CutAxisActionConfig,
-    DialogueConfig,
-    GrabActionConfig,
-    GrenadeActionConfig,
-    JumpActionConfig,
-    NoclipActionConfig,
-    PauseActionConfig, PhysicsConfig,
-    ShapeConfig, ShootActionConfig,
-    SprintActionConfig,
-    ZoomActionConfig,
+    CutActionConfig, CutAxisActionConfig, DialogueConfig, GrabActionConfig, GrenadeActionConfig,
+    JumpActionConfig, NoclipActionConfig, PauseActionConfig, PhysicsConfig, ShapeConfig,
+    ShootActionConfig, SprintActionConfig, ZoomActionConfig,
 };
 
 #[derive(Resource, Debug, Clone)]
 pub struct SceneInputConfig {
-    pub camera:
-        ResolvedCameraInputConfig,
-    pub overlays:
-        Vec<ResolvedOverlayToggle>,
+    pub camera: ResolvedCameraInputConfig,
+    pub overlays: Vec<ResolvedOverlayToggle>,
 }
 
 #[derive(Debug, Clone)]
 pub struct ResolvedCameraInputConfig {
-    pub movement:
-        ResolvedMovementConfig,
-    pub rotation:
-        ResolvedRotationConfig,
+    pub movement: ResolvedMovementConfig,
+    pub rotation: ResolvedRotationConfig,
 }
 
 #[derive(Debug, Clone)]
@@ -60,9 +45,7 @@ pub struct ResolvedRotationConfig {
     pub pitch_down: Option<KeyCode>,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CameraControl {
     Mouse,
     Keyboard,
@@ -82,8 +65,7 @@ pub struct SceneShootConfig {
     pub shape: ShapeConfig,
     pub physics: Option<PhysicsConfig>,
     pub mesh: Handle<Mesh>,
-    pub material:
-        Handle<StandardMaterial>,
+    pub material: Handle<StandardMaterial>,
 }
 
 #[derive(Resource, Clone)]
@@ -94,8 +76,7 @@ pub struct SceneGrenadeConfig {
     pub shape: ShapeConfig,
     pub physics: Option<PhysicsConfig>,
     pub mesh: Handle<Mesh>,
-    pub material:
-        Handle<StandardMaterial>,
+    pub material: Handle<StandardMaterial>,
 }
 
 #[derive(Resource, Clone)]
@@ -120,8 +101,7 @@ pub struct SceneJumpConfig {
 pub struct SceneNoclipConfig {
     pub id: String,
     pub action: NoclipActionConfig,
-    pub speed_toggle_key:
-        Option<KeyCode>,
+    pub speed_toggle_key: Option<KeyCode>,
     pub up_key: Option<KeyCode>,
     pub down_key: Option<KeyCode>,
 }
@@ -166,9 +146,7 @@ pub struct PauseState {
     pub stored_time_scale: f32,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DebugMenuPage {
     Root,
     Camera,
@@ -224,26 +202,20 @@ impl Default for DebugMenuSettings {
             bloom: None,
             bloom_intensity: 0.15,
             bloom_threshold: 0.9,
-            bloom_threshold_softness:
-                0.0,
+            bloom_threshold_softness: 0.0,
             fog_enabled: false,
             fog: None,
-            fog_mode: "linear"
-                .to_string(),
+            fog_mode: "linear".to_string(),
             fog_alpha: 1.0,
             fog_density: 0.05,
             fog_linear_start: 0.0,
             fog_linear_end: 100.0,
             dlss_enabled: false,
-            dlss_mode: "quality"
-                .to_string(),
+            dlss_mode: "quality".to_string(),
             dlss_sharpness: 0.0,
             ray_tracing_enabled: false,
-            ray_tracing_mode: "quality"
-                .to_string(),
-            gravity: Vec3::new(
-                0.0, -9.81, 0.0,
-            ),
+            ray_tracing_mode: "quality".to_string(),
+            gravity: Vec3::new(0.0, -9.81, 0.0),
             physics_enabled: true,
             sun_brightness: 0.0,
             sun_shadows: false,
@@ -277,12 +249,8 @@ pub struct DialogueState {
     pub active: bool,
     pub pending: bool,
     pub current: String,
-    pub visited:
-        std::collections::HashSet<
-            String,
-        >,
-    pub dialogue:
-        Option<DialogueConfig>,
+    pub visited: std::collections::HashSet<String>,
+    pub dialogue: Option<DialogueConfig>,
 }
 
 #[derive(Resource, Default)]
@@ -343,19 +311,12 @@ pub struct ActionState {
 
 #[derive(Resource, Default)]
 pub struct ActionStates {
-    pub states:
-        HashMap<String, ActionState>,
+    pub states: HashMap<String, ActionState>,
 }
 
 impl ActionStates {
-    pub fn get(
-        &self,
-        action_id: &str,
-    ) -> ActionState {
-        self.states
-            .get(action_id)
-            .copied()
-            .unwrap_or_default()
+    pub fn get(&self, action_id: &str) -> ActionState {
+        self.states.get(action_id).copied().unwrap_or_default()
     }
 
     pub fn update(
@@ -365,17 +326,10 @@ impl ActionStates {
         just_pressed: bool,
         just_released: bool,
     ) {
-        let entry = self
-            .states
-            .entry(
-                action_id.to_string(),
-            )
-            .or_default();
+        let entry = self.states.entry(action_id.to_string()).or_default();
         entry.pressed |= pressed;
-        entry.just_pressed |=
-            just_pressed;
-        entry.just_released |=
-            just_released;
+        entry.just_pressed |= just_pressed;
+        entry.just_released |= just_released;
     }
 
     pub fn clear(&mut self) {
@@ -435,10 +389,8 @@ pub struct ResolvedVolumeTrigger {
 
 #[derive(Resource, Default)]
 pub struct SceneActionTriggers {
-    pub input:
-        Vec<ResolvedActionTrigger>,
-    pub volumes:
-        Vec<ResolvedVolumeTrigger>,
+    pub input: Vec<ResolvedActionTrigger>,
+    pub volumes: Vec<ResolvedVolumeTrigger>,
 }
 
 #[derive(Resource, Default, Clone)]

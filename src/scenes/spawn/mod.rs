@@ -14,10 +14,6 @@ use bevy::prelude::Component;
 pub struct SceneEntityTag;
 
 pub use cut::CuttableShape;
-pub use overlay::{
-    OverlayTag,
-    reset_overlay_spawn_state,
-    spawn_overlays_from_config,
-};
+pub use overlay::{OverlayTag, reset_overlay_spawn_state, spawn_overlays_from_config};
 pub use plugin::ScenePlugin;
 pub use sun::SunLight;

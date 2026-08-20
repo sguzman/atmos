@@ -3,23 +3,14 @@ use std::{fs, path::Path};
 use bevy::{
     log::{Level, LogPlugin},
     prelude::*,
-    window::{
-        MonitorSelection, PresentMode,
-        WindowMode, WindowPlugin,
-        WindowResolution,
-    },
+    window::{MonitorSelection, PresentMode, WindowMode, WindowPlugin, WindowResolution},
 };
-use bevy_winit::{
-    UpdateMode, WinitSettings,
-};
+use bevy_winit::{UpdateMode, WinitSettings};
 use serde::Deserialize;
 
-const CONFIG_PATH: &str =
-    "assets/config.toml";
+const CONFIG_PATH: &str = "assets/config.toml";
 
-#[derive(
-    Resource, Debug, Clone, Deserialize,
-)]
+#[derive(Resource, Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct AppConfig {
     pub mode: AppMode,
@@ -37,19 +28,12 @@ impl Default for AppConfig {
         Self {
             mode: AppMode::Dev,
             fps_limit: Some(60.0),
-            log_level: Some(
-                "debug".to_string(),
-            ),
-            window:
-                WindowConfig::default(),
+            log_level: Some("debug".to_string()),
+            window: WindowConfig::default(),
             msaa_samples: Some(4),
-            mouse: MouseConfig::default(
-            ),
-            debug: DebugConfig::default(
-            ),
-            debug_menu:
-                DebugMenuConfig::default(
-                ),
+            mouse: MouseConfig::default(),
+            debug: DebugConfig::default(),
+            debug_menu: DebugMenuConfig::default(),
         }
     }
 }
@@ -182,88 +166,47 @@ impl PresentModeConfig {
 }
 
 pub fn load_app_config() -> AppConfig {
-    let default_config =
-        AppConfig::default();
-    if !Path::new(CONFIG_PATH).exists()
-    {
-        warn!(
-            "Config file '{}' not found; using defaults.",
-            CONFIG_PATH
-        );
+    let default_config = AppConfig::default();
+    if !Path::new(CONFIG_PATH).exists() {
+        warn!("Config file '{}' not found; using defaults.", CONFIG_PATH);
         return default_config;
     }
 
-    let contents =
-        match fs::read_to_string(
-            CONFIG_PATH,
-        ) {
-            Ok(text) => text,
-            Err(err) => {
-                warn!(
-                    "Failed to read {}: {err}; using defaults.",
-                    CONFIG_PATH
-                );
-                return default_config;
-            }
-        };
+    let contents = match fs::read_to_string(CONFIG_PATH) {
+        Ok(text) => text,
+        Err(err) => {
+            warn!("Failed to read {}: {err}; using defaults.", CONFIG_PATH);
+            return default_config;
+        }
+    };
 
-    parse_app_config(
-        &contents,
-        CONFIG_PATH,
-        default_config,
-    )
+    parse_app_config(&contents, CONFIG_PATH, default_config)
 }
 
-fn parse_app_config(
-    contents: &str,
-    label: &str,
-    default_config: AppConfig,
-) -> AppConfig {
-    match toml::from_str::<AppConfig>(
-        contents,
-    ) {
+fn parse_app_config(contents: &str, label: &str, default_config: AppConfig) -> AppConfig {
+    match toml::from_str::<AppConfig>(contents) {
         Ok(cfg) => cfg,
         Err(err) => {
-            warn!(
-                "Failed to parse {}: {err}; using defaults.",
-                label
-            );
+            warn!("Failed to parse {}: {err}; using defaults.", label);
             default_config
         }
     }
 }
 
 impl AppConfig {
-    pub fn to_log_plugin(
-        &self,
-    ) -> LogPlugin {
-        let mut log =
-            LogPlugin::default();
-        if let Some(level) =
-            self.log_level()
-        {
+    pub fn to_log_plugin(&self) -> LogPlugin {
+        let mut log = LogPlugin::default();
+        if let Some(level) = self.log_level() {
             log.level = level;
         }
         log
     }
 
-    pub fn to_window_plugin(
-        &self,
-    ) -> WindowPlugin {
+    pub fn to_window_plugin(&self) -> WindowPlugin {
         let mut window = Window {
-            title: self
-                .window
-                .title
-                .clone(),
-            resolution:
-                WindowResolution::new(
-                    self.window.width,
-                    self.window.height,
-                ),
-            present_mode: self
-                .window
-                .present_mode
-                .to_bevy(),
+            title: self.window.title.clone(),
+            resolution: WindowResolution::new(self.window.width, self.window.height),
+            present_mode: self.window.present_mode.to_bevy(),
             ..default()
         };
         match self.window.size_mode {
@@ -276,74 +219,36 @@ impl AppConfig {
             }
         }
         WindowPlugin {
-            primary_window: Some(
-                window,
-            ),
+            primary_window: Some(window),
             ..default()
         }
     }
 
-    pub fn msaa_component(
-        &self,
-    ) -> Option<Msaa> {
-        self.msaa_samples.and_then(
-            |samples| match samples {
-                1 => Some(Msaa::Off),
-                2 => {
-                    Some(Msaa::Sample2)
-                }
-                4 => {
-                    Some(Msaa::Sample4)
-                }
-                8 => {
-                    Some(Msaa::Sample8)
-                }
-                _ => None,
-            },
-        )
+    pub fn msaa_component(&self) -> Option<Msaa> {
+        self.msaa_samples.and_then(|samples| match samples {
+            1 => Some(Msaa::Off),
+            2 => Some(Msaa::Sample2),
+            4 => Some(Msaa::Sample4),
+            8 => Some(Msaa::Sample8),
+            _ => None,
+        })
     }
 
-    fn log_level(
-        &self,
-    ) -> Option<Level> {
+    fn log_level(&self) -> Option<Level> {
         self.log_level
             .as_ref()
-            .and_then(|value| {
-                match value
-                    .to_ascii_lowercase(
-                    )
-                    .as_str()
-                {
-                    "error" => Some(
-                        Level::ERROR,
-                    ),
-                    "warn"
-                    | "warning" => {
-                        Some(
-                            Level::WARN,
-                        )
-                    }
-                    "info" => Some(
-                        Level::INFO,
-                    ),
-                    "debug" => Some(
-                        Level::DEBUG,
-                    ),
-                    "trace" => Some(
-                        Level::TRACE,
-                    ),
-                    _ => None,
-                }
+            .and_then(|value| match value.to_ascii_lowercase().as_str() {
+                "error" => Some(Level::ERROR),
+                "warn" | "warning" => Some(Level::WARN),
+                "info" => Some(Level::INFO),
+                "debug" => Some(Level::DEBUG),
+                "trace" => Some(Level::TRACE),
+                _ => None,
             })
     }
 
-    pub fn winit_settings(
-        &self,
-    ) -> WinitSettings {
-        if let Some(fps) = self
-            .fps_limit
-            .filter(|f| *f > 0.0)
-        {
+    pub fn winit_settings(&self) -> WinitSettings {
+        if let Some(fps) = self.fps_limit.filter(|f| *f > 0.0) {
             let wait = std::time::Duration::from_secs_f64(1.0 / fps);
             WinitSettings {
                 focused_mode: UpdateMode::Reactive {

@@ -1,21 +1,12 @@
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::{
-    DefaultRapierContext,
-    RapierConfiguration,
-    RapierContextSimulation,
-};
+use bevy_rapier3d::prelude::{DefaultRapierContext, RapierConfiguration, RapierContextSimulation};
 
-use crate::app_config::{
-    AppConfig, AppMode,
-};
+use crate::app_config::{AppConfig, AppMode};
 use crate::scenes::{
     MeshCacheSettings, TomlAsset,
     config::ActiveScene,
     input::DebugMenuState,
-    loaders::{
-        ConfigLoad, TomlCache,
-        load_actions_config,
-    },
+    loaders::{ConfigLoad, TomlCache, load_actions_config},
 };
 
 mod actions;
@@ -28,79 +19,53 @@ pub(crate) struct SceneSetupState {
     pub done: bool,
 }
 
-pub(crate) fn reset_scene_setup_state(
-    mut commands: Commands,
-) {
-    commands.insert_resource(
-        SceneSetupState::default(),
-    );
+pub(crate) fn reset_scene_setup_state(mut commands: Commands) {
+    commands.insert_resource(SceneSetupState::default());
 }
 
 pub(crate) fn setup_scene(
     active_scene: Res<ActiveScene>,
     app_config: Res<AppConfig>,
     mesh_cache: Res<MeshCacheSettings>,
-    mut setup_state: ResMut<
-        SceneSetupState,
-    >,
+    mut setup_state: ResMut<SceneSetupState>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<
-        Assets<StandardMaterial>,
-    >,
+    mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
     toml_assets: Res<Assets<TomlAsset>>,
     mut toml_cache: ResMut<TomlCache>,
-    mut rapier_config: Query<
-        &mut RapierConfiguration,
-        With<DefaultRapierContext>,
-    >,
-    mut rapier_context: Query<
-        &mut RapierContextSimulation,
-        With<DefaultRapierContext>,
-    >,
+    mut rapier_config: Query<&mut RapierConfiguration, With<DefaultRapierContext>>,
+    mut rapier_context: Query<&mut RapierContextSimulation, With<DefaultRapierContext>>,
 ) {
     if setup_state.done {
         return;
     }
 
-    let _input_config =
-        match input::load_scene_input(
-            &active_scene,
-            &mut commands,
-            &mut toml_cache,
-            &asset_server,
-            &toml_assets,
-        ) {
-            Some(config) => config,
-            None => return,
-        };
+    let _input_config = match input::load_scene_input(
+        &active_scene,
+        &mut commands,
+        &mut toml_cache,
+        &asset_server,
+        &toml_assets,
+    ) {
+        Some(config) => config,
+        None => return,
+    };
 
-    let actions_config =
-        match load_actions_config(
-            &active_scene.name,
-            &mut toml_cache,
-            &asset_server,
-            &toml_assets,
-        ) {
-            ConfigLoad::Pending => {
-                return;
-            }
-            ConfigLoad::Ready(
-                config,
-            ) => config,
-        };
+    let actions_config = match load_actions_config(
+        &active_scene.name,
+        &mut toml_cache,
+        &asset_server,
+        &toml_assets,
+    ) {
+        ConfigLoad::Pending => {
+            return;
+        }
+        ConfigLoad::Ready(config) => config,
+    };
 
-    if matches!(
-        app_config.mode,
-        AppMode::Dev
-    ) && app_config
-        .debug_menu
-        .enabled
-    {
-        commands.insert_resource(
-            DebugMenuState::default(),
-        );
+    if matches!(app_config.mode, AppMode::Dev) && app_config.debug_menu.enabled {
+        commands.insert_resource(DebugMenuState::default());
     }
 
     let (world_config, entities_config) = match world::load_world_and_entities(
@@ -114,21 +79,20 @@ pub(crate) fn setup_scene(
         None => return,
     };
 
-    let initial_noclip =
-        match actions::setup_actions(
-            &actions_config,
-            &active_scene,
-            &mesh_cache,
-            &mut commands,
-            &mut meshes,
-            &mut materials,
-            &asset_server,
-            &toml_assets,
-            &mut toml_cache,
-        ) {
-            Some(value) => value,
-            None => return,
-        };
+    let initial_noclip = match actions::setup_actions(
+        &actions_config,
+        &active_scene,
+        &mesh_cache,
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        &asset_server,
+        &toml_assets,
+        &mut toml_cache,
+    ) {
+        Some(value) => value,
+        None => return,
+    };
 
     if !world::spawn_world_content(
         &world_config,
@@ -147,16 +111,8 @@ pub(crate) fn setup_scene(
         return;
     }
 
-    player::spawn_player_and_cameras(
-        &world_config,
-        &app_config,
-        initial_noclip,
-        &mut commands,
-    );
+    player::spawn_player_and_cameras(&world_config, &app_config, initial_noclip, &mut commands);
 
-    info!(
-        "Bootstrapping scene '{}' complete.",
-        active_scene.name
-    );
+    info!("Bootstrapping scene '{}' complete.", active_scene.name);
     setup_state.done = true;
 }

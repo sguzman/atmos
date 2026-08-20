@@ -42,7 +42,11 @@ pub fn choose_food_target(
 
         if let Some((food_entity, _)) = best {
             target.0 = Some(food_entity);
-            info!(?food_entity, hunger = hunger.level, "agent selected food target");
+            info!(
+                ?food_entity,
+                hunger = hunger.level,
+                "agent selected food target"
+            );
         }
     }
 }
@@ -95,6 +99,10 @@ pub fn consume_food(
         hunger.level = (hunger.level - food.nutrition).max(0.0);
         commands.entity(food_entity).despawn();
         target.0 = None;
-        info!(hunger = hunger.level, nutrition = food.nutrition, "agent consumed food");
+        info!(
+            hunger = hunger.level,
+            nutrition = food.nutrition,
+            "agent consumed food"
+        );
     }
 }

@@ -2,9 +2,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct SkyboxConfig {
-    #[serde(
-        default = "default_sky_color"
-    )]
+    #[serde(default = "default_sky_color")]
     pub color: String,
 }
 

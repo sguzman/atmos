@@ -11,10 +11,11 @@ pub fn setup_demo(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let floor_mesh = meshes.add(Plane3d::default().mesh().size(
-        config.world.floor_size,
-        config.world.floor_size,
-    ));
+    let floor_mesh = meshes.add(
+        Plane3d::default()
+            .mesh()
+            .size(config.world.floor_size, config.world.floor_size),
+    );
     let agent_mesh = meshes.add(Cuboid::new(0.6, 1.6, 0.6));
     let food_mesh = meshes.add(Sphere::new(0.25));
 

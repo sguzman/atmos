@@ -31,11 +31,7 @@ pub(super) fn spawn_lights(lights: &[LightEntry], commands: &mut Commands) {
                         color,
                         ..default()
                     },
-                    Transform::from_xyz(
-                        light.position.x,
-                        light.position.y,
-                        light.position.z,
-                    ),
+                    Transform::from_xyz(light.position.x, light.position.y, light.position.z),
                     Visibility::default(),
                     InheritedVisibility::default(),
                     ViewVisibility::default(),
@@ -44,10 +40,8 @@ pub(super) fn spawn_lights(lights: &[LightEntry], commands: &mut Commands) {
             LightKind::Directional => {
                 let mut transform = Transform::default();
                 if let Some(target) = &light.look_at {
-                    transform = Transform::from_translation(Vec3::ZERO).looking_at(
-                        Vec3::new(target.x, target.y, target.z),
-                        Vec3::Y,
-                    );
+                    transform = Transform::from_translation(Vec3::ZERO)
+                        .looking_at(Vec3::new(target.x, target.y, target.z), Vec3::Y);
                 }
                 commands.spawn((
                     SceneEntityTag,

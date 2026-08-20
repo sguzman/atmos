@@ -65,7 +65,8 @@ fn run_app(
     }
 
     if agent_demo {
-        app.add_plugins(simulation::AgentSimulationPlugin::default()).run();
+        app.add_plugins(simulation::AgentSimulationPlugin::default())
+            .run();
         return;
     }
 

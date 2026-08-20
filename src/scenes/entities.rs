@@ -1,12 +1,8 @@
 use serde::Deserialize;
 
-use crate::scenes::config::{
-    EntityOverrides, TransformOverrides,
-};
+use crate::scenes::config::{EntityOverrides, TransformOverrides};
 
-#[derive(
-    Debug, Deserialize, Default,
-)]
+#[derive(Debug, Deserialize, Default)]
 pub struct EntitiesConfig {
     #[serde(default)]
     pub entities: Vec<EntityPlacement>,

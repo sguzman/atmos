@@ -1,21 +1,12 @@
 use bevy::{
     prelude::*,
-    ui::{
-        PositionType, UiTransform, Val,
-        Val2,
-    },
+    ui::{PositionType, UiTransform, Val, Val2},
 };
 
 use crate::scenes::TomlAsset;
-use crate::scenes::config::{
-    OverlayAnchor, OverlayElement,
-    TextOverlay, parse_color,
-};
+use crate::scenes::config::{OverlayAnchor, OverlayElement, TextOverlay, parse_color};
 use crate::scenes::input::SceneInputConfig;
-use crate::scenes::loaders::{
-    ConfigLoad, TomlCache,
-    load_overlay_config,
-};
+use crate::scenes::loaders::{ConfigLoad, TomlCache, load_overlay_config};
 
 #[derive(Component)]
 pub struct OverlayTag {
@@ -27,12 +18,8 @@ pub struct OverlaySpawnState {
     pub done: bool,
 }
 
-pub fn reset_overlay_spawn_state(
-    mut commands: Commands,
-) {
-    commands.insert_resource(
-        OverlaySpawnState::default(),
-    );
+pub fn reset_overlay_spawn_state(mut commands: Commands) {
+    commands.insert_resource(OverlaySpawnState::default());
 }
 
 pub fn spawn_overlays_from_config(
@@ -40,48 +27,31 @@ pub fn spawn_overlays_from_config(
     asset_server: Res<AssetServer>,
     toml_assets: Res<Assets<TomlAsset>>,
     mut toml_cache: ResMut<TomlCache>,
-    input: Option<
-        Res<SceneInputConfig>,
-    >,
-    mut state: ResMut<
-        OverlaySpawnState,
-    >,
+    input: Option<Res<SceneInputConfig>>,
+    mut state: ResMut<OverlaySpawnState>,
 ) {
     if state.done {
         return;
     }
-    let Some(input) = input.as_ref()
-    else {
+    let Some(input) = input.as_ref() else {
         return;
     };
-    let names: Vec<String> = input
-        .overlays
-        .iter()
-        .map(|o| o.name.clone())
-        .collect();
+    let names: Vec<String> = input.overlays.iter().map(|o| o.name.clone()).collect();
 
     let mut overlays = Vec::new();
     for name in names {
-        let overlay =
-            match load_overlay_config(
-                &name,
-                &mut toml_cache,
-                &asset_server,
-                &toml_assets,
-            ) {
-                ConfigLoad::Pending => {
-                    return;
-                }
-                ConfigLoad::Ready(
-                    config,
-                ) => config,
-            };
+        let overlay = match load_overlay_config(&name, &mut toml_cache, &asset_server, &toml_assets)
+        {
+            ConfigLoad::Pending => {
+                return;
+            }
+            ConfigLoad::Ready(config) => config,
+        };
         overlays.push((name, overlay));
     }
 
     for (name, overlay) in overlays {
-        for element in overlay.elements
-        {
+        for element in overlay.elements {
             match element {
                 OverlayElement::Text(text) => {
                     spawn_text_overlay(&mut commands, &asset_server, text, name.clone())
@@ -99,37 +69,21 @@ fn spawn_text_overlay(
     text: TextOverlay,
     name: String,
 ) {
-    let color =
-        parse_color(&text.color)
-            .unwrap_or([255, 255, 255]);
-    let color = Color::srgb_u8(
-        color[0], color[1], color[2],
-    );
-    let node = node_from_anchor(
-        &text.common.anchor,
-    );
-    let translation = Val2::new(
-        Val::Px(text.common.offset.x),
-        Val::Px(text.common.offset.y),
-    );
+    let color = parse_color(&text.color).unwrap_or([255, 255, 255]);
+    let color = Color::srgb_u8(color[0], color[1], color[2]);
+    let node = node_from_anchor(&text.common.anchor);
+    let translation = Val2::new(Val::Px(text.common.offset.x), Val::Px(text.common.offset.y));
     let transform = UiTransform {
         translation,
-        rotation: Rot2::degrees(
-            text.common.rotation_deg,
-        ),
-        scale: Vec2::splat(
-            text.common
-                .scale
-                .max(f32::EPSILON),
-        ),
+        rotation: Rot2::degrees(text.common.rotation_deg),
+        scale: Vec2::splat(text.common.scale.max(f32::EPSILON)),
     };
 
-    let visibility =
-        if text.common.visible {
-            Visibility::Visible
-        } else {
-            Visibility::Hidden
-        };
+    let visibility = if text.common.visible {
+        Visibility::Visible
+    } else {
+        Visibility::Hidden
+    };
 
     commands.spawn((
         node,
@@ -137,9 +91,7 @@ fn spawn_text_overlay(
         GlobalZIndex(100), // keep overlays on top
         Text::new(text.content),
         TextFont {
-            font: default_font(
-                asset_server,
-            ),
+            font: default_font(asset_server),
             font_size: text.font_size,
             ..default()
         },
@@ -147,18 +99,13 @@ fn spawn_text_overlay(
         visibility,
         InheritedVisibility::default(),
         ViewVisibility::default(),
-        OverlayTag {
-            name: name.clone(),
-        },
+        OverlayTag { name: name.clone() },
     ));
 }
 
-fn node_from_anchor(
-    anchor: &OverlayAnchor,
-) -> Node {
+fn node_from_anchor(anchor: &OverlayAnchor) -> Node {
     let mut node = Node {
-        position_type:
-            PositionType::Absolute,
+        position_type: PositionType::Absolute,
         ..default()
     };
     match anchor {
@@ -180,37 +127,29 @@ fn node_from_anchor(
         }
         OverlayAnchor::Top => {
             node.top = Val::Px(0.0);
-            node.left =
-                Val::Percent(50.0);
+            node.left = Val::Percent(50.0);
         }
         OverlayAnchor::Bottom => {
             node.bottom = Val::Px(0.0);
-            node.left =
-                Val::Percent(50.0);
+            node.left = Val::Percent(50.0);
         }
         OverlayAnchor::Left => {
             node.left = Val::Px(0.0);
-            node.top =
-                Val::Percent(50.0);
+            node.top = Val::Percent(50.0);
         }
         OverlayAnchor::Right => {
             node.right = Val::Px(0.0);
-            node.top =
-                Val::Percent(50.0);
+            node.top = Val::Percent(50.0);
         }
         OverlayAnchor::Center => {
-            node.left =
-                Val::Percent(50.0);
-            node.top =
-                Val::Percent(50.0);
+            node.left = Val::Percent(50.0);
+            node.top = Val::Percent(50.0);
         }
     }
     node
 }
 
-fn default_font(
-    asset_server: &AssetServer,
-) -> Handle<Font> {
+fn default_font(asset_server: &AssetServer) -> Handle<Font> {
     // Bevy ships with a fallback font; the default handle resolves to it.
     let _ = asset_server; // keep signature in case asset loading is needed later
     Handle::<Font>::default()

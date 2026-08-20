@@ -1,9 +1,6 @@
 use serde::Deserialize;
 
-use super::{
-    EntityOverrides,
-    TransformOverrides, Vec3Config,
-};
+use super::{EntityOverrides, TransformOverrides, Vec3Config};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ComboTemplate {
@@ -11,8 +8,7 @@ pub struct ComboTemplate {
     #[serde(default)]
     pub parts: Vec<ComboPart>,
     #[serde(default)]
-    pub overrides:
-        Option<EntityOverrides>,
+    pub overrides: Option<EntityOverrides>,
     #[serde(default)]
     pub physics: Option<ComboPhysics>,
     #[serde(default)]
@@ -25,20 +21,16 @@ pub struct ComboPart {
     #[serde(default)]
     pub name_override: Option<String>,
     #[serde(default)]
-    pub transform:
-        Option<TransformOverrides>,
+    pub transform: Option<TransformOverrides>,
     #[serde(default)]
-    pub overrides:
-        Option<EntityOverrides>,
+    pub overrides: Option<EntityOverrides>,
     #[serde(default)]
     pub attach: Option<AttachConfig>,
     #[serde(default)]
     pub physics_root: bool,
 }
 
-#[derive(
-    Debug, Deserialize, Clone, Default,
-)]
+#[derive(Debug, Deserialize, Clone, Default)]
 pub struct ComboPhysics {
     #[serde(default)]
     pub shared: bool,

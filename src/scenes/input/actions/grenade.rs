@@ -1,24 +1,15 @@
 use bevy::{
-    prelude::{
-        Commands, Component,
-        GlobalTransform, Query, Res,
-        Time, Transform, Vec3, With,
-    },
+    prelude::{Commands, Component, GlobalTransform, Query, Res, Time, Transform, Vec3, With},
     time::Timer,
 };
 use bevy_rapier3d::prelude::{
-    AdditionalMassProperties, Collider,
-    Friction, Restitution, RigidBody,
-    Velocity,
+    AdditionalMassProperties, Collider, Friction, Restitution, RigidBody, Velocity,
 };
 
 use crate::scenes::bounds::DespawnOutsideBounds;
 use crate::scenes::spawn::SceneEntityTag;
 
-use super::super::types::{
-    ActionStates, SceneCamera,
-    SceneGrenadeConfig,
-};
+use super::super::types::{ActionStates, SceneCamera, SceneGrenadeConfig};
 
 #[derive(Component)]
 pub(crate) struct GrenadeFuse {
@@ -28,14 +19,9 @@ pub(crate) struct GrenadeFuse {
 }
 
 pub fn apply_grenade_action(
-    config: Option<
-        Res<SceneGrenadeConfig>,
-    >,
+    config: Option<Res<SceneGrenadeConfig>>,
     states: Option<Res<ActionStates>>,
-    cameras: Query<
-        &GlobalTransform,
-        With<SceneCamera>,
-    >,
+    cameras: Query<&GlobalTransform, With<SceneCamera>>,
     mut commands: Commands,
 ) {
     let Some(config) = config else {
@@ -44,41 +30,20 @@ pub fn apply_grenade_action(
     let Some(states) = states else {
         return;
     };
-    if !states
-        .get(&config.id)
-        .just_pressed
-    {
+    if !states.get(&config.id).just_pressed {
         return;
     }
 
-    let Ok(camera) = cameras.single()
-    else {
+    let Ok(camera) = cameras.single() else {
         return;
     };
 
     let forward = camera.forward();
-    let spawn_pos = camera
-        .translation()
-        + forward
-            * config
-                .action
-                .spawn_offset;
+    let spawn_pos = camera.translation() + forward * config.action.spawn_offset;
     let spin = Vec3::new(
-        config
-            .action
-            .spin
-            .x
-            .to_radians(),
-        config
-            .action
-            .spin
-            .y
-            .to_radians(),
-        config
-            .action
-            .spin
-            .z
-            .to_radians(),
+        config.action.spin.x.to_radians(),
+        config.action.spin.y.to_radians(),
+        config.action.spin.z.to_radians(),
     );
 
     let mut entity = commands.spawn((
@@ -93,7 +58,10 @@ pub fn apply_grenade_action(
             angvel: spin,
         },
         GrenadeFuse {
-            timer: Timer::from_seconds(config.action.fuse_seconds.max(0.0), bevy::time::TimerMode::Once),
+            timer: Timer::from_seconds(
+                config.action.fuse_seconds.max(0.0),
+                bevy::time::TimerMode::Once,
+            ),
             radius: config.action.explosion_radius.max(0.0),
             force: config.action.explosion_force.max(0.0),
         },
@@ -102,25 +70,16 @@ pub fn apply_grenade_action(
         bevy::prelude::ViewVisibility::default(),
     ));
 
-    if let Some(physics) =
-        config.physics.as_ref()
-    {
+    if let Some(physics) = config.physics.as_ref() {
         if physics.enabled {
-            let rigid_body =
-                resolve_rigid_body(
-                    &physics.body_type,
-                );
+            let rigid_body = resolve_rigid_body(&physics.body_type);
             entity.insert((
                 rigid_body,
                 Collider::ball(config.shape.radius.unwrap_or(0.2)),
                 Restitution::coefficient(physics.restitution),
                 Friction::coefficient(physics.friction),
             ));
-            if matches!(
-                rigid_body,
-                RigidBody::Dynamic
-            ) && physics.mass > 0.0
-            {
+            if matches!(rigid_body, RigidBody::Dynamic) && physics.mass > 0.0 {
                 entity.insert(AdditionalMassProperties::Mass(physics.mass));
             }
             if config.action.ccd {
@@ -132,12 +91,7 @@ pub fn apply_grenade_action(
 
     entity.insert((
         RigidBody::Dynamic,
-        Collider::ball(
-            config
-                .shape
-                .radius
-                .unwrap_or(0.2),
-        ),
+        Collider::ball(config.shape.radius.unwrap_or(0.2)),
     ));
     if config.action.ccd {
         entity.insert(bevy_rapier3d::prelude::Ccd::enabled());
@@ -146,11 +100,7 @@ pub fn apply_grenade_action(
 
 pub fn update_grenade_fuses(
     time: Res<Time>,
-    mut grenades: Query<(
-        bevy::prelude::Entity,
-        &mut GrenadeFuse,
-        &GlobalTransform,
-    )>,
+    mut grenades: Query<(bevy::prelude::Entity, &mut GrenadeFuse, &GlobalTransform)>,
     mut bodies: Query<(
         bevy::prelude::Entity,
         &GlobalTransform,
@@ -160,67 +110,31 @@ pub fn update_grenade_fuses(
     mut commands: Commands,
 ) {
     let dt = time.delta();
-    for (
-        grenade_entity,
-        mut fuse,
-        transform,
-    ) in grenades.iter_mut()
-    {
+    for (grenade_entity, mut fuse, transform) in grenades.iter_mut() {
         fuse.timer.tick(dt);
         if !fuse.timer.is_finished() {
             continue;
         }
 
-        let origin =
-            transform.translation();
+        let origin = transform.translation();
         let radius = fuse.radius;
-        if radius > 0.0
-            && fuse.force > 0.0
-        {
-            for (
-                entity,
-                body_transform,
-                body,
-                velocity,
-            ) in bodies.iter_mut()
-            {
-                if entity
-                    == grenade_entity
-                {
+        if radius > 0.0 && fuse.force > 0.0 {
+            for (entity, body_transform, body, velocity) in bodies.iter_mut() {
+                if entity == grenade_entity {
                     continue;
                 }
-                if !matches!(
-                    *body,
-                    RigidBody::Dynamic
-                ) {
+                if !matches!(*body, RigidBody::Dynamic) {
                     continue;
                 }
-                let delta =
-                    body_transform
-                        .translation()
-                        - origin;
-                let distance =
-                    delta.length();
-                if distance > radius
-                    || distance
-                        <= f32::EPSILON
-                {
+                let delta = body_transform.translation() - origin;
+                let distance = delta.length();
+                if distance > radius || distance <= f32::EPSILON {
                     continue;
                 }
-                let strength = fuse
-                    .force
-                    * (1.0
-                        - (distance
-                            / radius));
-                let impulse = delta
-                    .normalize()
-                    * strength;
-                if let Some(
-                    mut velocity,
-                ) = velocity
-                {
-                    velocity.linvel +=
-                        impulse;
+                let strength = fuse.force * (1.0 - (distance / radius));
+                let impulse = delta.normalize() * strength;
+                if let Some(mut velocity) = velocity {
+                    velocity.linvel += impulse;
                 } else {
                     commands.entity(entity).insert(Velocity {
                         linvel: impulse,
@@ -236,17 +150,11 @@ pub fn update_grenade_fuses(
     }
 }
 
-fn resolve_rigid_body(
-    body_type: &str,
-) -> RigidBody {
+fn resolve_rigid_body(body_type: &str) -> RigidBody {
     match body_type.trim().to_ascii_lowercase().as_str() {
         "fixed" | "static" => RigidBody::Fixed,
-        "kinematic_position" | "kinematic_position_based" => {
-            RigidBody::KinematicPositionBased
-        }
-        "kinematic_velocity" | "kinematic_velocity_based" => {
-            RigidBody::KinematicVelocityBased
-        }
+        "kinematic_position" | "kinematic_position_based" => RigidBody::KinematicPositionBased,
+        "kinematic_velocity" | "kinematic_velocity_based" => RigidBody::KinematicVelocityBased,
         _ => RigidBody::Dynamic,
     }
 }

@@ -1,17 +1,11 @@
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 
-use crate::scenes::input::{
-    DebugMenuPage, DebugMenuState,
-};
+use crate::scenes::input::{DebugMenuPage, DebugMenuState};
 
 use super::types::{
-    DebugMenuAction,
-    DebugMenuAdjustStep,
-    DebugMenuButton, DebugMenuEntry,
-    DebugMenuSliderConfig,
-    DebugMenuSliderKind,
-    DebugMenuUiTag,
+    DebugMenuAction, DebugMenuAdjustStep, DebugMenuButton, DebugMenuEntry, DebugMenuSliderConfig,
+    DebugMenuSliderKind, DebugMenuUiTag,
 };
 
 pub(crate) fn spawn_debug_menu_ui(
@@ -19,12 +13,8 @@ pub(crate) fn spawn_debug_menu_ui(
     asset_server: &AssetServer,
     debug_state: &DebugMenuState,
 ) {
-    let page =
-        current_page(debug_state);
-    let entries = entries_for_page(
-        debug_state,
-        page,
-    );
+    let page = current_page(debug_state);
+    let entries = entries_for_page(debug_state, page);
 
     let container = commands
         .spawn((
@@ -57,163 +47,154 @@ pub(crate) fn spawn_debug_menu_ui(
                 DebugMenuUiTag,
             ))
             .with_children(|parent| {
-        parent.spawn((
-            Text::new(format!("Debug Menu: {}", page_title(page))),
-            TextFont {
-                font: default_font(asset_server),
-                font_size: 22.0,
-                ..Default::default()
-            },
-            TextColor(Color::WHITE),
-            DebugMenuUiTag,
-        ));
-
-        parent.spawn((
-            Text::new("Left click: select | Right click: back"),
-            TextFont {
-                font: default_font(asset_server),
-                font_size: 12.0,
-                ..Default::default()
-            },
-            TextColor(Color::srgba(0.8, 0.8, 0.8, 0.9)),
-            DebugMenuUiTag,
-        ));
-
-        for entry in entries {
-            parent
-                .spawn((
-                    Button,
-                    Interaction::default(),
-                    FocusPolicy::Block,
-                    Node {
-                        width: Val::Percent(100.0),
-                        min_height: Val::Px(30.0),
-                        padding: UiRect::new(
-                            Val::Px(10.0),
-                            Val::Px(10.0),
-                            Val::Px(6.0),
-                            Val::Px(6.0),
-                        ),
+                parent.spawn((
+                    Text::new(format!("Debug Menu: {}", page_title(page))),
+                    TextFont {
+                        font: default_font(asset_server),
+                        font_size: 22.0,
                         ..Default::default()
                     },
-                    BackgroundColor(Color::srgba(0.1, 0.1, 0.1, 0.85)),
-                    DebugMenuButton {
-                        action: entry.action,
-                    },
+                    TextColor(Color::WHITE),
                     DebugMenuUiTag,
-                ))
-                .with_children(|button| {
-                    button.spawn((
-                        Text::new(entry.label),
-                        TextFont {
-                            font: default_font(asset_server),
-                            font_size: 16.0,
-                            ..Default::default()
-                        },
-                        TextColor(Color::WHITE),
-                        DebugMenuUiTag,
-                    ));
-                });
-        }
+                ));
 
-        for slider in sliders_for_page(debug_state, page) {
-            parent
-                .spawn((
-                    Node {
-                        width: Val::Percent(100.0),
-                        height: Val::Px(40.0),
-                        align_items: AlignItems::Center,
-                        justify_content: JustifyContent::SpaceBetween,
+                parent.spawn((
+                    Text::new("Left click: select | Right click: back"),
+                    TextFont {
+                        font: default_font(asset_server),
+                        font_size: 12.0,
                         ..Default::default()
                     },
+                    TextColor(Color::srgba(0.8, 0.8, 0.8, 0.9)),
                     DebugMenuUiTag,
-                ))
-                .with_children(|row| {
-                    row.spawn((
-                        Text::new(format!("{}: {:.2}", slider.label, slider.value)),
-                        TextFont {
-                            font: default_font(asset_server),
-                            font_size: 14.0,
-                            ..Default::default()
-                        },
-                        TextColor(Color::WHITE),
-                        DebugMenuUiTag,
-                    ));
+                ));
 
-                    row.spawn((
-                        Node {
-                            width: Val::Px(260.0),
-                            height: Val::Px(28.0),
-                            align_items: AlignItems::Center,
-                            justify_content: JustifyContent::SpaceBetween,
-                            ..Default::default()
-                        },
-                        DebugMenuUiTag,
-                    ))
-                    .with_children(|buttons| {
-                        let mut add_button = |label: &str, step: DebugMenuAdjustStep| {
-                            buttons
-                                .spawn((
-                                    Button,
-                                    Interaction::default(),
-                                    FocusPolicy::Block,
-                                    Node {
-                                        width: Val::Px(58.0),
-                                        height: Val::Px(24.0),
-                                        align_items: AlignItems::Center,
-                                        justify_content: JustifyContent::Center,
-                                        ..Default::default()
-                                    },
-                                    BackgroundColor(Color::srgba(0.1, 0.1, 0.1, 0.85)),
-                                    DebugMenuButton {
-                                        action: DebugMenuAction::AdjustSlider {
-                                            kind: slider.kind,
-                                            min: slider.min,
-                                            max: slider.max,
-                                            step,
-                                        },
-                                    },
-                                    DebugMenuUiTag,
-                                ))
-                                .with_children(|button| {
-                                    button.spawn((
-                                        Text::new(label),
-                                        TextFont {
-                                            font: default_font(asset_server),
-                                            font_size: 12.0,
-                                            ..Default::default()
-                                        },
-                                        TextColor(Color::WHITE),
-                                        DebugMenuUiTag,
-                                    ));
-                                });
-                        };
+                for entry in entries {
+                    parent
+                        .spawn((
+                            Button,
+                            Interaction::default(),
+                            FocusPolicy::Block,
+                            Node {
+                                width: Val::Percent(100.0),
+                                min_height: Val::Px(30.0),
+                                padding: UiRect::new(
+                                    Val::Px(10.0),
+                                    Val::Px(10.0),
+                                    Val::Px(6.0),
+                                    Val::Px(6.0),
+                                ),
+                                ..Default::default()
+                            },
+                            BackgroundColor(Color::srgba(0.1, 0.1, 0.1, 0.85)),
+                            DebugMenuButton {
+                                action: entry.action,
+                            },
+                            DebugMenuUiTag,
+                        ))
+                        .with_children(|button| {
+                            button.spawn((
+                                Text::new(entry.label),
+                                TextFont {
+                                    font: default_font(asset_server),
+                                    font_size: 16.0,
+                                    ..Default::default()
+                                },
+                                TextColor(Color::WHITE),
+                                DebugMenuUiTag,
+                            ));
+                        });
+                }
 
-                        add_button("min", DebugMenuAdjustStep::Min);
-                        add_button("-10%", DebugMenuAdjustStep::Minus);
-                        add_button("+10%", DebugMenuAdjustStep::Plus);
-                        add_button("max", DebugMenuAdjustStep::Max);
-                    });
-                });
-        }
+                for slider in sliders_for_page(debug_state, page) {
+                    parent
+                        .spawn((
+                            Node {
+                                width: Val::Percent(100.0),
+                                height: Val::Px(40.0),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::SpaceBetween,
+                                ..Default::default()
+                            },
+                            DebugMenuUiTag,
+                        ))
+                        .with_children(|row| {
+                            row.spawn((
+                                Text::new(format!("{}: {:.2}", slider.label, slider.value)),
+                                TextFont {
+                                    font: default_font(asset_server),
+                                    font_size: 14.0,
+                                    ..Default::default()
+                                },
+                                TextColor(Color::WHITE),
+                                DebugMenuUiTag,
+                            ));
+
+                            row.spawn((
+                                Node {
+                                    width: Val::Px(260.0),
+                                    height: Val::Px(28.0),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::SpaceBetween,
+                                    ..Default::default()
+                                },
+                                DebugMenuUiTag,
+                            ))
+                            .with_children(|buttons| {
+                                let mut add_button = |label: &str, step: DebugMenuAdjustStep| {
+                                    buttons
+                                        .spawn((
+                                            Button,
+                                            Interaction::default(),
+                                            FocusPolicy::Block,
+                                            Node {
+                                                width: Val::Px(58.0),
+                                                height: Val::Px(24.0),
+                                                align_items: AlignItems::Center,
+                                                justify_content: JustifyContent::Center,
+                                                ..Default::default()
+                                            },
+                                            BackgroundColor(Color::srgba(0.1, 0.1, 0.1, 0.85)),
+                                            DebugMenuButton {
+                                                action: DebugMenuAction::AdjustSlider {
+                                                    kind: slider.kind,
+                                                    min: slider.min,
+                                                    max: slider.max,
+                                                    step,
+                                                },
+                                            },
+                                            DebugMenuUiTag,
+                                        ))
+                                        .with_children(|button| {
+                                            button.spawn((
+                                                Text::new(label),
+                                                TextFont {
+                                                    font: default_font(asset_server),
+                                                    font_size: 12.0,
+                                                    ..Default::default()
+                                                },
+                                                TextColor(Color::WHITE),
+                                                DebugMenuUiTag,
+                                            ));
+                                        });
+                                };
+
+                                add_button("min", DebugMenuAdjustStep::Min);
+                                add_button("-10%", DebugMenuAdjustStep::Minus);
+                                add_button("+10%", DebugMenuAdjustStep::Plus);
+                                add_button("max", DebugMenuAdjustStep::Max);
+                            });
+                        });
+                }
             });
     });
 }
 
-fn current_page(
-    state: &DebugMenuState,
-) -> DebugMenuPage {
-    state
-        .stack
-        .last()
-        .copied()
-        .unwrap_or(DebugMenuPage::Root)
+fn current_page(state: &DebugMenuState) -> DebugMenuPage {
+    state.stack.last().copied().unwrap_or(DebugMenuPage::Root)
 }
 
-fn entries_for_page(
-    state: &DebugMenuState,
-    page: DebugMenuPage,
-) -> Vec<DebugMenuEntry> {
+fn entries_for_page(state: &DebugMenuState, page: DebugMenuPage) -> Vec<DebugMenuEntry> {
     let mut entries = Vec::new();
     match page {
         DebugMenuPage::Root => {
@@ -302,7 +283,10 @@ fn entries_for_page(
         }
         DebugMenuPage::RenderRayTracing => {
             entries.push(DebugMenuEntry {
-                label: format!("Ray Tracing: {}", on_off(state.settings.ray_tracing_enabled)),
+                label: format!(
+                    "Ray Tracing: {}",
+                    on_off(state.settings.ray_tracing_enabled)
+                ),
                 action: DebugMenuAction::ToggleRayTracing,
             });
             entries.push(DebugMenuEntry {
@@ -345,9 +329,7 @@ fn entries_for_page(
     entries
 }
 
-fn page_title(
-    page: DebugMenuPage,
-) -> &'static str {
+fn page_title(page: DebugMenuPage) -> &'static str {
     match page {
         DebugMenuPage::Root => "Root",
         DebugMenuPage::Camera => "Camera",
@@ -365,10 +347,7 @@ fn on_off(value: bool) -> &'static str {
     if value { "On" } else { "Off" }
 }
 
-fn sliders_for_page(
-    state: &DebugMenuState,
-    page: DebugMenuPage,
-) -> Vec<DebugMenuSliderConfig> {
+fn sliders_for_page(state: &DebugMenuState, page: DebugMenuPage) -> Vec<DebugMenuSliderConfig> {
     let mut sliders = Vec::new();
     match page {
         DebugMenuPage::Camera => {
@@ -390,10 +369,7 @@ fn sliders_for_page(
             ));
         }
         DebugMenuPage::Sun => {
-            if state
-                .settings
-                .sun_present
-            {
+            if state.settings.sun_present {
                 sliders.push(DebugMenuSliderConfig::new(
                     "Brightness",
                     DebugMenuSliderKind::SunBrightness,
@@ -470,9 +446,7 @@ fn sliders_for_page(
     sliders
 }
 
-fn default_font(
-    asset_server: &AssetServer,
-) -> Handle<Font> {
+fn default_font(asset_server: &AssetServer) -> Handle<Font> {
     let _ = asset_server;
     Handle::<Font>::default()
 }

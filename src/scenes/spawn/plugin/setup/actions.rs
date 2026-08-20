@@ -1,50 +1,24 @@
-use bevy::prelude::*;
 use bevy::input::mouse::MouseButton;
+use bevy::prelude::*;
 
 use std::collections::HashMap;
 
 use crate::scenes::{
     MeshCacheSettings, TomlAsset,
     config::{
-        ActionConfig,
-        ActionTriggerConfig,
-        ActionsConfig, ActiveScene,
-        ShapeKind, TriggerMode,
-        VolumeShapeKind,
-        VolumeTriggerMode,
+        ActionConfig, ActionTriggerConfig, ActionsConfig, ActiveScene, ShapeKind, TriggerMode,
+        VolumeShapeKind, VolumeTriggerMode,
     },
     input::{
-        ActionStates, DialogueState,
-        FovBinding, GrabHover,
-        GrabState, NoclipState,
-        PauseState,
-        ResolvedActionTrigger,
-        ResolvedVolumeTrigger,
-        SceneActionTriggers,
-        SceneCutAxisConfig,
-        SceneCutConfig,
-        SceneDialogueConfig,
-        SceneFovConfig,
-        SceneGrabConfig,
-        SceneGrenadeConfig,
-        SceneJumpConfig,
-        SceneNoclipConfig,
-        ScenePauseConfig,
-        SceneReloadConfig,
-        SceneShootConfig,
-        SceneSprintConfig,
-        SceneZoomConfig, SprintState,
-        TriggerMode as InputTriggerMode,
-        TriggerSource, VolumeShape,
-        VolumeShapeKind as InputVolumeShapeKind,
-        VolumeTriggerMode as InputVolumeTriggerMode,
-        ZoomState,
-        resolve_mouse_button_or_warn,
+        ActionStates, DialogueState, FovBinding, GrabHover, GrabState, NoclipState, PauseState,
+        ResolvedActionTrigger, ResolvedVolumeTrigger, SceneActionTriggers, SceneCutAxisConfig,
+        SceneCutConfig, SceneDialogueConfig, SceneFovConfig, SceneGrabConfig, SceneGrenadeConfig,
+        SceneJumpConfig, SceneNoclipConfig, ScenePauseConfig, SceneReloadConfig, SceneShootConfig,
+        SceneSprintConfig, SceneZoomConfig, SprintState, TriggerMode as InputTriggerMode,
+        TriggerSource, VolumeShape, VolumeShapeKind as InputVolumeShapeKind,
+        VolumeTriggerMode as InputVolumeTriggerMode, ZoomState, resolve_mouse_button_or_warn,
     },
-    loaders::{
-        ConfigLoad, TomlCache,
-        load_entity_template_from_path,
-    },
+    loaders::{ConfigLoad, TomlCache, load_entity_template_from_path},
 };
 
 pub(crate) fn setup_actions(
@@ -53,31 +27,21 @@ pub(crate) fn setup_actions(
     mesh_cache: &MeshCacheSettings,
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<
-        StandardMaterial,
-    >,
+    materials: &mut Assets<StandardMaterial>,
     asset_server: &AssetServer,
     toml_assets: &Assets<TomlAsset>,
     toml_cache: &mut TomlCache,
 ) -> Option<bool> {
-    let mut actions_by_id =
-        HashMap::new();
-    for action in
-        actions_config.actions.iter()
-    {
-        actions_by_id.insert(
-            action.id().to_string(),
-            action.clone(),
-        );
+    let mut actions_by_id = HashMap::new();
+    for action in actions_config.actions.iter() {
+        actions_by_id.insert(action.id().to_string(), action.clone());
     }
 
     let mut initial_noclip = None;
     let mut fov_bindings = Vec::new();
     let mut dialogue_prompt = None;
     let mut dialogue_interact = None;
-    for action in
-        actions_config.actions.iter()
-    {
+    for action in actions_config.actions.iter() {
         match action {
             ActionConfig::Shoot { id, params } => {
                 let projectile = match load_entity_template_from_path(
@@ -207,8 +171,7 @@ pub(crate) fn setup_actions(
                     &params.speed_toggle_key,
                     "noclip speed toggle",
                 );
-                let up_key =
-                    crate::scenes::input::resolve_key_or_warn(&params.up_key, "noclip up");
+                let up_key = crate::scenes::input::resolve_key_or_warn(&params.up_key, "noclip up");
                 let down_key =
                     crate::scenes::input::resolve_key_or_warn(&params.down_key, "noclip down");
                 initial_noclip = Some(params.enabled);
@@ -234,11 +197,9 @@ pub(crate) fn setup_actions(
                 commands.insert_resource(GrabHover::default());
             }
             ActionConfig::Cut { id, params } => {
-                let confirm_button = resolve_mouse_button_or_warn(
-                    &params.confirm_button,
-                    "cut confirmation button",
-                )
-                .unwrap_or(MouseButton::Right);
+                let confirm_button =
+                    resolve_mouse_button_or_warn(&params.confirm_button, "cut confirmation button")
+                        .unwrap_or(MouseButton::Right);
                 commands.insert_resource(SceneCutConfig {
                     id: id.clone(),
                     action: params.clone(),
@@ -283,33 +244,17 @@ pub(crate) fn setup_actions(
     }
 
     if !fov_bindings.is_empty() {
-        commands.insert_resource(
-            SceneFovConfig {
-                bindings: fov_bindings,
-            },
-        );
+        commands.insert_resource(SceneFovConfig {
+            bindings: fov_bindings,
+        });
     }
 
-    if let (
-        Some((
-            prompt_id,
-            prompt_params,
-        )),
-        Some((
-            interact_id,
-            interact_params,
-        )),
-    ) = (
-        dialogue_prompt,
-        dialogue_interact,
-    ) {
-        let mut option_keys =
-            Vec::new();
-        let mut option_labels =
-            Vec::new();
-        for key in
-            &interact_params.option_keys
-        {
+    if let (Some((prompt_id, prompt_params)), Some((interact_id, interact_params))) =
+        (dialogue_prompt, dialogue_interact)
+    {
+        let mut option_keys = Vec::new();
+        let mut option_labels = Vec::new();
+        for key in &interact_params.option_keys {
             if let Some(code) =
                 crate::scenes::input::resolve_key_or_warn(key, "dialogue option key")
             {
@@ -317,51 +262,34 @@ pub(crate) fn setup_actions(
                 option_labels.push(key.clone());
             }
         }
-        commands.insert_resource(
-            SceneDialogueConfig {
-                prompt_action_id:
-                    prompt_id,
-                interact_action_id:
-                    interact_id,
-                prompt_overlay:
-                    prompt_params
-                        .overlay,
-                dialogue:
-                    interact_params
-                        .dialogue,
-                option_keys,
-                option_labels,
-            },
-        );
-        commands.insert_resource(
-            DialogueState::default(),
-        );
+        commands.insert_resource(SceneDialogueConfig {
+            prompt_action_id: prompt_id,
+            interact_action_id: interact_id,
+            prompt_overlay: prompt_params.overlay,
+            dialogue: interact_params.dialogue,
+            option_keys,
+            option_labels,
+        });
+        commands.insert_resource(DialogueState::default());
     }
 
-    let mut resolved_triggers =
-        Vec::new();
-    let mut resolved_volumes =
-        Vec::new();
-    for trigger in
-        actions_config.triggers.iter()
-    {
+    let mut resolved_triggers = Vec::new();
+    let mut resolved_volumes = Vec::new();
+    for trigger in actions_config.triggers.iter() {
         let action_id = match trigger {
             ActionTriggerConfig::Key { action, .. }
             | ActionTriggerConfig::Mouse { action, .. }
             | ActionTriggerConfig::Volume { action, .. } => action,
         };
-        if !actions_by_id
-            .contains_key(action_id)
-        {
-            warn!(
-                "Action trigger references unknown action id '{action_id}'."
-            );
+        if !actions_by_id.contains_key(action_id) {
+            warn!("Action trigger references unknown action id '{action_id}'.");
             continue;
         }
         match trigger {
-            ActionTriggerConfig::Key { key, mode, action, .. } => {
-                if let Some(trigger) =
-                    crate::scenes::input::resolve_key_or_warn(key, "action key")
+            ActionTriggerConfig::Key {
+                key, mode, action, ..
+            } => {
+                if let Some(trigger) = crate::scenes::input::resolve_key_or_warn(key, "action key")
                 {
                     resolved_triggers.push(ResolvedActionTrigger {
                         action: action.clone(),
@@ -370,7 +298,12 @@ pub(crate) fn setup_actions(
                     });
                 }
             }
-            ActionTriggerConfig::Mouse { mouse, mode, action, .. } => {
+            ActionTriggerConfig::Mouse {
+                mouse,
+                mode,
+                action,
+                ..
+            } => {
                 if let Some(trigger) =
                     crate::scenes::input::resolve_mouse_button_or_warn(mouse, "action mouse")
                 {
@@ -416,37 +349,23 @@ pub(crate) fn setup_actions(
             }
         }
     }
-    commands.insert_resource(
-        SceneActionTriggers {
-            input: resolved_triggers,
-            volumes: resolved_volumes,
-        },
-    );
-    commands.insert_resource(
-        ActionStates::default(),
-    );
+    commands.insert_resource(SceneActionTriggers {
+        input: resolved_triggers,
+        volumes: resolved_volumes,
+    });
+    commands.insert_resource(ActionStates::default());
 
-    Some(
-        initial_noclip.unwrap_or(false),
-    )
+    Some(initial_noclip.unwrap_or(false))
 }
 
-fn map_trigger_mode(
-    mode: TriggerMode,
-) -> InputTriggerMode {
+fn map_trigger_mode(mode: TriggerMode) -> InputTriggerMode {
     match mode {
-        TriggerMode::Press => {
-            InputTriggerMode::Press
-        }
-        TriggerMode::Hold => {
-            InputTriggerMode::Hold
-        }
+        TriggerMode::Press => InputTriggerMode::Press,
+        TriggerMode::Hold => InputTriggerMode::Hold,
     }
 }
 
-fn map_volume_mode(
-    mode: VolumeTriggerMode,
-) -> InputVolumeTriggerMode {
+fn map_volume_mode(mode: VolumeTriggerMode) -> InputVolumeTriggerMode {
     match mode {
         VolumeTriggerMode::Enter => InputVolumeTriggerMode::Enter,
         VolumeTriggerMode::Exit => InputVolumeTriggerMode::Exit,

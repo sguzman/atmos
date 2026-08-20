@@ -22,8 +22,7 @@ pub(super) fn spawn_sun(
     let fraction = sun.time.rem_euclid(24.0) / 24.0;
     let elevation = (std::f32::consts::PI * fraction).sin().max(0.0);
     let dir = Vec3::new(0.0, -(0.1 + elevation), -1.0).normalize();
-    let sun_color_rgb =
-        crate::scenes::config::parse_color(&sun.color).unwrap_or([255, 255, 255]);
+    let sun_color_rgb = crate::scenes::config::parse_color(&sun.color).unwrap_or([255, 255, 255]);
     let sun_color = Color::srgb_u8(sun_color_rgb[0], sun_color_rgb[1], sun_color_rgb[2]);
 
     commands.spawn((
@@ -54,12 +53,8 @@ pub(super) fn spawn_sun(
         radius: Some(sun.size),
         cuttable: false,
     };
-    let sun_mesh = crate::scenes::load_or_generate_mesh_handle(
-        mesh_cache,
-        &sun_shape,
-        meshes,
-        asset_server,
-    );
+    let sun_mesh =
+        crate::scenes::load_or_generate_mesh_handle(mesh_cache, &sun_shape, meshes, asset_server);
     commands.spawn((
         Name::new("sun_sphere"),
         SceneEntityTag,

@@ -3,10 +3,8 @@ use bevy::{
     input::keyboard::KeyCode,
     input::mouse::MouseMotion,
     prelude::{
-        ButtonInput, MessageReader,
-        MessageWriter, Quat, Query,
-        Res, ResMut, Time, Transform,
-        Vec2, Vec3, With, Without,
+        ButtonInput, MessageReader, MessageWriter, Quat, Query, Res, ResMut, Time, Transform, Vec2,
+        Vec3, With, Without,
     },
 };
 use bevy_rapier3d::prelude::Velocity;
@@ -14,80 +12,40 @@ use bevy_rapier3d::prelude::Velocity;
 use crate::app_config::AppConfig;
 
 use super::types::{
-    CameraControl, CameraLookState,
-    DebugMenuState, NoclipState,
-    PlayerBody, SceneCamera,
-    SceneInputConfig,
-    SceneNoclipConfig,
-    SceneSprintConfig, SceneZoomConfig,
-    SprintState, ZoomState,
+    CameraControl, CameraLookState, DebugMenuState, NoclipState, PlayerBody, SceneCamera,
+    SceneInputConfig, SceneNoclipConfig, SceneSprintConfig, SceneZoomConfig, SprintState,
+    ZoomState,
 };
 
-const CAMERA_OFFSET: Vec3 =
-    Vec3::new(0.0, 0.6, 0.0);
+const CAMERA_OFFSET: Vec3 = Vec3::new(0.0, 0.6, 0.0);
 
 pub fn apply_camera_input(
     time: Res<Time>,
     keys: Res<ButtonInput<KeyCode>>,
-    mut mouse_motion: MessageReader<
-        MouseMotion,
-    >,
+    mut mouse_motion: MessageReader<MouseMotion>,
     app_config: Res<AppConfig>,
-    debug_menu: Option<
-        Res<DebugMenuState>,
-    >,
+    debug_menu: Option<Res<DebugMenuState>>,
     sprint: Option<Res<SprintState>>,
-    sprint_config: Option<
-        Res<SceneSprintConfig>,
-    >,
+    sprint_config: Option<Res<SceneSprintConfig>>,
     zoom_state: Option<Res<ZoomState>>,
-    zoom_config: Option<
-        Res<SceneZoomConfig>,
-    >,
-    noclip_config: Option<
-        Res<SceneNoclipConfig>,
-    >,
-    mut noclip_state: Option<
-        ResMut<NoclipState>,
-    >,
-    look_state: Option<
-        ResMut<CameraLookState>,
-    >,
-    config: Option<
-        Res<SceneInputConfig>,
-    >,
-    mut cameras: Query<
-        &mut Transform,
-        (
-            With<SceneCamera>,
-            Without<PlayerBody>,
-        ),
-    >,
-    mut bodies: Query<
-        (
-            &mut Transform,
-            Option<&mut Velocity>,
-        ),
-        With<PlayerBody>,
-    >,
-    mut app_exit: MessageWriter<
-        AppExit,
-    >,
+    zoom_config: Option<Res<SceneZoomConfig>>,
+    noclip_config: Option<Res<SceneNoclipConfig>>,
+    mut noclip_state: Option<ResMut<NoclipState>>,
+    look_state: Option<ResMut<CameraLookState>>,
+    config: Option<Res<SceneInputConfig>>,
+    mut cameras: Query<&mut Transform, (With<SceneCamera>, Without<PlayerBody>)>,
+    mut bodies: Query<(&mut Transform, Option<&mut Velocity>), With<PlayerBody>>,
+    mut app_exit: MessageWriter<AppExit>,
 ) {
     let Some(config) = config else {
         return;
     };
-    if debug_menu.as_ref().is_some_and(
-        |state| state.active,
-    ) {
+    if debug_menu.as_ref().is_some_and(|state| state.active) {
         return;
     }
 
-    if keys
-        .just_pressed(KeyCode::Escape)
-    {
-        app_exit
-            .write(AppExit::Success);
+    if keys.just_pressed(KeyCode::Escape) {
+        app_exit.write(AppExit::Success);
         return;
     }
 
@@ -96,17 +54,11 @@ pub fn apply_camera_input(
         mouse_delta += event.delta;
     }
 
-    let Ok(mut camera_transform) =
-        cameras.single_mut()
-    else {
+    let Ok(mut camera_transform) = cameras.single_mut() else {
         return;
     };
 
-    let Ok((
-        mut body_transform,
-        body_velocity,
-    )) = bodies.single_mut()
-    else {
+    let Ok((mut body_transform, body_velocity)) = bodies.single_mut() else {
         apply_free_camera_input(
             &mut camera_transform,
             &config.camera,
@@ -122,57 +74,41 @@ pub fn apply_camera_input(
         return;
     };
 
-    let move_cfg =
-        &config.camera.movement;
-    let rot_cfg =
-        &config.camera.rotation;
+    let move_cfg = &config.camera.movement;
+    let rot_cfg = &config.camera.rotation;
     let dt = time.delta_secs();
 
-    let (yaw_delta, pitch_delta) =
-        resolve_rotation_delta(
-            move_cfg.control,
-            rot_cfg,
-            &keys,
-            &mouse_delta,
-            &app_config,
-            zoom_state.as_ref(),
-            zoom_config.as_ref(),
-            dt,
-        );
+    let (yaw_delta, pitch_delta) = resolve_rotation_delta(
+        move_cfg.control,
+        rot_cfg,
+        &keys,
+        &mouse_delta,
+        &app_config,
+        zoom_state.as_ref(),
+        zoom_config.as_ref(),
+        dt,
+    );
 
     body_transform.rotate_y(yaw_delta);
-    if let Some(mut look_state) =
-        look_state
-    {
-        let mut pitch = look_state
-            .pitch
-            + pitch_delta;
+    if let Some(mut look_state) = look_state {
+        let mut pitch = look_state.pitch + pitch_delta;
         pitch = pitch.clamp(-1.4, 1.4);
         look_state.pitch = pitch;
-        camera_transform.rotation =
-            Quat::from_rotation_x(
-                pitch,
-            );
+        camera_transform.rotation = Quat::from_rotation_x(pitch);
     } else if pitch_delta != 0.0 {
-        camera_transform
-            .rotate_local_x(
-                pitch_delta,
-            );
+        camera_transform.rotate_local_x(pitch_delta);
     }
 
-    camera_transform.translation =
-        CAMERA_OFFSET;
+    camera_transform.translation = CAMERA_OFFSET;
 
     let mut forward_axis = 0.0;
     let mut right_axis = 0.0;
-    if let Some(key) = move_cfg.forward
-    {
+    if let Some(key) = move_cfg.forward {
         if keys.pressed(key) {
             forward_axis += 1.0;
         }
     }
-    if let Some(key) = move_cfg.backward
-    {
+    if let Some(key) = move_cfg.backward {
         if keys.pressed(key) {
             forward_axis -= 1.0;
         }
@@ -188,136 +124,67 @@ pub fn apply_camera_input(
         }
     }
 
-    if let Some(state) =
-        noclip_state.as_mut()
-    {
+    if let Some(state) = noclip_state.as_mut() {
         if state.active {
-            let mut direction =
-                Vec3::ZERO;
-            if forward_axis != 0.0
-                || right_axis != 0.0
-            {
+            let mut direction = Vec3::ZERO;
+            if forward_axis != 0.0 || right_axis != 0.0 {
                 let look_rotation = body_transform.rotation * camera_transform.rotation;
-                let forward =
-                    look_rotation
-                        * -Vec3::Z;
-                let right =
-                    look_rotation
-                        * Vec3::X;
-                direction = (forward
-                    * forward_axis
-                    + right
-                        * right_axis)
-                    .normalize_or_zero(
-                    );
+                let forward = look_rotation * -Vec3::Z;
+                let right = look_rotation * Vec3::X;
+                direction = (forward * forward_axis + right * right_axis).normalize_or_zero();
             }
-            let noclip_cfg =
-                noclip_config
-                    .as_ref()
-                    .map(|cfg| {
-                        &cfg.action
-                    });
-            let mut speed = noclip_cfg
-                .map(|cfg| cfg.speed)
-                .unwrap_or(
-                    move_cfg.speed,
-                );
+            let noclip_cfg = noclip_config.as_ref().map(|cfg| &cfg.action);
+            let mut speed = noclip_cfg.map(|cfg| cfg.speed).unwrap_or(move_cfg.speed);
             if state.fast {
-                if let Some(cfg) =
-                    noclip_cfg
-                {
-                    speed = cfg
-                        .fast_speed
-                        .max(speed);
+                if let Some(cfg) = noclip_cfg {
+                    speed = cfg.fast_speed.max(speed);
                 }
             }
             let mut vertical_axis = 0.0;
-            if let Some(cfg) =
-                noclip_config.as_ref()
-            {
-                if let Some(key) =
-                    cfg.up_key
-                {
-                    if keys.pressed(key)
-                    {
+            if let Some(cfg) = noclip_config.as_ref() {
+                if let Some(key) = cfg.up_key {
+                    if keys.pressed(key) {
                         vertical_axis += 1.0;
                     }
                 }
-                if let Some(key) =
-                    cfg.down_key
-                {
-                    if keys.pressed(key)
-                    {
+                if let Some(key) = cfg.down_key {
+                    if keys.pressed(key) {
                         vertical_axis -= 1.0;
                     }
                 }
             }
 
             if vertical_axis != 0.0 {
-                direction += Vec3::Y
-                    * vertical_axis;
-                if direction
-                    .length_squared()
-                    > 0.0
-                {
-                    direction =
-                        direction
-                            .normalize(
-                            );
+                direction += Vec3::Y * vertical_axis;
+                if direction.length_squared() > 0.0 {
+                    direction = direction.normalize();
                 }
             }
 
-            let target =
-                direction * speed;
+            let target = direction * speed;
             state.velocity = target;
 
-            if let Some(mut velocity) =
-                body_velocity
-            {
-                velocity.linvel =
-                    Vec3::ZERO;
-                velocity.angvel =
-                    Vec3::ZERO;
+            if let Some(mut velocity) = body_velocity {
+                velocity.linvel = Vec3::ZERO;
+                velocity.angvel = Vec3::ZERO;
             }
-            body_transform
-                .translation +=
-                target * dt;
+            body_transform.translation += target * dt;
             return;
         }
     }
 
     let mut direction = Vec3::ZERO;
-    if forward_axis != 0.0
-        || right_axis != 0.0
-    {
-        let forward = body_transform
-            .rotation
-            * -Vec3::Z;
-        let right = body_transform
-            .rotation
-            * Vec3::X;
-        direction = (forward
-            * forward_axis
-            + right * right_axis)
-            .normalize_or_zero();
+    if forward_axis != 0.0 || right_axis != 0.0 {
+        let forward = body_transform.rotation * -Vec3::Z;
+        let right = body_transform.rotation * Vec3::X;
+        direction = (forward * forward_axis + right * right_axis).normalize_or_zero();
     }
 
-    if let Some(mut velocity) =
-        body_velocity
-    {
+    if let Some(mut velocity) = body_velocity {
         let mut speed = move_cfg.speed;
-        if let (
-            Some(state),
-            Some(cfg),
-        ) = (
-            sprint.as_ref(),
-            sprint_config.as_ref(),
-        ) {
+        if let (Some(state), Some(cfg)) = (sprint.as_ref(), sprint_config.as_ref()) {
             if state.active {
-                speed *= cfg
-                    .action
-                    .multiplier
-                    .max(1.0);
+                speed *= cfg.action.multiplier.max(1.0);
             }
         }
         let desired = direction * speed;
@@ -333,13 +200,9 @@ fn apply_free_camera_input(
     mouse_delta: &Vec2,
     app_config: &AppConfig,
     sprint: Option<&Res<SprintState>>,
-    sprint_config: Option<
-        &Res<SceneSprintConfig>,
-    >,
+    sprint_config: Option<&Res<SceneSprintConfig>>,
     zoom_state: Option<&Res<ZoomState>>,
-    zoom_config: Option<
-        &Res<SceneZoomConfig>,
-    >,
+    zoom_config: Option<&Res<SceneZoomConfig>>,
     dt: f32,
 ) {
     let move_cfg = &config.movement;
@@ -347,14 +210,12 @@ fn apply_free_camera_input(
 
     let mut forward_axis = 0.0;
     let mut right_axis = 0.0;
-    if let Some(key) = move_cfg.forward
-    {
+    if let Some(key) = move_cfg.forward {
         if keys.pressed(key) {
             forward_axis += 1.0;
         }
     }
-    if let Some(key) = move_cfg.backward
-    {
+    if let Some(key) = move_cfg.backward {
         if keys.pressed(key) {
             forward_axis -= 1.0;
         }
@@ -370,70 +231,34 @@ fn apply_free_camera_input(
         }
     }
 
-    if forward_axis != 0.0
-        || right_axis != 0.0
-    {
-        let forward = transform
-            .rotation
-            * -bevy::math::Vec3::Z;
-        let right = transform.rotation
-            * bevy::math::Vec3::X;
-        let mut direction = forward
-            * forward_axis
-            + right * right_axis;
-        if direction.length_squared()
-            > 0.0
-        {
-            direction =
-                direction.normalize();
-            let mut speed =
-                move_cfg.speed;
-            if let (
-                Some(state),
-                Some(cfg),
-            ) =
-                (sprint, sprint_config)
-            {
+    if forward_axis != 0.0 || right_axis != 0.0 {
+        let forward = transform.rotation * -bevy::math::Vec3::Z;
+        let right = transform.rotation * bevy::math::Vec3::X;
+        let mut direction = forward * forward_axis + right * right_axis;
+        if direction.length_squared() > 0.0 {
+            direction = direction.normalize();
+            let mut speed = move_cfg.speed;
+            if let (Some(state), Some(cfg)) = (sprint, sprint_config) {
                 if state.active {
-                    speed *= cfg
-                        .action
-                        .multiplier
-                        .max(1.0);
+                    speed *= cfg.action.multiplier.max(1.0);
                 }
             }
-            transform.translation +=
-                direction * speed * dt;
+            transform.translation += direction * speed * dt;
         }
     }
 
     match move_cfg.control {
         CameraControl::Mouse => {
-            if mouse_delta
-                .length_squared()
-                > 0.0
-            {
-                let mouse_cfg =
-                    &app_config.mouse;
-                let mut sensitivity =
-                    mouse_cfg
-                        .sensitivity;
-                if let (
-                    Some(state),
-                    Some(cfg),
-                ) = (
-                    zoom_state,
-                    zoom_config,
-                ) {
+            if mouse_delta.length_squared() > 0.0 {
+                let mouse_cfg = &app_config.mouse;
+                let mut sensitivity = mouse_cfg.sensitivity;
+                if let (Some(state), Some(cfg)) = (zoom_state, zoom_config) {
                     if state.active {
                         sensitivity *= cfg.action.sensitivity_multiplier.max(0.01);
                     }
                 }
-                let mut yaw =
-                    -mouse_delta.x
-                        * sensitivity;
-                let mut pitch =
-                    -mouse_delta.y
-                        * sensitivity;
+                let mut yaw = -mouse_delta.x * sensitivity;
+                let mut pitch = -mouse_delta.y * sensitivity;
                 if mouse_cfg.invert_x {
                     yaw = -yaw;
                 }
@@ -441,28 +266,19 @@ fn apply_free_camera_input(
                     pitch = -pitch;
                 }
                 transform.rotate_y(yaw);
-                transform
-                    .rotate_local_x(
-                        pitch,
-                    );
+                transform.rotate_local_x(pitch);
             }
         }
         CameraControl::Keyboard => {
             let yaw_amount = {
                 let mut val = 0.0;
-                if let Some(key) =
-                    rot_cfg.yaw_left
-                {
-                    if keys.pressed(key)
-                    {
+                if let Some(key) = rot_cfg.yaw_left {
+                    if keys.pressed(key) {
                         val += 1.0;
                     }
                 }
-                if let Some(key) =
-                    rot_cfg.yaw_right
-                {
-                    if keys.pressed(key)
-                    {
+                if let Some(key) = rot_cfg.yaw_right {
+                    if keys.pressed(key) {
                         val -= 1.0;
                     }
                 }
@@ -471,41 +287,25 @@ fn apply_free_camera_input(
 
             let pitch_amount = {
                 let mut val = 0.0;
-                if let Some(key) =
-                    rot_cfg.pitch_up
-                {
-                    if keys.pressed(key)
-                    {
+                if let Some(key) = rot_cfg.pitch_up {
+                    if keys.pressed(key) {
                         val += 1.0;
                     }
                 }
-                if let Some(key) =
-                    rot_cfg.pitch_down
-                {
-                    if keys.pressed(key)
-                    {
+                if let Some(key) = rot_cfg.pitch_down {
+                    if keys.pressed(key) {
                         val -= 1.0;
                     }
                 }
                 val
             };
 
-            let rot_speed = rot_cfg
-                .degrees_per_second
-                .to_radians()
-                * dt;
+            let rot_speed = rot_cfg.degrees_per_second.to_radians() * dt;
             if yaw_amount != 0.0 {
-                transform.rotate_y(
-                    yaw_amount
-                        * rot_speed,
-                );
+                transform.rotate_y(yaw_amount * rot_speed);
             }
             if pitch_amount != 0.0 {
-                transform
-                    .rotate_local_x(
-                        pitch_amount
-                            * rot_speed,
-                    );
+                transform.rotate_local_x(pitch_amount * rot_speed);
             }
         }
     }
@@ -518,40 +318,23 @@ fn resolve_rotation_delta(
     mouse_delta: &Vec2,
     app_config: &AppConfig,
     zoom_state: Option<&Res<ZoomState>>,
-    zoom_config: Option<
-        &Res<SceneZoomConfig>,
-    >,
+    zoom_config: Option<&Res<SceneZoomConfig>>,
     dt: f32,
 ) -> (f32, f32) {
     match control {
         CameraControl::Mouse => {
-            if mouse_delta
-                .length_squared()
-                == 0.0
-            {
+            if mouse_delta.length_squared() == 0.0 {
                 return (0.0, 0.0);
             }
-            let mouse_cfg =
-                &app_config.mouse;
-            let mut sensitivity =
-                mouse_cfg.sensitivity;
-            if let (
-                Some(state),
-                Some(cfg),
-            ) = (
-                zoom_state,
-                zoom_config,
-            ) {
+            let mouse_cfg = &app_config.mouse;
+            let mut sensitivity = mouse_cfg.sensitivity;
+            if let (Some(state), Some(cfg)) = (zoom_state, zoom_config) {
                 if state.active {
                     sensitivity *= cfg.action.sensitivity_multiplier.max(0.01);
                 }
             }
-            let mut yaw = -mouse_delta
-                .x
-                * sensitivity;
-            let mut pitch = -mouse_delta
-                .y
-                * sensitivity;
+            let mut yaw = -mouse_delta.x * sensitivity;
+            let mut pitch = -mouse_delta.y * sensitivity;
             if mouse_cfg.invert_x {
                 yaw = -yaw;
             }
@@ -563,19 +346,13 @@ fn resolve_rotation_delta(
         CameraControl::Keyboard => {
             let yaw_amount = {
                 let mut val = 0.0;
-                if let Some(key) =
-                    rot_cfg.yaw_left
-                {
-                    if keys.pressed(key)
-                    {
+                if let Some(key) = rot_cfg.yaw_left {
+                    if keys.pressed(key) {
                         val += 1.0;
                     }
                 }
-                if let Some(key) =
-                    rot_cfg.yaw_right
-                {
-                    if keys.pressed(key)
-                    {
+                if let Some(key) = rot_cfg.yaw_right {
+                    if keys.pressed(key) {
                         val -= 1.0;
                     }
                 }
@@ -584,34 +361,21 @@ fn resolve_rotation_delta(
 
             let pitch_amount = {
                 let mut val = 0.0;
-                if let Some(key) =
-                    rot_cfg.pitch_up
-                {
-                    if keys.pressed(key)
-                    {
+                if let Some(key) = rot_cfg.pitch_up {
+                    if keys.pressed(key) {
                         val += 1.0;
                     }
                 }
-                if let Some(key) =
-                    rot_cfg.pitch_down
-                {
-                    if keys.pressed(key)
-                    {
+                if let Some(key) = rot_cfg.pitch_down {
+                    if keys.pressed(key) {
                         val -= 1.0;
                     }
                 }
                 val
             };
 
-            let rot_speed = rot_cfg
-                .degrees_per_second
-                .to_radians()
-                * dt;
-            (
-                yaw_amount * rot_speed,
-                pitch_amount
-                    * rot_speed,
-            )
+            let rot_speed = rot_cfg.degrees_per_second.to_radians() * dt;
+            (yaw_amount * rot_speed, pitch_amount * rot_speed)
         }
     }
 }

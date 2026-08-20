@@ -1,4 +1,7 @@
-use std::{fs, path::{Path, PathBuf}};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 #[test]
 fn every_checked_in_asset_toml_parses() {
@@ -7,7 +10,10 @@ fn every_checked_in_asset_toml_parses() {
     collect_toml_files(&root, &mut files);
     files.sort();
 
-    assert!(!files.is_empty(), "expected at least one TOML asset under assets/");
+    assert!(
+        !files.is_empty(),
+        "expected at least one TOML asset under assets/"
+    );
 
     let mut failures = Vec::new();
     for path in files {
@@ -40,7 +46,10 @@ fn collect_toml_files(directory: &Path, output: &mut Vec<PathBuf>) {
         let path = entry.path();
         if path.is_dir() {
             collect_toml_files(&path, output);
-        } else if path.extension().is_some_and(|extension| extension == "toml") {
+        } else if path
+            .extension()
+            .is_some_and(|extension| extension == "toml")
+        {
             output.push(path);
         }
     }

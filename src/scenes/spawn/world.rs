@@ -2,15 +2,10 @@ use bevy::{log::warn, prelude::*};
 
 use crate::scenes::{
     MeshCacheSettings, TomlAsset,
-    config::{
-        ActiveScene, ComboTemplate,
-        EntityTemplate,
-    },
+    config::{ActiveScene, ComboTemplate, EntityTemplate},
     entities::EntitiesConfig,
     loaders::{
-        ConfigLoad, TomlCache,
-        load_combo_template_from_path,
-        load_entity_template_from_path,
+        ConfigLoad, TomlCache, load_combo_template_from_path, load_entity_template_from_path,
     },
 };
 
@@ -21,9 +16,7 @@ pub(super) fn spawn_world_entities(
     entities: &EntitiesConfig,
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<
-        StandardMaterial,
-    >,
+    materials: &mut Assets<StandardMaterial>,
     asset_server: &AssetServer,
     active_scene: &ActiveScene,
     mesh_cache: &MeshCacheSettings,
@@ -34,14 +27,8 @@ pub(super) fn spawn_world_entities(
     let mut resolved = Vec::new();
 
     for entity in &entities.entities {
-        let is_combo = entity
-            .template
-            .starts_with("combo/")
-            || entity
-                .template
-                .ends_with(
-                    ".combo.toml",
-                );
+        let is_combo =
+            entity.template.starts_with("combo/") || entity.template.ends_with(".combo.toml");
         if is_combo {
             match load_combo_template_from_path(
                 &active_scene.name,
@@ -144,18 +131,14 @@ enum ResolvedTemplate {
 }
 
 fn combos_need_assets(
-    resolved: &[( &crate::scenes::entities::EntityPlacement, ResolvedTemplate )],
+    resolved: &[(&crate::scenes::entities::EntityPlacement, ResolvedTemplate)],
     active_scene: &ActiveScene,
     toml_assets: &Assets<TomlAsset>,
     asset_server: &AssetServer,
     toml_cache: &mut TomlCache,
 ) -> bool {
-    for (_entity, template) in resolved
-    {
-        let ResolvedTemplate::Combo(
-            combo,
-        ) = template
-        else {
+    for (_entity, template) in resolved {
+        let ResolvedTemplate::Combo(combo) = template else {
             continue;
         };
         for part in &combo.parts {

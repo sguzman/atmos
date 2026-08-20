@@ -4,23 +4,14 @@ use std::collections::HashMap;
 use crate::scenes::MeshCacheSettings;
 use crate::scenes::TomlAsset;
 use crate::scenes::config::{
-    ActiveScene, ComboPart,
-    ComboPhysics, ComboStackConfig,
-    ComboTemplate, EntityOverrides,
-    EntityTemplate, TransformOverrides,
-    Vec3Config,
+    ActiveScene, ComboPart, ComboPhysics, ComboStackConfig, ComboTemplate, EntityOverrides,
+    EntityTemplate, TransformOverrides, Vec3Config,
 };
-use crate::scenes::loaders::{
-    ConfigLoad, TomlCache,
-    load_entity_template_from_path,
-};
+use crate::scenes::loaders::{ConfigLoad, TomlCache, load_entity_template_from_path};
 
 use super::entities::{
-    apply_transform_additive,
-    apply_translation, merge_light,
-    merge_physics, merge_shape,
-    spawn_light_component,
-    spawn_shape_instance,
+    apply_transform_additive, apply_translation, merge_light, merge_physics, merge_shape,
+    spawn_light_component, spawn_shape_instance,
 };
 
 pub(super) fn spawn_combo_template(
@@ -31,37 +22,24 @@ pub(super) fn spawn_combo_template(
     mesh_cache: &MeshCacheSettings,
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<
-        StandardMaterial,
-    >,
+    materials: &mut Assets<StandardMaterial>,
     asset_server: &AssetServer,
     active_scene: &ActiveScene,
     toml_assets: &Assets<TomlAsset>,
     toml_cache: &mut TomlCache,
 ) -> ConfigLoad<()> {
-    let combo_name = name_override
-        .cloned()
-        .unwrap_or_else(|| {
-            combo.name.clone()
-        });
+    let combo_name = name_override.cloned().unwrap_or_else(|| combo.name.clone());
     let shared_physics = combo
         .physics
         .as_ref()
         .map(|physics| physics.shared)
         .unwrap_or(false);
 
-    let fallback_stack =
-        default_stack();
-    let (stack_config, stack_count) =
-        match combo.stack.as_ref() {
-            Some(stack) => (
-                stack,
-                stack.count.max(1),
-            ),
-            None => {
-                (&fallback_stack, 1)
-            }
-        };
+    let fallback_stack = default_stack();
+    let (stack_config, stack_count) = match combo.stack.as_ref() {
+        Some(stack) => (stack, stack.count.max(1)),
+        None => (&fallback_stack, 1),
+    };
 
     let mut loaded_parts = Vec::new();
     for part in &combo.parts {
@@ -75,21 +53,17 @@ pub(super) fn spawn_combo_template(
             ConfigLoad::Pending => return ConfigLoad::Pending,
             ConfigLoad::Ready(template) => template,
         };
-        let Some(template) = template
-        else {
+        let Some(template) = template else {
             warn!(
                 "Failed to load combo part template '{}' in scene '{}'; skipping.",
-                part.template,
-                active_scene.name
+                part.template, active_scene.name
             );
             continue;
         };
         let part_name = part
             .name_override
             .clone()
-            .unwrap_or_else(|| {
-                template.name.clone()
-            });
+            .unwrap_or_else(|| template.name.clone());
         loaded_parts.push(LoadedPart {
             part,
             template,
@@ -98,43 +72,23 @@ pub(super) fn spawn_combo_template(
     }
 
     let root_name = if shared_physics {
-        resolve_physics_root(
-            &combo.physics,
-            &loaded_parts,
-        )
+        resolve_physics_root(&combo.physics, &loaded_parts)
     } else {
         None
     };
 
     for i in 0..stack_count {
-        let instance_offset =
-            stack_instance_offset(
-                stack_config,
-                i,
-            );
-        let instance_suffix =
-            if stack_count > 1 {
-                format!("_{}", i + 1)
-            } else {
-                String::new()
-            };
+        let instance_offset = stack_instance_offset(stack_config, i);
+        let instance_suffix = if stack_count > 1 {
+            format!("_{}", i + 1)
+        } else {
+            String::new()
+        };
 
-        let mut spawned: HashMap<
-            String,
-            Entity,
-        > = HashMap::new();
+        let mut spawned: HashMap<String, Entity> = HashMap::new();
 
-        if let Some(root) =
-            root_name.as_ref()
-        {
-            if let Some(root_part) =
-                loaded_parts
-                    .iter()
-                    .find(|part| {
-                        &part.part_name
-                            == root
-                    })
-            {
+        if let Some(root) = root_name.as_ref() {
+            if let Some(root_part) = loaded_parts.iter().find(|part| &part.part_name == root) {
                 let entity = spawn_combo_part(
                     &combo_name,
                     &instance_suffix,
@@ -153,53 +107,36 @@ pub(super) fn spawn_combo_template(
                     asset_server,
                     active_scene,
                 );
-                if let Some(entity) =
-                    entity
-                {
-                    spawned.insert(
-                        root_part
-                            .part_name
-                            .clone(),
-                        entity,
-                    );
+                if let Some(entity) = entity {
+                    spawned.insert(root_part.part_name.clone(), entity);
                 }
             }
         }
 
         for part in &loaded_parts {
-            if Some(&part.part_name)
-                == root_name.as_ref()
-            {
+            if Some(&part.part_name) == root_name.as_ref() {
                 continue;
             }
-            let entity =
-                spawn_combo_part(
-                    &combo_name,
-                    &instance_suffix,
-                    part,
-                    combo
-                        .overrides
-                        .as_ref(),
-                    placement_transform,
-                    placement_overrides,
-                    &instance_offset,
-                    shared_physics,
-                    false,
-                    mesh_cache,
-                    &mut spawned,
-                    commands,
-                    meshes,
-                    materials,
-                    asset_server,
-                    active_scene,
-                );
-            if let Some(entity) = entity
-            {
-                spawned.insert(
-                    part.part_name
-                        .clone(),
-                    entity,
-                );
+            let entity = spawn_combo_part(
+                &combo_name,
+                &instance_suffix,
+                part,
+                combo.overrides.as_ref(),
+                placement_transform,
+                placement_overrides,
+                &instance_offset,
+                shared_physics,
+                false,
+                mesh_cache,
+                &mut spawned,
+                commands,
+                meshes,
+                materials,
+                asset_server,
+                active_scene,
+            );
+            if let Some(entity) = entity {
+                spawned.insert(part.part_name.clone(), entity);
             }
         }
     }
@@ -223,108 +160,52 @@ fn resolve_physics_root(
     if let Some(root) = &physics.root {
         return Some(root.clone());
     }
-    if let Some(part) =
-        parts.iter().find(|part| {
-            part.part.physics_root
-        })
-    {
-        return Some(
-            part.part_name.clone(),
-        );
+    if let Some(part) = parts.iter().find(|part| part.part.physics_root) {
+        return Some(part.part_name.clone());
     }
-    parts.first().map(|part| {
-        part.part_name.clone()
-    })
+    parts.first().map(|part| part.part_name.clone())
 }
 
 fn spawn_combo_part(
     combo_name: &str,
     instance_suffix: &str,
     part: &LoadedPart<'_>,
-    combo_overrides: Option<
-        &EntityOverrides,
-    >,
+    combo_overrides: Option<&EntityOverrides>,
     placement_transform: &TransformOverrides,
     placement_overrides: &EntityOverrides,
     instance_offset: &Vec3Config,
     shared_physics: bool,
     is_root: bool,
     mesh_cache: &MeshCacheSettings,
-    spawned: &mut HashMap<
-        String,
-        Entity,
-    >,
+    spawned: &mut HashMap<String, Entity>,
     commands: &mut Commands,
     meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<
-        StandardMaterial,
-    >,
+    materials: &mut Assets<StandardMaterial>,
     asset_server: &AssetServer,
     active_scene: &ActiveScene,
 ) -> Option<Entity> {
-    let mut transform =
-        part.template.transform.clone();
-    if let Some(part_transform) =
-        &part.part.transform
-    {
-        transform =
-            apply_transform_additive(
-                transform,
-                part_transform,
-            );
+    let mut transform = part.template.transform.clone();
+    if let Some(part_transform) = &part.part.transform {
+        transform = apply_transform_additive(transform, part_transform);
     }
-    let attach =
-        part.part.attach.as_ref();
-    let attach_target = attach
-        .and_then(|attach| {
-            spawned
-                .get(&attach.target)
-                .copied()
-        });
+    let attach = part.part.attach.as_ref();
+    let attach_target = attach.and_then(|attach| spawned.get(&attach.target).copied());
     if let Some(attach) = attach {
         if attach_target.is_some() {
-            transform =
-                apply_translation(
-                    transform,
-                    &attach.offset,
-                );
+            transform = apply_translation(transform, &attach.offset);
         } else {
-            transform =
-                apply_translation(
-                    transform,
-                    instance_offset,
-                );
+            transform = apply_translation(transform, instance_offset);
             transform = apply_transform_additive(transform, placement_transform);
         }
     } else {
-        transform = apply_translation(
-            transform,
-            instance_offset,
-        );
-        transform =
-            apply_transform_additive(
-                transform,
-                placement_transform,
-            );
+        transform = apply_translation(transform, instance_offset);
+        transform = apply_transform_additive(transform, placement_transform);
     }
 
-    let mut shape = part
-        .template
-        .shape
-        .as_ref()
-        .cloned();
-    let material =
-        part.template.material.as_ref();
-    let mut physics = part
-        .template
-        .physics
-        .as_ref()
-        .cloned();
-    let mut light = part
-        .template
-        .light
-        .as_ref()
-        .cloned();
+    let mut shape = part.template.shape.as_ref().cloned();
+    let material = part.template.material.as_ref();
+    let mut physics = part.template.physics.as_ref().cloned();
+    let mut light = part.template.light.as_ref().cloned();
 
     for overrides in [
         combo_overrides,
@@ -332,100 +213,66 @@ fn spawn_combo_part(
         Some(placement_overrides),
     ] {
         if let Some(ovr) = overrides {
-            if let Some(
-                shape_override,
-            ) = ovr.shape.as_ref()
-            {
-                if let Some(current) =
-                    &shape
-                {
+            if let Some(shape_override) = ovr.shape.as_ref() {
+                if let Some(current) = &shape {
                     shape = Some(merge_shape(current, Some(shape_override)));
                 }
             }
-            if let Some(
-                physics_override,
-            ) = ovr.physics.as_ref()
-            {
-                if let Some(current) =
-                    &physics
-                {
+            if let Some(physics_override) = ovr.physics.as_ref() {
+                if let Some(current) = &physics {
                     physics = Some(merge_physics(current, Some(physics_override)));
                 }
             }
-            if let Some(
-                light_override,
-            ) = ovr.light.as_ref()
-            {
-                if let Some(current) =
-                    &light
-                {
+            if let Some(light_override) = ovr.light.as_ref() {
+                if let Some(current) = &light {
                     light = Some(merge_light(current, Some(light_override)));
                 }
             }
         }
     }
 
-    let full_name = format!(
-        "{combo_name}{instance_suffix}_{}",
-        part.part_name
-    );
-    let physics_allowed =
-        !shared_physics || is_root;
+    let full_name = format!("{combo_name}{instance_suffix}_{}", part.part_name);
+    let physics_allowed = !shared_physics || is_root;
 
     let mut entity_id = None;
     if let Some(shape) = shape {
-        let entity =
-            spawn_shape_instance(
-                &full_name,
-                &shape,
-                material,
-                if physics_allowed {
-                    physics.as_ref()
-                } else {
-                    None
-                },
-                &transform,
-                mesh_cache,
-                commands,
-                meshes,
-                materials,
-                asset_server,
-                active_scene,
-            );
+        let entity = spawn_shape_instance(
+            &full_name,
+            &shape,
+            material,
+            if physics_allowed {
+                physics.as_ref()
+            } else {
+                None
+            },
+            &transform,
+            mesh_cache,
+            commands,
+            meshes,
+            materials,
+            asset_server,
+            active_scene,
+        );
         entity_id = Some(entity);
     }
 
     if let Some(light) = light {
         let light_entity =
-            spawn_light_component(
-                &full_name,
-                &light,
-                &transform,
-                commands,
-                active_scene,
-            );
+            spawn_light_component(&full_name, &light, &transform, commands, active_scene);
         if entity_id.is_none() {
             entity_id = light_entity;
         }
     }
 
     if let Some(attach) = attach {
-        if let Some(target) =
-            attach_target
-        {
-            if let Some(child) =
-                entity_id
-            {
-                commands
-                    .entity(target)
-                    .add_child(child);
+        if let Some(target) = attach_target {
+            if let Some(child) = entity_id {
+                commands.entity(target).add_child(child);
             }
         } else {
             warn!(
                 "Attach target '{}' not found for combo '{}'; leaving '{}' unparented.",
-                attach.target,
-                combo_name,
-                part.part_name
+                attach.target, combo_name, part.part_name
             );
         }
     }
@@ -433,25 +280,16 @@ fn spawn_combo_part(
     entity_id
 }
 
-fn stack_instance_offset(
-    stack: &ComboStackConfig,
-    index: u32,
-) -> Vec3Config {
+fn stack_instance_offset(stack: &ComboStackConfig, index: u32) -> Vec3Config {
     let step = Vec3Config {
-        x: stack.spacing.x
-            * index as f32,
-        y: stack.spacing.y
-            * index as f32,
-        z: stack.spacing.z
-            * index as f32,
+        x: stack.spacing.x * index as f32,
+        y: stack.spacing.y * index as f32,
+        z: stack.spacing.z * index as f32,
     };
     Vec3Config {
-        x: stack.start_offset.x
-            + step.x,
-        y: stack.start_offset.y
-            + step.y,
-        z: stack.start_offset.z
-            + step.z,
+        x: stack.start_offset.x + step.x,
+        y: stack.start_offset.y + step.y,
+        z: stack.start_offset.z + step.z,
     }
 }
 
@@ -459,7 +297,6 @@ fn default_stack() -> ComboStackConfig {
     ComboStackConfig {
         count: 1,
         spacing: Vec3Config::default(),
-        start_offset:
-            Vec3Config::default(),
+        start_offset: Vec3Config::default(),
     }
 }
