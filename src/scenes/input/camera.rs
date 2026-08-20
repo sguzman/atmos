@@ -165,8 +165,8 @@ pub fn apply_camera_input(
             state.velocity = target;
 
             if let Some(mut velocity) = body_velocity {
-                velocity.linvel = Vec3::ZERO;
-                velocity.angvel = Vec3::ZERO;
+                velocity.linear = Vec3::ZERO;
+                velocity.angular = Vec3::ZERO;
             }
             body_transform.translation += target * dt;
             return;
@@ -188,8 +188,8 @@ pub fn apply_camera_input(
             }
         }
         let desired = direction * speed;
-        velocity.linvel.x = desired.x;
-        velocity.linvel.z = desired.z;
+        velocity.linear.x = desired.x;
+        velocity.linear.z = desired.z;
     }
 }
 

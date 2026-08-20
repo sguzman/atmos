@@ -1,10 +1,10 @@
 use bevy::camera::Exposure;
+use bevy::camera::Hdr;
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::log::warn;
 use bevy::pbr::{DistanceFog, FogFalloff};
 use bevy::post_process::bloom::{Bloom, BloomCompositeMode, BloomPrefilter};
 use bevy::prelude::*;
-use bevy::render::view::Hdr;
 
 use crate::scenes::config::{
     BloomConfig, DlssConfig, FogConfig, FogFalloffConfig, RayTracingConfig, RenderConfig,

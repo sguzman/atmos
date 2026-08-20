@@ -64,7 +64,7 @@ pub(in crate::scenes::spawn) fn spawn_light_component(
         PointLight {
             intensity: entry.intensity,
             range: entry.range.unwrap_or(20.0),
-            shadows_enabled: entry.shadows,
+            shadow_maps_enabled: entry.shadows,
             color,
             radius: entry.radius.unwrap_or(0.0),
             ..default()

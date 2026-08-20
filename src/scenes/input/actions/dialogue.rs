@@ -1,6 +1,6 @@
 use bevy::prelude::{
-    ButtonInput, Color, Commands, Component, Entity, GlobalZIndex, Handle, KeyCode, Node, Query,
-    Res, ResMut, Text, TextColor, TextFont, UiTransform, Val, Val2, Vec2, With,
+    ButtonInput, Color, Commands, Component, Entity, GlobalZIndex, KeyCode, Node, Query, Res,
+    ResMut, Text, TextColor, TextFont, UiTransform, Val, Val2, Vec2, With,
 };
 
 use crate::scenes::TomlAsset;
@@ -193,7 +193,7 @@ fn spawn_dialogue_ui(
         Text::new(body),
         TextFont {
             font: default_font(asset_server),
-            font_size: 22.0,
+            font_size: bevy::text::FontSize::Px(22.0),
             ..Default::default()
         },
         TextColor(Color::WHITE),
@@ -201,7 +201,7 @@ fn spawn_dialogue_ui(
     ));
 }
 
-fn default_font(asset_server: &bevy::prelude::AssetServer) -> Handle<bevy::prelude::Font> {
+fn default_font(asset_server: &bevy::prelude::AssetServer) -> bevy::text::FontSource {
     let _ = asset_server;
-    Handle::<bevy::prelude::Font>::default()
+    bevy::text::FontSource::default()
 }

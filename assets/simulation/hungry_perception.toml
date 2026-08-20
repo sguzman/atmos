@@ -1,0 +1,58 @@
+# Showcase 4: only food inside perception range may influence decisions.
+
+[showcase]
+name = "hungry_perception"
+description = "Food outside perception range is ignored completely. Only visible food may be scored or selected."
+
+[world]
+floor_size = 30.0
+floor_color = "#2d392d"
+
+[camera.position]
+x = 0.0
+y = 14.0
+z = 16.0
+
+[camera.look_at]
+x = 2.0
+y = 0.0
+z = 0.0
+
+[agent]
+perception_radius = 7.0
+
+[agent.position]
+x = 0.0
+y = 0.8
+z = 0.0
+
+[agent.motion]
+speed = 2.3
+consume_distance = 0.6
+
+[agent.decision]
+hunger_weight = 1.0
+nutrition_weight = 1.4
+distance_weight = 0.4
+
+[agent.hunger]
+initial = 80.0
+max = 100.0
+rate_per_second = 3.0
+seek_threshold = 55.0
+
+[[foods]]
+id = "visible_food"
+nutrition = 18.0
+[foods.position]
+x = 4.5
+y = 0.25
+z = 0.0
+
+[[foods]]
+id = "invisible_feast"
+nutrition = 60.0
+[foods.position]
+x = 12.0
+y = 0.25
+z = 0.0

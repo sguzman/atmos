@@ -19,7 +19,7 @@ pub(super) fn log_after_setup(
         &Visibility,
         &ViewVisibility,
     )>,
-    ambient: Option<Res<AmbientLight>>,
+    ambient: Option<Res<GlobalAmbientLight>>,
     cameras: Query<(&Name, &Transform), With<Camera3d>>,
 ) {
     let Some(setup) = setup else {
@@ -41,7 +41,7 @@ pub(super) fn log_lights(
         &Visibility,
         &ViewVisibility,
     )>,
-    ambient: Option<Res<AmbientLight>>,
+    ambient: Option<Res<GlobalAmbientLight>>,
 ) {
     info!(
         "Lights present: {} point, {} directional, ambient: {:?}",
@@ -54,7 +54,7 @@ pub(super) fn log_lights(
             "Point light #{idx}: intensity={}, range={}, shadows={}, pos={:?}, visibility={:?}, view_visible={}",
             light.intensity,
             light.range,
-            light.shadows_enabled,
+            light.shadow_maps_enabled,
             transform.translation(),
             vis,
             view_vis.get()
@@ -64,7 +64,7 @@ pub(super) fn log_lights(
         info!(
             "Directional light #{idx}: illuminance={}, shadows={}, dir={:?}, visibility={:?}, view_visible={}",
             light.illuminance,
-            light.shadows_enabled,
+            light.shadow_maps_enabled,
             transform.forward(),
             vis,
             view_vis.get()

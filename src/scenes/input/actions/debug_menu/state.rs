@@ -205,7 +205,7 @@ fn initialize_debug_menu_settings(
     if let Ok(light) = sun.single() {
         debug_state.settings.sun_present = true;
         debug_state.settings.sun_brightness = light.illuminance;
-        debug_state.settings.sun_shadows = light.shadows_enabled;
+        debug_state.settings.sun_shadows = light.shadow_maps_enabled;
     }
 
     debug_state.settings.initialized = true;

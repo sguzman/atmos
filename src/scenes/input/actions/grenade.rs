@@ -54,8 +54,8 @@ pub fn apply_grenade_action(
         SceneEntityTag,
         DespawnOutsideBounds,
         Velocity {
-            linvel: forward * config.action.velocity,
-            angvel: spin,
+            linear: forward * config.action.velocity,
+            angular: spin,
         },
         GrenadeFuse {
             timer: Timer::from_seconds(
@@ -134,11 +134,11 @@ pub fn update_grenade_fuses(
                 let strength = fuse.force * (1.0 - (distance / radius));
                 let impulse = delta.normalize() * strength;
                 if let Some(mut velocity) = velocity {
-                    velocity.linvel += impulse;
+                    velocity.linear += impulse;
                 } else {
                     commands.entity(entity).insert(Velocity {
-                        linvel: impulse,
-                        angvel: Vec3::ZERO,
+                        linear: impulse,
+                        angular: Vec3::ZERO,
                     });
                 }
             }

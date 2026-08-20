@@ -6,7 +6,7 @@ use thiserror::Error;
 #[derive(Asset, TypePath, Debug, Clone, Deserialize)]
 pub struct TomlAsset(pub String);
 
-#[derive(Default)]
+#[derive(Default, TypePath)]
 pub struct TomlAssetLoader;
 
 #[derive(Debug, Error)]

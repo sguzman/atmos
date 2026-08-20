@@ -50,8 +50,8 @@ pub fn apply_noclip_toggle(
             }
             *body = RigidBody::KinematicPositionBased;
             gravity.0 = 0.0;
-            velocity.linvel = Vec3::ZERO;
-            velocity.angvel = Vec3::ZERO;
+            velocity.linear = Vec3::ZERO;
+            velocity.angular = Vec3::ZERO;
             if sensor.is_none() {
                 commands.entity(entity).insert(Sensor);
             }

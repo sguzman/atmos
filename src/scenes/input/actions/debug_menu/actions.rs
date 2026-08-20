@@ -277,7 +277,7 @@ fn apply_physics_toggle(
 fn apply_sun(debug_state: &DebugMenuState, sun: &mut Query<&mut DirectionalLight, With<SunLight>>) {
     if let Ok(mut light) = sun.single_mut() {
         light.illuminance = debug_state.settings.sun_brightness;
-        light.shadows_enabled = debug_state.settings.sun_shadows;
+        light.shadow_maps_enabled = debug_state.settings.sun_shadows;
     }
 }
 

@@ -109,5 +109,5 @@ pub(crate) fn cleanup_main_scene_inner(
     commands.remove_resource::<PlayerSpawn>();
     commands.remove_resource::<CameraLookState>();
     commands.remove_resource::<SceneBounds>();
-    commands.remove_resource::<AmbientLight>();
+    commands.remove_resource::<GlobalAmbientLight>();
 }

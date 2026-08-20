@@ -51,7 +51,7 @@ pub(crate) fn spawn_debug_menu_ui(
                     Text::new(format!("Debug Menu: {}", page_title(page))),
                     TextFont {
                         font: default_font(asset_server),
-                        font_size: 22.0,
+                        font_size: bevy::text::FontSize::Px(22.0),
                         ..Default::default()
                     },
                     TextColor(Color::WHITE),
@@ -62,7 +62,7 @@ pub(crate) fn spawn_debug_menu_ui(
                     Text::new("Left click: select | Right click: back"),
                     TextFont {
                         font: default_font(asset_server),
-                        font_size: 12.0,
+                        font_size: bevy::text::FontSize::Px(12.0),
                         ..Default::default()
                     },
                     TextColor(Color::srgba(0.8, 0.8, 0.8, 0.9)),
@@ -97,7 +97,7 @@ pub(crate) fn spawn_debug_menu_ui(
                                 Text::new(entry.label),
                                 TextFont {
                                     font: default_font(asset_server),
-                                    font_size: 16.0,
+                                    font_size: bevy::text::FontSize::Px(16.0),
                                     ..Default::default()
                                 },
                                 TextColor(Color::WHITE),
@@ -123,7 +123,7 @@ pub(crate) fn spawn_debug_menu_ui(
                                 Text::new(format!("{}: {:.2}", slider.label, slider.value)),
                                 TextFont {
                                     font: default_font(asset_server),
-                                    font_size: 14.0,
+                                    font_size: bevy::text::FontSize::Px(14.0),
                                     ..Default::default()
                                 },
                                 TextColor(Color::WHITE),
@@ -170,7 +170,7 @@ pub(crate) fn spawn_debug_menu_ui(
                                                 Text::new(label),
                                                 TextFont {
                                                     font: default_font(asset_server),
-                                                    font_size: 12.0,
+                                                    font_size: bevy::text::FontSize::Px(12.0),
                                                     ..Default::default()
                                                 },
                                                 TextColor(Color::WHITE),
@@ -446,7 +446,7 @@ fn sliders_for_page(state: &DebugMenuState, page: DebugMenuPage) -> Vec<DebugMen
     sliders
 }
 
-fn default_font(asset_server: &AssetServer) -> Handle<Font> {
+fn default_font(asset_server: &AssetServer) -> bevy::text::FontSource {
     let _ = asset_server;
-    Handle::<Font>::default()
+    bevy::text::FontSource::default()
 }

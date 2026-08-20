@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use bevy::reflect::TypePath;
 use bevy::{
     asset::{AssetLoader, LoadContext, RenderAssetUsages, io::Reader},
     log::{info, warn},
@@ -48,7 +49,7 @@ impl MeshCacheSettings {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, TypePath)]
 pub struct MeshCacheLoader;
 
 #[non_exhaustive]
@@ -76,7 +77,7 @@ impl AssetLoader for MeshCacheLoader {
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).await?;
         let data: CachedMeshData = bincode::deserialize(&bytes)?;
-        data.to_mesh()
+        data.into_mesh()
     }
 
     fn extensions(&self) -> &[&str] {
@@ -108,7 +109,7 @@ impl CachedMeshData {
         })
     }
 
-    pub(crate) fn to_mesh(self) -> Result<Mesh, MeshCacheError> {
+    pub(crate) fn into_mesh(self) -> Result<Mesh, MeshCacheError> {
         let topology = topology_from_string(&self.topology)?;
         let mut mesh = Mesh::new(topology, RenderAssetUsages::default());
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, self.positions);
@@ -222,7 +223,7 @@ pub(crate) fn load_cached_mesh(
     let bytes = fs::read(&path)?;
     let data: CachedMeshData = bincode::deserialize(&bytes)?;
     let data_clone = data.clone();
-    let mesh = data.to_mesh()?;
+    let mesh = data.into_mesh()?;
     Ok((mesh, data_clone))
 }
 

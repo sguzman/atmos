@@ -1,3 +1,14 @@
+#![allow(clippy::collapsible_if)]
+#![allow(clippy::default_constructed_unit_structs)]
+#![allow(clippy::derivable_impls)]
+#![allow(clippy::field_reassign_with_default)]
+#![allow(clippy::large_enum_variant)]
+#![allow(clippy::manual_flatten)]
+#![allow(clippy::manual_ignore_case_cmp)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::unwrap_or_default)]
+
 mod bounds;
 mod config;
 mod entities;

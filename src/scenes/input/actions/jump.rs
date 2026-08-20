@@ -60,7 +60,7 @@ pub fn apply_jump_action(
         .is_some();
 
     if grounded {
-        velocity.linvel.y = config.action.velocity.max(0.0);
+        velocity.linear.y = config.action.velocity.max(0.0);
         state.cooldown_remaining = config.action.cooldown.max(0.0);
     }
 }

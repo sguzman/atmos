@@ -1,4 +1,4 @@
-use bevy::camera::{CameraOutputMode, ClearColorConfig, Projection};
+use bevy::camera::{CameraOutputMode, ClearColorConfig, MsaaWriteback, Projection};
 use bevy::prelude::*;
 use bevy::render::render_resource::BlendState;
 use bevy_rapier3d::prelude::{Collider, GravityScale, LockedAxes, RigidBody, Velocity};
@@ -100,7 +100,7 @@ pub(crate) fn spawn_player_and_cameras(
                     blend_state: Some(BlendState::ALPHA_BLENDING),
                     clear_color: ClearColorConfig::None,
                 },
-                msaa_writeback: false,
+                msaa_writeback: MsaaWriteback::Off,
                 ..default()
             },
             msaa,
@@ -116,7 +116,7 @@ pub(crate) fn spawn_player_and_cameras(
                     blend_state: Some(BlendState::ALPHA_BLENDING),
                     clear_color: ClearColorConfig::None,
                 },
-                msaa_writeback: false,
+                msaa_writeback: MsaaWriteback::Off,
                 ..default()
             },
         ));

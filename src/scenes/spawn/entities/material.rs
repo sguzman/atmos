@@ -1,6 +1,5 @@
 use bevy::image::ImageLoaderSettings;
 use bevy::prelude::*;
-use bevy::render::alpha::AlphaMode;
 
 use crate::scenes::config::{ActiveScene, MaterialConfig, ShapeConfig, parse_color};
 
@@ -154,10 +153,10 @@ fn resolve_material_from_config(
 }
 
 fn load_texture(asset_server: &AssetServer, path: &str, is_srgb: bool) -> Handle<Image> {
-    asset_server.load_with_settings(
-        path.to_string(),
-        move |settings: &mut ImageLoaderSettings| settings.is_srgb = is_srgb,
-    )
+    asset_server
+        .load_builder()
+        .with_settings(move |settings: &mut ImageLoaderSettings| settings.is_srgb = is_srgb)
+        .load(path.to_string())
 }
 
 fn preset_wood() -> StandardMaterial {

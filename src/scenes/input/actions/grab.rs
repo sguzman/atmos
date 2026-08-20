@@ -211,7 +211,7 @@ pub fn apply_grab_action(
     let player_linvel = player_velocity
         .iter()
         .next()
-        .map(|vel| vel.linvel)
+        .map(|vel| vel.linear)
         .unwrap_or(Vec3::ZERO);
 
     if let Some(held) = state.held {
@@ -242,12 +242,12 @@ pub fn apply_grab_action(
             let throw_velocity =
                 camera.forward().as_vec3() * config.action.throw_speed.max(0.0) + player_linvel;
             if let Some(mut velocity) = velocity {
-                velocity.linvel = throw_velocity;
-                velocity.angvel = Vec3::ZERO;
+                velocity.linear = throw_velocity;
+                velocity.angular = Vec3::ZERO;
             } else {
                 commands.entity(entity).insert(Velocity {
-                    linvel: throw_velocity,
-                    angvel: Vec3::ZERO,
+                    linear: throw_velocity,
+                    angular: Vec3::ZERO,
                 });
             }
         }
@@ -281,8 +281,8 @@ pub fn apply_grab_action(
             commands.entity(entity).insert(Sensor);
         }
         if let Some(mut velocity) = velocity {
-            velocity.linvel = Vec3::ZERO;
-            velocity.angvel = Vec3::ZERO;
+            velocity.linear = Vec3::ZERO;
+            velocity.angular = Vec3::ZERO;
         } else {
             commands.entity(entity).insert(Velocity::default());
         }

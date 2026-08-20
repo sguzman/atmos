@@ -84,7 +84,7 @@ fn resolve_key(key: &str) -> Option<KeyCode> {
     // Letters
     if normalized.len() == 1 {
         let c = normalized.as_bytes()[0] as char;
-        if ('a'..='z').contains(&c) {
+        if c.is_ascii_lowercase() {
             return Some(match c {
                 'a' => KeyCode::KeyA,
                 'b' => KeyCode::KeyB,

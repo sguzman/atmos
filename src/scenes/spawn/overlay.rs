@@ -92,7 +92,7 @@ fn spawn_text_overlay(
         Text::new(text.content),
         TextFont {
             font: default_font(asset_server),
-            font_size: text.font_size,
+            font_size: bevy::text::FontSize::Px(text.font_size),
             ..default()
         },
         TextColor(color),
@@ -149,8 +149,8 @@ fn node_from_anchor(anchor: &OverlayAnchor) -> Node {
     node
 }
 
-fn default_font(asset_server: &AssetServer) -> Handle<Font> {
+fn default_font(asset_server: &AssetServer) -> bevy::text::FontSource {
     // Bevy ships with a fallback font; the default handle resolves to it.
     let _ = asset_server; // keep signature in case asset loading is needed later
-    Handle::<Font>::default()
+    bevy::text::FontSource::default()
 }

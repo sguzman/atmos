@@ -24,8 +24,8 @@ pub fn apply_player_respawn(
     }
 
     transform.translation = spawn.position;
-    velocity.linvel = Vec3::ZERO;
-    velocity.angvel = Vec3::ZERO;
+    velocity.linear = Vec3::ZERO;
+    velocity.angular = Vec3::ZERO;
     if let Some(mut noclip) = noclip {
         noclip.velocity = Vec3::ZERO;
     }

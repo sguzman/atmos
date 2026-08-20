@@ -38,17 +38,12 @@ impl Default for AppConfig {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum AppMode {
+    #[default]
     Dev,
     Prod,
-}
-
-impl Default for AppMode {
-    fn default() -> Self {
-        AppMode::Dev
-    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -73,18 +68,13 @@ impl Default for WindowConfig {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum WindowSizeMode {
+    #[default]
     Fixed,
     MatchMonitor,
     MatchParent,
-}
-
-impl Default for WindowSizeMode {
-    fn default() -> Self {
-        WindowSizeMode::Fixed
-    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -105,52 +95,29 @@ impl Default for MouseConfig {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 pub struct DebugConfig {
     pub rapier_debug: bool,
     pub inspector: bool,
 }
 
-impl Default for DebugConfig {
-    fn default() -> Self {
-        Self {
-            rapier_debug: false,
-            inspector: false,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 pub struct DebugMenuConfig {
     pub enabled: bool,
     pub pause_scene: bool,
 }
 
-impl Default for DebugMenuConfig {
-    fn default() -> Self {
-        Self {
-            enabled: false,
-            pause_scene: false,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum PresentModeConfig {
+    #[default]
     AutoVsync,
     AutoNoVsync,
     Fifo,
     Mailbox,
     Immediate,
-}
-
-impl Default for PresentModeConfig {
-    fn default() -> Self {
-        PresentModeConfig::AutoVsync
-    }
 }
 
 impl PresentModeConfig {

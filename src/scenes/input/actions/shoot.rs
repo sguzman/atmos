@@ -59,8 +59,8 @@ pub fn apply_shoot_action(
             SceneEntityTag,
             DespawnOutsideBounds,
             Velocity {
-                linvel: forward * config.action.velocity,
-                angvel: spin,
+                linear: forward * config.action.velocity,
+                angular: spin,
             },
             bevy::prelude::Visibility::default(),
             bevy::prelude::InheritedVisibility::default(),

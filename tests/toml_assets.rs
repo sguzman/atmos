@@ -25,7 +25,7 @@ fn every_checked_in_asset_toml_parses() {
             }
         };
 
-        if let Err(err) = source.parse::<toml::Value>() {
+        if let Err(err) = toml::from_str::<toml::Table>(&source) {
             failures.push(format!("{}: {err}", path.display()));
         }
     }

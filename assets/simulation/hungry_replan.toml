@@ -1,0 +1,63 @@
+# Showcase 3: the current target disappears, forcing reevaluation and replanning.
+
+[showcase]
+name = "hungry_replan"
+description = "The first chosen food vanishes during pursuit. The agent must cancel the invalid target, reevaluate visible options, and choose another."
+
+[world]
+floor_size = 24.0
+floor_color = "#392d2d"
+
+[camera.position]
+x = 0.0
+y = 12.0
+z = 14.0
+
+[camera.look_at]
+x = 0.5
+y = 0.0
+z = 0.0
+
+[agent]
+perception_radius = 14.0
+
+[agent.position]
+x = -6.0
+y = 0.8
+z = 0.0
+
+[agent.motion]
+speed = 2.6
+consume_distance = 0.6
+
+[agent.decision]
+hunger_weight = 1.0
+nutrition_weight = 1.15
+distance_weight = 0.5
+
+[agent.hunger]
+initial = 72.0
+max = 100.0
+rate_per_second = 4.0
+seek_threshold = 55.0
+
+[[foods]]
+id = "vanishing_target"
+nutrition = 24.0
+[foods.position]
+x = -1.0
+y = 0.25
+z = 0.0
+
+[[foods]]
+id = "fallback_target"
+nutrition = 26.0
+[foods.position]
+x = 4.0
+y = 0.25
+z = 1.5
+
+[[scripted_events]]
+at_seconds = 1.2
+type = "remove_food"
+food_id = "vanishing_target"

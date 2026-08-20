@@ -1,9 +1,8 @@
-# Compatibility alias for the original autonomous-agent testbed.
-# The canonical showcase suite now lives in hungry_basic/choice/replan/perception.
+# Showcase 1: one agent closes the hunger -> perceive -> choose -> walk -> eat loop.
 
 [showcase]
-name = "agent_demo"
-description = "Compatibility alias for the original hungry-agent testbed. Mirrors the hungry_basic showcase."
+name = "hungry_basic"
+description = "One agent gets hungry, perceives food, selects a target, walks to it, eats it, and settles back to idle."
 
 [world]
 floor_size = 20.0

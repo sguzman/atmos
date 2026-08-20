@@ -18,6 +18,7 @@ fn main() {
         app_config,
         cli.allow_runtime_mesh,
         cli.agent_demo,
+        cli.agent_demo_scene,
         cli.command,
     );
 }
@@ -26,6 +27,7 @@ fn run_app(
     app_config: app_config::AppConfig,
     allow_runtime_mesh: bool,
     agent_demo: bool,
+    agent_demo_scene: String,
     command: Option<Commands>,
 ) {
     let log_plugin = app_config.to_log_plugin();
@@ -65,8 +67,10 @@ fn run_app(
     }
 
     if agent_demo {
-        app.add_plugins(simulation::AgentSimulationPlugin::default())
-            .run();
+        app.add_plugins(simulation::AgentSimulationPlugin::new(format!(
+            "assets/simulation/{agent_demo_scene}.toml"
+        )))
+        .run();
         return;
     }
 
@@ -96,6 +100,8 @@ struct Cli {
     /// Run the small autonomous-agent simulation testbed instead of the normal scene.
     #[arg(long)]
     agent_demo: bool,
+    #[arg(long, default_value = "hungry_basic")]
+    agent_demo_scene: String,
 }
 
 #[derive(Subcommand)]
@@ -115,12 +121,11 @@ fn bake_mesh_cache(
 
 fn initial_state_from_world() -> scenes::AppState {
     let contents = load_world_startup_toml();
-    if let Some(contents) = contents {
-        if let Ok(cfg) = toml::from_str::<scenes::WorldConfig>(&contents) {
-            if let Some(scene) = cfg.startup_scene.as_deref() {
-                return scenes::AppState::from_scene_name(scene);
-            }
-        }
+    if let Some(contents) = contents
+        && let Ok(cfg) = toml::from_str::<scenes::WorldConfig>(&contents)
+        && let Some(scene) = cfg.startup_scene.as_deref()
+    {
+        return scenes::AppState::from_scene_name(scene);
     }
     scenes::AppState::default()
 }
