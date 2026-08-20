@@ -1,0 +1,52 @@
+# Intentionally boring first simulation slice. The goal is to prove the closed loop,
+# not to pretend the agent architecture is finished.
+
+[world]
+floor_size = 20.0
+
+[camera.position]
+x = 0.0
+y = 10.0
+z = 13.0
+
+[camera.look_at]
+x = 0.0
+y = 0.0
+z = 0.0
+
+[agent]
+speed = 2.5
+perception_radius = 12.0
+consume_distance = 0.55
+
+[agent.position]
+x = -4.0
+y = 0.8
+z = 0.0
+
+[agent.hunger]
+initial = 52.0
+max = 100.0
+rate_per_second = 8.0
+seek_threshold = 60.0
+
+[[foods]]
+nutrition = 35.0
+[foods.position]
+x = 1.5
+y = 0.25
+z = -2.0
+
+[[foods]]
+nutrition = 30.0
+[foods.position]
+x = 4.0
+y = 0.25
+z = 2.5
+
+[[foods]]
+nutrition = 40.0
+[foods.position]
+x = -1.0
+y = 0.25
+z = 4.0
