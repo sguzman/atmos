@@ -1,6 +1,8 @@
 # Integration Milestones
 
-This file defines the recommended order of implementation.
+This file defines the recommended order for the **living-world / village integration track**.
+
+It is not the only valid order for Atmos experimentation. Independent showcase work in physical systems, fluids, mechanics, electricity, fire, vehicles, 2D design, or modeling may proceed in parallel when interesting. Those systems only enter this sequence when they are being composed into the living world.
 
 ## M0: Green baseline
 
@@ -62,3 +64,12 @@ This file defines the recommended order of implementation.
 
 - [ ] Characters, props, and buildings increasingly come from semantic geometry descriptions.
 - [ ] Visual variety scales without abandoning declarative authorship.
+
+## Parallel showcase tracks
+
+These do not gate M2-M9 and may be explored opportunistically:
+
+- `70_SYSTEMS_LAB.md` — physical systems, fluids, gears, electricity, fire, vehicles, and mixed simulations
+- `75_DECLARATIVE_2D.md` — SVG-like declarative design and 2D/3D billboards
+- `50_GENERATIVE_MODELING.md` — declarative/generative 3D modeling
+- `90_RESEARCH_TRACKS.md` — experiments that should not silently redefine production architecture
